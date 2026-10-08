@@ -185,6 +185,8 @@ button, input, select { font: inherit; color: inherit; }
 .chg.flat { color: var(--muted); }
 .sim-empty { padding: 14px 0; color: var(--ink-2); }
 
+.panel-foot { padding: 10px 20px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); }
+
 /* Trades table */
 .trades summary { cursor: pointer; font-weight: 600; font-size: 15px; }
 .trades-scroll { max-height: 320px; overflow: auto; margin-top: 10px; border-top: 1px solid var(--line); }
