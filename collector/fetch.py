@@ -11,6 +11,8 @@ Environment:
     START_YM         first contract month, default 201901
     MAX_CALLS        per-run request cap, default 9000 (dev quota is 10,000/day)
     REFRESH_MONTHS   recent months always re-fetched, default 3
+    MAX_MINUTES      stop cleanly after this many minutes, default 240, so the
+                     workflow still has time to aggregate and commit
     RTMS_BASE_URL    override endpoint (used by tests)
 """
 
@@ -199,6 +201,7 @@ def main():
     start_ym = os.environ.get("START_YM", "201901")
     max_calls = int(os.environ.get("MAX_CALLS", "9000"))
     refresh_n = int(os.environ.get("REFRESH_MONTHS", "3"))
+    deadline = time.monotonic() + 60 * float(os.environ.get("MAX_MINUTES", "240"))
 
     now_ym = datetime.now(KST).strftime("%Y%m")
     months = month_range(start_ym, now_ym)
@@ -223,7 +226,10 @@ def main():
                     jobs.append((c, ym))
         print(f"{len(codes)} codes, {len(months)} months, {len(jobs)} jobs")
 
+        t0 = time.monotonic()
         for i, (code, ym) in enumerate(jobs, 1):
+            if time.monotonic() > deadline:
+                raise QuotaExceeded("time budget reached; rerun to continue")
             try:
                 items = client.fetch_month(code, ym)
             except TransientApiError as exc:
@@ -233,8 +239,10 @@ def main():
             write_raw(RAW_DIR / code / f"{ym}.csv.gz", items)
             status["written"] += 1
             status["rows"] += len(items)
-            if i % 200 == 0:
-                print(f"{i}/{len(jobs)} jobs, {client.calls} calls")
+            if i % 100 == 0:
+                rate = (time.monotonic() - t0) / i
+                print(f"{i}/{len(jobs)} jobs, {client.calls} calls, "
+                      f"{rate:.1f}s/job, ~{rate * (len(jobs) - i) / 60:.0f} min left")
     except QuotaExceeded as exc:
         status["result"] = f"partial: {exc}"
         print(f"stopping early: {exc}")

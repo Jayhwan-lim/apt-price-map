@@ -8,6 +8,7 @@ in the cache are looked up, so reruns are cheap. Lookup order:
 Environment:
     KAKAO_REST_KEY   Kakao REST API key  [required]
     GEOCODE_MAX      per-run lookup cap, default 20000
+    GEOCODE_MINUTES  stop after this many minutes, default 45 (cache is kept)
 """
 
 import csv
@@ -42,6 +43,7 @@ def main():
     if not key:
         sys.exit("KAKAO_REST_KEY is not set")
     cap = int(os.environ.get("GEOCODE_MAX", "20000"))
+    deadline = time.monotonic() + 60 * float(os.environ.get("GEOCODE_MINUTES", "45"))
 
     cache = {}
     if GEO_FILE.exists():
@@ -57,6 +59,9 @@ def main():
     done = missed = 0
     try:
         for row in todo[:cap]:
+            if time.monotonic() > deadline:
+                print("time budget reached; the next run continues")
+                break
             hit, source = lookup(session, ADDR_URL, row["address"]), "address"
             if hit is None:
                 umd = row["address"].split()[-2] if len(row["address"].split()) > 1 else ""
