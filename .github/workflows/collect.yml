@@ -25,6 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 340
     env:
+      # Show Python progress lines live in the Actions log
+      PYTHONUNBUFFERED: "1"
       # Job-level so step `if:` conditions can see whether optional secrets exist
       KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -63,6 +65,8 @@ jobs:
             echo "no changes"
           else
             git commit -m "data: update trades $(TZ=Asia/Seoul date +%F)"
+            # Code may have been pushed while this run was collecting
+            git pull --rebase origin main
             git push
           fi
 
