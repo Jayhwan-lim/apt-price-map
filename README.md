@@ -34,6 +34,17 @@ Then run **Actions → collect-trades → Run workflow**. The dev quota is
 again the next day and it continues where it left off. A weekly schedule
 then refreshes the latest three months (late reports and cancellations).
 
+## Site
+
+`web/` is a static page (Kakao Maps + Chart.js) deployed to GitHub Pages by
+`.github/workflows/pages.yml`, on every push to `web/` and after each
+collection run. One-time setup: **Settings → Pages → Source: GitHub Actions**.
+The Kakao JavaScript key lives in `web/config.js`; it only works on domains
+registered in the Kakao app (Platform → Web).
+
+Local preview: `python -m http.server 8000 -d web` then open
+http://localhost:8000.
+
 ## Local run
 
 ```bash

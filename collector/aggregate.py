@@ -183,7 +183,7 @@ def main():
     out = {
         "generated": datetime.now(KST).isoformat(timespec="seconds"),
         "years": sorted(years),
-        "bands": [{"key": k, "label": lbl} for k, lbl, _, _ in BANDS],
+        "bands": [{"key": k, "label": lbl, "lo": lo, "hi": hi} for k, lbl, lo, hi in BANDS],
         "stat_fields": ["n", "median", "min", "max", "mean", "median_per_m2"],
         "complexes": complexes,
     }

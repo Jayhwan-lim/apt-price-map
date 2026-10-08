@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>실거래가 지도</title>
+  <meta name="description" content="서울·경기 아파트 실거래가로 같은 해 비슷한 가격이던 단지들의 가격 흐름을 비교합니다.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <section class="map-wrap" aria-label="지도">
+      <div id="map" class="map"></div>
+      <div id="map-fallback" class="map-fallback" hidden>
+        <p class="fallback-title">지도를 불러오지 못했습니다</p>
+        <p>Kakao Developers 앱의 플랫폼 → Web에 이 사이트 주소가 등록돼 있는지, 카카오맵 사용 설정이 켜져 있는지 확인하세요. 단지 검색과 비교 그래프는 그대로 쓸 수 있습니다.</p>
+      </div>
+      <div class="map-legend" id="map-legend" hidden>
+        <span id="legend-year"></span>
+        <span><i class="dot dot-ref"></i>선택한 단지</span>
+        <span><i class="dot dot-cmp"></i>그래프에 표시 중</span>
+        <span><i class="dot dot-sim"></i>비슷한 가격대</span>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="단지 비교">
+      <header class="panel-head">
+        <div class="brand">
+          <h1>실거래가 지도</h1>
+          <p class="data-note" id="data-note">데이터를 불러오는 중…</p>
+        </div>
+        <div class="search">
+          <label class="sr-only" for="search-input">단지 검색</label>
+          <input id="search-input" type="search" autocomplete="off"
+                 placeholder="단지명 또는 동 이름으로 검색 (예: 위례센트럴자이)">
+          <ul id="search-results" class="search-results" role="listbox" hidden></ul>
+        </div>
+        <div class="filters" role="group" aria-label="비교 조건">
+          <label>면적
+            <select id="band-select"></select>
+          </label>
+          <label>가격 범위
+            <select id="tol-select">
+              <option value="0.03">±3%</option>
+              <option value="0.05" selected>±5%</option>
+              <option value="0.1">±10%</option>
+            </select>
+          </label>
+          <label>비교 지역
+            <select id="scope-select">
+              <option value="all">서울·경기 전체</option>
+              <option value="seoul">서울</option>
+              <option value="gyeonggi">경기</option>
+              <option value="sgg">같은 시·군·구</option>
+            </select>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="direct-toggle"> 직거래 포함
+          </label>
+        </div>
+      </header>
+
+      <div class="panel-body" id="panel-body">
+        <div class="empty" id="empty-state">
+          <p class="empty-title">비교할 단지를 고르세요</p>
+          <p>지도에서 단지를 누르거나 위에서 검색하면, 그 단지의 연도별 가격이 나옵니다. 연도를 고르면 그해 비슷한 가격이던 단지들과 가격 흐름을 비교할 수 있습니다.</p>
+        </div>
+
+        <section class="ref" id="ref-section" hidden>
+          <div class="ref-head">
+            <h2 id="ref-name"></h2>
+            <p class="ref-meta" id="ref-meta"></p>
+          </div>
+          <p class="step-label" id="year-label">기준 연도</p>
+          <div class="years" id="year-row" role="radiogroup" aria-labelledby="year-label"></div>
+          <p class="ref-price" id="ref-price"></p>
+        </section>
+
+        <section class="chart-section" id="chart-section" hidden>
+          <div class="chart-head">
+            <h3>연도별 중위가격</h3>
+            <div class="seg" role="radiogroup" aria-label="그래프 단위">
+              <button type="button" class="seg-btn is-on" data-mode="price" aria-pressed="true">가격</button>
+              <button type="button" class="seg-btn" data-mode="index" aria-pressed="false">기준연도 = 100</button>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="chart" aria-label="연도별 중위가격 비교 그래프" role="img"></canvas></div>
+          <p class="chart-note">빈 원은 그해 거래가 3건 미만이라 대표성이 낮은 값입니다.</p>
+        </section>
+
+        <section class="similar" id="similar-section" hidden>
+          <div class="similar-head">
+            <h3 id="similar-title"></h3>
+            <p class="similar-hint">체크한 단지가 그래프에 나옵니다 (최대 7개)</p>
+          </div>
+          <ol class="similar-list" id="similar-list"></ol>
+        </section>
+
+        <details class="trades" id="trades-section" hidden>
+          <summary>선택한 단지 거래 내역</summary>
+          <div class="trades-scroll">
+            <table>
+              <thead><tr><th>계약일</th><th>전용㎡</th><th>층</th><th>금액</th><th>비고</th></tr></thead>
+              <tbody id="trades-body"></tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </aside>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
