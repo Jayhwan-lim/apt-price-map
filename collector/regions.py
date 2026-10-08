@@ -47,10 +47,12 @@ GYEONGGI = {
     "41800": ("연천군", ""), "41820": ("가평군", ""), "41830": ("양평군", ""),
 }
 
-# Parent code -> candidate child codes to probe (odd numbers by convention).
+# Parent code -> candidate child codes to probe. The API files a split city's
+# whole history under the new district codes (the parent returns nothing), so
+# every candidate number is probed rather than assuming a numbering pattern.
 SPLIT_PROBES = {
-    "41190": [str(c) for c in range(41191, 41200, 2)],
-    "41590": [str(c) for c in range(41591, 41600, 2)],
+    "41190": [str(c) for c in range(41191, 41200)],
+    "41590": [str(c) for c in range(41591, 41600)],
 }
 
 

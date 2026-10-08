@@ -6,7 +6,9 @@ Rules (agreed defaults):
     "all" includes them. Trades before Nov 2021 have no dealingGbn and are
     counted in both.
   * Area is grouped into bands (see BANDS); the web compares within a band.
-  * Per complex x band x year: [count, median, min, max, mean, median_per_m2]
+  * Per complex x band x year: [count, median, min, max, median_per_m2]
+  * "ex" holds every year; "all" holds only the years where including direct
+    trades changes the numbers (the web falls back to "ex" otherwise).
     with prices in 10,000 KRW (만원) and per-m2 in 만원/m2 on exclusive area.
 
 Outputs:
@@ -87,7 +89,6 @@ def summarize(values, areas):
         int(statistics.median(prices)),
         prices[0],
         prices[-1],
-        int(round(statistics.fmean(prices))),
         round(statistics.median(ppm), 1) if ppm else None,
     ]
 
@@ -165,9 +166,17 @@ def main():
         sido, sgg, gu = regions.get(info["stable"], ("", "", ""))
         stats = {}
         for band, by_variant in buckets[cid].items():
-            stats[band] = {}
-            for v, by_year in by_variant.items():
-                stats[band][v] = {str(yr): summarize(*pa) for yr, pa in sorted(by_year.items())}
+            ex = {str(yr): summarize(*pa) for yr, pa in sorted(by_variant.get("ex", {}).items())}
+            # "all" (direct trades included) is stored only where it differs from "ex"
+            alld = {}
+            for yr, pa in sorted(by_variant.get("all", {}).items()):
+                s_all = summarize(*pa)
+                if ex.get(str(yr)) != s_all:
+                    alld[str(yr)] = s_all
+            stats[band] = {"ex": ex}
+            if alld:
+                stats[band]["all"] = alld
+            for by_year in by_variant.values():
                 years.update(by_year)
         lat, lng = geo.get(cid, (None, None))
         complexes.append({
@@ -184,7 +193,7 @@ def main():
         "generated": datetime.now(KST).isoformat(timespec="seconds"),
         "years": sorted(years),
         "bands": [{"key": k, "label": lbl, "lo": lo, "hi": hi} for k, lbl, lo, hi in BANDS],
-        "stat_fields": ["n", "median", "min", "max", "mean", "median_per_m2"],
+        "stat_fields": ["n", "median", "min", "max", "median_per_m2"],
         "complexes": complexes,
     }
     (WEB_DATA / "complexes.json").write_text(

@@ -54,12 +54,14 @@
   const where = (c) => [c.sgg, c.gu, c.umd].filter(Boolean).join(" ");
 
   // ---------- data access ----------
-  // stat array: [n, median, min, max, mean, median_per_m2]
+  // stat array: [n, median, min, max, median_per_m2]. "all" only stores years
+  // that differ from "ex", so it falls back to "ex".
   function stat(c, year, band = state.band, variant = state.variant) {
     const b = c.st[band];
     if (!b) return null;
-    const v = b[variant] || (variant === "ex" ? null : b.ex);
-    return (v && v[String(year)]) || null;
+    const y = String(year);
+    if (variant === "all" && b.all && b.all[y]) return b.all[y];
+    return (b.ex && b.ex[y]) || null;
   }
   function yearsWithData(c) {
     return state.data.years.filter((y) => stat(c, y));
@@ -242,7 +244,7 @@
     const band = state.bands.get(state.band);
     el.refPrice.innerHTML = s
       ? `${state.year}년 ${escapeHtml(band ? band.label : state.band)} 중위가 <strong>${fmtPrice(s[1])}</strong>
-         (${s[0]}건, ${fmtPrice(s[2])}~${fmtPrice(s[3])}, ㎡당 ${s[5] ?? "–"}만)`
+         (${s[0]}건, ${fmtPrice(s[2])}~${fmtPrice(s[3])}, ㎡당 ${s[4] ?? "–"}만)`
       : "이 면적에는 거래가 없습니다. 위에서 면적을 바꿔 보세요.";
   }
 
@@ -571,7 +573,7 @@
 
     function volume(c) {
       const b = c.st[state.band];
-      const v = b && (b[state.variant] || b.all);
+      const v = b && b.ex;
       return v ? Object.values(v).reduce((s, a) => s + a[0], 0) : 0;
     }
 

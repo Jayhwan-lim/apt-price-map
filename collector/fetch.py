@@ -177,8 +177,11 @@ def shift_month(ym, delta):
 
 def probe_split_codes(client, probe_ym):
     """Find child codes of split cities that actually return data."""
+    candidates = sorted(c for children in SPLIT_PROBES.values() for c in children)
     if PROBED_FILE.exists():
-        return json.loads(PROBED_FILE.read_text())["codes"]
+        saved = json.loads(PROBED_FILE.read_text())
+        if saved.get("candidates") == candidates:
+            return saved["codes"]
     found = []
     for parent, children in SPLIT_PROBES.items():
         for child in children:
@@ -190,7 +193,8 @@ def probe_split_codes(client, probe_ym):
                 found.append(child)
                 print(f"probe: {child} (child of {parent}) has data")
     PROBED_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PROBED_FILE.write_text(json.dumps({"probe_ym": probe_ym, "codes": found}, indent=2))
+    PROBED_FILE.write_text(json.dumps(
+        {"probe_ym": probe_ym, "candidates": candidates, "codes": found}, indent=2))
     return found
 
 
