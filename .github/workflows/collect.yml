@@ -1,0 +1,95 @@
+name: collect-trades
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_ym:
+        description: "First contract month (YYYYMM)"
+        default: "201901"
+      max_calls:
+        description: "Request cap for this run (dev quota is 10,000/day)"
+        default: "9000"
+  schedule:
+    # Mondays 04:13 KST (Sunday 19:13 UTC): refresh recent months, fill gaps
+    - cron: "13 19 * * 0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect-trades
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      # Job-level so step `if:` conditions can see whether optional secrets exist
+      KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Fetch trades
+        id: fetch
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          START_YM: ${{ inputs.start_ym || '201901' }}
+          MAX_CALLS: ${{ inputs.max_calls || '9000' }}
+        run: python collector/fetch.py
+
+      - name: Aggregate
+        if: always() && steps.fetch.outcome != 'skipped'
+        run: python collector/aggregate.py
+
+      - name: Geocode new complexes
+        if: always() && env.KAKAO_REST_KEY != ''
+        run: python collector/geocode.py && python collector/aggregate.py
+
+      - name: Commit data
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data web/data
+          if git diff --cached --quiet; then
+            echo "no changes"
+          else
+            git commit -m "data: update trades $(TZ=Asia/Seoul date +%F)"
+            git push
+          fi
+
+      - name: Notify Slack
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          FETCH_OUTCOME: ${{ steps.fetch.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          s = {}
+          try:
+              s = json.load(open("data/fetch_status.json", encoding="utf-8"))
+          except Exception:
+              pass
+          lines = [
+              "[Claude] 아파트 실거래가 수집",
+              f"결과: {s.get('result', os.environ['FETCH_OUTCOME'])}",
+              f"호출 {s.get('calls', '-')}회 · 파일 {s.get('written', '-')}개 · 거래 {s.get('rows', '-')}건",
+              f"남은 월 파일: {s.get('remaining', '-')} · 실패: {len(s.get('failures', []))}",
+              os.environ["RUN_URL"],
+          ]
+          req = urllib.request.Request(
+              os.environ["SLACK_WEBHOOK_URL"],
+              data=json.dumps({"text": "\n".join(lines)}).encode(),
+              headers={"Content-Type": "application/json"},
+          )
+          urllib.request.urlopen(req, timeout=10)
+          PY
