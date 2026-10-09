@@ -39,6 +39,7 @@ NOW_WINDOWS = (3, 6, 12)
 import csv
 import gzip
 import json
+import math
 import statistics
 import sys
 from collections import Counter, defaultdict
@@ -215,6 +216,27 @@ def write_split(complexes, stats_by_cid, monthly, ids, regions_of):
     return {"mstart": f"{y0:04d}{m0:02d}", "mcount": count}, nw_out
 
 
+def spread_stacked(complexes, radius_m=35):
+    """Complexes geocoded to the exact same point (several complexes on one
+    lot, e.g. 상계주공 저층/고층) would sit on top of each other on the map;
+    place them evenly on a small circle so each stays clickable. Display only:
+    data/geo.csv keeps the geocoded point."""
+    groups = defaultdict(list)
+    for c in complexes:
+        if c["lat"] is not None:
+            groups[(c["lat"], c["lng"])].append(c)
+    for (lat, lng), cs in groups.items():
+        if len(cs) < 2:
+            continue
+        cs.sort(key=lambda c: c["key"])
+        dlat = radius_m / 111_000
+        dlng = dlat / max(0.2, math.cos(math.radians(lat)))
+        for i, c in enumerate(cs):
+            a = 2 * math.pi * i / len(cs)
+            c["lat"] = round(lat + dlat * math.sin(a), 5)
+            c["lng"] = round(lng + dlng * math.cos(a), 5)
+
+
 def main():
     regions = base_regions()
     shared = shared_lots()
@@ -325,6 +347,8 @@ def main():
             "b": [b for b in band_order if b in stats],
             "v": sum(a[0] for v in stats.values() for a in v["ex"].values()),
         })
+
+    spread_stacked(complexes)
 
     WEB_DATA.mkdir(parents=True, exist_ok=True)
     mmeta, nw = write_split(complexes, stats_by_cid, monthly, ids,
