@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261010c">
+  <link rel="stylesheet" href="style.css?v=20261010d">
 </head>
 <body>
   <div class="app">
@@ -23,7 +23,7 @@
         <span><i class="dot dot-ref"></i>선택한 단지</span>
         <span><i class="dot dot-cmp"></i>그래프에 표시 중</span>
         <span><i class="dot dot-sim"></i>비슷한 가격대</span>
-        <span><i class="dot dot-small"></i>라벨이 겹친 단지 (회색: 이 면적 거래 없음)</span>
+        <span><i class="dot dot-small"></i>라벨이 겹친 단지 (회색: 비슷한 면적 거래 없음)</span>
       </div>
     </section>
 
@@ -44,7 +44,7 @@
           <ul id="search-results" class="search-results" role="listbox" hidden></ul>
         </div>
         <div class="filters" role="group" aria-label="비교 조건">
-          <label id="band-label">선택 단지 면적
+          <label id="band-label">선택 단지 면적 (전용)
             <select id="band-select"></select>
           </label>
           <label id="cmpband-label">비교 평형
@@ -162,7 +162,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="config.js?v=20261010c"></script>
-  <script src="app.js?v=20261010c"></script>
+  <script src="config.js?v=20261010d"></script>
+  <script src="app.js?v=20261010d"></script>
 </body>
 </html>

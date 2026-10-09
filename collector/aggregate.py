@@ -5,7 +5,7 @@ Rules (agreed defaults):
   * Two statistic variants: "ex" excludes direct trades (dealingGbn == 직거래),
     "all" includes them. Trades before Nov 2021 have no dealingGbn and are
     counted in both.
-  * Area is grouped into bands (see BANDS); the web compares within a band.
+  * Area is grouped into each complex's own area types (see area_types).
   * Per complex x band x year: [count, median, min, max, median_per_m2]
   * "ex" holds every year; "all" holds only the years where including direct
     trades changes the numbers (the web falls back to "ex" otherwise).
@@ -56,22 +56,39 @@ INDEX_FILE = ROOT / "data" / "complex_index.csv"
 WEB_DATA = ROOT / "web" / "data"
 KST = timezone(timedelta(hours=9))
 
-# (key, label, lower bound inclusive, upper bound exclusive) on exclusive area m2
-BANDS = [
-    ("lt50", "50㎡ 미만", 0, 50),
-    ("59", "59㎡ (50~66)", 50, 66),
-    ("74", "74㎡ (66~80)", 66, 80),
-    ("84", "84㎡ (80~96)", 80, 96),
-    ("100", "100㎡대 (96~120)", 96, 120),
-    ("gt120", "120㎡ 이상", 120, 10_000),
-]
+# Area types: each complex's own unit sizes. Exclusive areas (non-cancelled
+# trades) are sorted and grouped; an area more than TYPE_GAP m2 above the
+# group's smallest starts a new type (84.94/84.97/84.99 = one type; 33.18,
+# 39.53 and 49.86 = three). A type's key is the floor of its most traded area
+# ("84"), with one decimal if two types of a complex would share it.
+TYPE_GAP = 2.0
 
 
-def band_of(area):
-    for key, _, lo, hi in BANDS:
-        if lo <= area < hi:
-            return key
-    return None
+def area_types(counts):
+    """counts: Counter(area -> trades). Returns {key: [min, max, mode, n]}."""
+    groups = []
+    for a in sorted(counts):
+        if groups and a - groups[-1][0] <= TYPE_GAP:
+            groups[-1][1][a] = counts[a]
+        else:
+            groups.append([a, {a: counts[a]}])
+    modes = [max(g[1], key=lambda a: (g[1][a], a)) for g in groups]
+    floors = Counter(int(m) for m in modes)
+    out = {}
+    for (lo, areas), mode in zip(groups, modes):
+        key = str(int(mode)) if floors[int(mode)] == 1 else f"{mode:.1f}"
+        out[key] = [round(lo, 2), round(max(areas), 2), round(mode, 2), sum(areas.values())]
+    return out
+
+
+def type_of(types, area):
+    """Type key for an area: the type whose range holds it, else the nearest."""
+    best, dist = None, None
+    for key, (lo, hi, _mode, _n) in types.items():
+        d = 0 if lo <= area <= hi else min(abs(area - lo), abs(area - hi))
+        if dist is None or d < dist:
+            best, dist = key, d
+    return best
 
 
 def to_int(text):
@@ -173,9 +190,11 @@ def write_split(complexes, stats_by_cid, monthly, ids, regions_of):
     nw_out = {}
     for cid, by_band in monthly.items():
         i = str(ids[cid])
-        st = stats_by_cid.get(cid, {})
+        rec = stats_by_cid.get(cid, {"st": {}, "ty": {}})
+        st = rec["st"]
         m_full = {b: month_arrays(cells, y0, m0) for b, cells in by_band.items()}
-        region_out[regions_of[cid]][i] = {"st": st, "m": m_full}
+        # "ty": area type ranges {key: [min, max, mode, trades]}
+        region_out[regions_of[cid]][i] = {"st": st, "m": m_full, "ty": rec["ty"]}
         nw = {}
         for b, cells in by_band.items():
             e = now_price(cells, y0, m0, last_mi, False)
@@ -243,10 +262,12 @@ def main():
     seen = {}
     meta = defaultdict(lambda: {"names": Counter(), "build": Counter(), "road": "",
                                 "last": "", "umd": "", "jibun": "", "stable": ""})
-    # stats[cid][band][variant][year] -> (prices, areas)
+    # deals[cid] -> [(area, amount, year, month, direct)] for non-cancelled trades
+    deals = defaultdict(list)
+    # stats[cid][type][variant][year] -> (prices, areas)
     buckets = defaultdict(lambda: defaultdict(lambda: defaultdict(
         lambda: defaultdict(lambda: ([], [])))))
-    # monthly[cid][band][(y, m)] -> [n_ex, sum_ex, n_all, sum_all]
+    # monthly[cid][type][(y, m)] -> [n_ex, sum_ex, n_all, sum_all]
     monthly = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [0, 0, 0, 0])))
     trades = defaultdict(lambda: defaultdict(list))
     n_rows = n_dup = n_cancel = 0
@@ -287,20 +308,26 @@ def main():
         if cancelled:
             n_cancel += 1
             continue
-        band = band_of(area)
-        if band is None:
-            continue
-        cell = monthly[cid][band][(y, m)]
-        cell[2] += 1
-        cell[3] += amount
-        if not direct:
-            cell[0] += 1
-            cell[1] += amount
-        variants = ("all",) if direct else ("all", "ex")
-        for v in variants:
-            prices, areas = buckets[cid][band][v][y]
-            prices.append(amount)
-            areas.append(area)
+        deals[cid].append((area, amount, y, m, direct))
+
+    # Area types per complex, then bucket every trade by its type.
+    types_by_cid = {}
+    for cid, rows in deals.items():
+        types = area_types(Counter(a for a, *_ in rows))
+        types_by_cid[cid] = types
+        for area, amount, y, m, direct in rows:
+            band = type_of(types, area)
+            cell = monthly[cid][band][(y, m)]
+            cell[2] += 1
+            cell[3] += amount
+            if not direct:
+                cell[0] += 1
+                cell[1] += amount
+            for v in (("all",) if direct else ("all", "ex")):
+                prices, areas = buckets[cid][band][v][y]
+                prices.append(amount)
+                areas.append(area)
+    del deals
 
     # Stable ids: sort complex keys so ids don't depend on file read order.
     ordered = sorted(meta)
@@ -314,7 +341,6 @@ def main():
                     geo[r["key"]] = (float(r["lat"]), float(r["lng"]))
 
     complexes, years, stats_by_cid = [], set(), {}
-    band_order = [k for k, *_ in BANDS]
     for cid in ordered:
         info = meta[cid]
         sido, sgg, gu = regions.get(info["stable"], ("", "", ""))
@@ -335,7 +361,8 @@ def main():
         # Complexes split off a shared lot start from the lot's coordinates
         # until geocode.py finds their own.
         lat, lng = geo.get(cid) or geo.get(cid.split("#")[0]) or (None, None)
-        stats_by_cid[cid] = stats
+        types = types_by_cid.get(cid, {})
+        stats_by_cid[cid] = {"st": stats, "ty": {k: types[k] for k in stats}}
         complexes.append({
             "id": ids[cid], "key": cid,
             "nm": info.get("latest_name") or info["names"].most_common(1)[0][0],
@@ -344,7 +371,8 @@ def main():
             "by": int(info["build"].most_common(1)[0][0]) if info["build"] else None,
             "lat": round(lat, 5) if lat is not None else None,
             "lng": round(lng, 5) if lng is not None else None,
-            "b": [b for b in band_order if b in stats],
+            # area types with trades, smallest first
+            "b": sorted(stats, key=lambda k: types[k][2]),
             "v": sum(a[0] for v in stats.values() for a in v["ex"].values()),
         })
 
@@ -361,7 +389,6 @@ def main():
     out = {
         "generated": datetime.now(KST).isoformat(timespec="seconds"),
         "years": sorted(years),
-        "bands": [{"key": k, "label": lbl, "lo": lo, "hi": hi} for k, lbl, lo, hi in BANDS],
         "stat_fields": ["n", "median", "min", "max", "median_per_m2"],
         **mmeta,
         "complexes": complexes,

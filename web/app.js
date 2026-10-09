@@ -26,13 +26,30 @@
     light: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"],
     dark: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
   };
-  // Area bands: label and the usual 평형 (supply-area) name for that size.
-  const BAND_INFO = {
-    lt50: ["50㎡ 미만", "약 20평형 이하"], 59: ["59㎡", "약 25평형"], 74: ["74㎡", "약 30평형"],
-    84: ["84㎡", "약 34평형"], 100: ["100㎡대", "약 40평형대"], gt120: ["120㎡ 이상", "약 50평형 이상"],
-  };
-  const bandShort = (b) => (BAND_INFO[b] ? BAND_INFO[b][0] : b);
-  const bandTag = (b) => (BAND_INFO[b] ? `${BAND_INFO[b][0]}, ${BAND_INFO[b][1]}` : b);
+  // Area types are each complex's own unit sizes, keyed by exclusive area
+  // ("84", "39", or "84.9" when two types share a floor). 평형 is the usual
+  // supply-area name, estimated from the exclusive area.
+  const LEGACY_BANDS = { lt50: 40, 59: 59, 74: 74, 84: 84, 100: 105, gt120: 130 };
+  const areaOf = (k) => (k in LEGACY_BANDS && isNaN(Number(k)) ? LEGACY_BANDS[k] : Number(k));
+  function pyeong(area) {
+    const ratio = area <= 60 ? 0.73 : area <= 85 ? 0.75 : 0.77;
+    return Math.round(area / 3.3058 / ratio);
+  }
+  const bandShort = (k) => `${k}㎡`;
+  const bandTag = (k) => `${k}㎡, 약 ${pyeong(areaOf(k))}평형`;
+  // Same size for "같은 면적만": within 3㎡ or 6%, whichever is larger.
+  const sameSize = (a, b) => Math.abs(a - b) <= Math.max(3, 0.06 * b);
+  // The complex's type closest to `key` (any distance unless `within`).
+  function nearestType(c, key, within = false) {
+    if (c.b.includes(key)) return key;
+    const t = areaOf(key);
+    let best = null, d = Infinity;
+    for (const k of c.b) {
+      const dk = Math.abs(Number(k) - t);
+      if (dk < d) { best = k; d = dk; }
+    }
+    return best != null && (!within || sameSize(Number(best), t)) ? best : null;
+  }
 
   const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
   const palette = () => (darkQuery.matches ? SERIES.dark : SERIES.light);
@@ -278,8 +295,7 @@
       c._norm = normalize(c.nm);
       state.byKey.set(c.key, c);
     }
-    for (const b of data.bands) state.bands.set(b.key, b);
-    el.band.innerHTML = data.bands.map((b) => `<option value="${b.key}">${b.label}</option>`).join("");
+    el.band.innerHTML = `<option value="">단지를 고르면 나옵니다</option>`;
     const updated = (data.generated || "").slice(0, 10);
     el.note.textContent = `${updated} 갱신, 단지 ${data.complexes.length.toLocaleString("ko-KR")}개`;
     return true;
@@ -331,20 +347,24 @@
   async function selectComplex(c, { pan = false, month = null, year = null, band = null } = {}) {
     if (pan) map.panTo(c);
     if (state.start !== "complex") setStart("complex", { run: false });
-    if (band && c.b.includes(band)) { state.band = band; el.band.value = band; }
+    if (band && c.b.includes(band)) state.band = band;
     state.ref = c;
     state.loading = true;
     render();
     await loadRegion(c.code);
     if (state.ref !== c) return;
-    // A complex can lack the current band; switch to its most-traded band.
+    // Keep the previous size if this complex has a similar type; otherwise
+    // start from its most traded type.
     if (!c.b.includes(state.band)) {
-      const st = (regionStore.get(c.code)[c.id] || {}).st || {};
-      const best = Object.entries(st)
-        .map(([b, v]) => [b, Object.values(v.ex || {}).reduce((s, a) => s + a[0], 0)])
-        .sort((a, b) => b[1] - a[1])[0];
-      if (best) { state.band = best[0]; el.band.value = best[0]; }
+      const near = nearestType(c, state.band, true);
+      if (near) state.band = near;
+      else {
+        const ty = (regionStore.get(c.code)[c.id] || {}).ty || {};
+        const best = Object.entries(ty).sort((a, b) => b[1][3] - a[1][3])[0];
+        if (best) state.band = best[0];
+      }
     }
+    fillTypeSelect(c);
     if (month != null && month >= 0 && month <= lastMi()) {
       state.basis = "month";
       state.month = month;
@@ -356,6 +376,17 @@
     }
     recompute({ resetChecks: true });
     loadTrades(c);
+  }
+
+  // Area type select for the selected complex: every type with its trade count.
+  function fillTypeSelect(c) {
+    const ty = ((regionStore.get(c.code) || {})[c.id] || {}).ty || {};
+    el.band.innerHTML = c.b.map((k) => {
+      const t = ty[k];
+      const range = t && t[0] !== t[1] ? ` (${t[0]}~${t[1]})` : "";
+      return `<option value="${k}">${escapeHtml(bandTag(k))}${range}${t ? ` · ${t[3].toLocaleString("ko-KR")}건` : ""}</option>`;
+    }).join("");
+    el.band.value = state.band;
   }
 
   // Default base year: the latest complete year with enough trades (so there
@@ -450,7 +481,12 @@
   // point. Any band qualifies unless "same band only" is on.
   function findSimilar(ref, refBase) {
     const out = matchCandidates(refBase.avg, pointBase, {
-      exclude: ref, scopeRef: ref, bandsOf: (c) => (state.sameBand ? [state.band] : c.b),
+      exclude: ref, scopeRef: ref,
+      bandsOf: (c) => {
+        if (!state.sameBand) return c.b;
+        const k = nearestType(c, state.band, true);
+        return k ? [k] : [];
+      },
     });
     return sortEntries(out, "desc");
   }
@@ -932,8 +968,8 @@
     }
     if (state.ref !== c) return;
     const rows = (payload && payload.complexes[String(c.id)]) || [];
-    const band = state.data.bands.find((b) => b.key === state.band);
-    const inBand = (a) => (!band || band.lo == null ? true : a >= band.lo && a < band.hi);
+    const t = (((regionStore.get(c.code) || {})[c.id] || {}).ty || {})[state.band];
+    const inBand = (a) => (!t ? true : a >= t[0] - 0.01 && a <= t[1] + 0.01);
     const shown = rows.filter((r) => inBand(r[1])).slice(0, 60);
     el.tradesBody.innerHTML = shown.length ? shown.map(([d, a, f, amt, direct, cancelled]) =>
       `<tr class="${cancelled ? "cancelled" : ""}">
@@ -1020,7 +1056,7 @@
       pin.className = `pin ${kind}`;
       if (color) pin.style.setProperty("--c", color);
       pin.title = `${c.nm} (${where(c)})`;
-      const tag = band !== state.band ? `<span class="b">${escapeHtml(bandShort(band))}</span>` : "";
+      const tag = band && band !== state.band ? `<span class="b">${escapeHtml(bandShort(band))}</span>` : "";
       pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
       pin.addEventListener("click", () => selectComplex(c));
       wrap.appendChild(pin);
@@ -1037,7 +1073,7 @@
       const dot = document.createElement("button");
       dot.type = "button";
       dot.className = `dot-pin${hasBand ? "" : " no-band"}`;
-      dot.title = `${c.nm} (${where(c)})${hasBand ? "" : ", 이 면적 거래 없음"}`;
+      dot.title = `${c.nm} (${where(c)})${hasBand ? "" : ", 비슷한 면적 거래 없음"}`;
       dot.setAttribute("aria-label", c.nm);
       dot.addEventListener("click", () => selectComplex(c));
       return new kakao.maps.CustomOverlay({
@@ -1080,11 +1116,11 @@
         for (const [c] of want.values()) if (mappable(c)) placed.push(pt(c));
         let n = 0;
         for (const c of inView) {
-          const hasBand = c.b.includes(state.band);
+          const hasBand = !!nearestType(c, state.band, true);
           const p = pt(c);
           if (hasBand && n < LABEL_CAP && !clashes(p)) {
             placed.push(p);
-            want.set(c.key, [c, "", null, state.band]);
+            want.set(c.key, [c, "", null, nearestType(c, state.band, true)]);
             n++;
           } else {
             want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null, state.band]);
@@ -1099,9 +1135,8 @@
       }
       el.legend.hidden = !state.ref;
       if (state.ref && hasPoint()) {
-        const band = state.bands.get(state.band);
         document.getElementById("legend-year").textContent =
-          `핀 가격: ${baseYear()}년 ${band ? bandShort(band.key) : ""} 연간 중위가 (다른 평형은 핀에 표시)`;
+          `핀 가격: ${baseYear()}년 ${bandShort(state.band)} 안팎 평형의 연간 중위가 (평형이 다르면 핀에 표시)`;
       }
     }
 
@@ -1149,14 +1184,13 @@
   }
   function readHash() {
     const p = new URLSearchParams(location.hash.slice(1));
-    if (p.get("b") && state.bands.has(p.get("b"))) state.band = p.get("b");
+    if (p.get("b")) state.band = p.get("b"); // legacy band keys map to the nearest type
     if (p.get("d") === "1") state.variant = "all";
     if (p.get("t")) state.tol = Number(p.get("t")) || 0.05;
     if (p.get("s")) state.scope = p.get("s");
     if (p.get("m") === "index") state.mode = "index";
     if (p.get("g") === "year") state.gran = "year";
     if (p.get("sb") === "1") state.sameBand = true;
-    el.band.value = state.band;
     el.tol.value = String(state.tol);
     el.scope.value = state.scope;
     el.direct.checked = state.variant === "all";
@@ -1211,7 +1245,7 @@
     });
     el.search.addEventListener("blur", () => setTimeout(closeSearch, 120));
 
-    el.band.addEventListener("change", () => { state.band = el.band.value; afterFilter(true); });
+    el.band.addEventListener("change", () => { if (!el.band.value) return; state.band = el.band.value; afterFilter(true); });
     el.tol.addEventListener("change", () => { state.tol = Number(el.tol.value); afterFilter(false); });
     el.scope.addEventListener("change", () => { state.scope = el.scope.value; afterFilter(false); });
     el.direct.addEventListener("change", () => { state.variant = el.direct.checked ? "all" : "ex"; afterFilter(false); });
