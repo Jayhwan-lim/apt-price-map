@@ -3,6 +3,12 @@
 Map-based comparison of Seoul/Gyeonggi apartment trade prices, built on the
 MOLIT RTMS open API (data.go.kr, `getRTMSDataSvcAptTradeDev`).
 
+Live at https://geuttaeneolma.com/ (Cloudflare Pages, builds `web/` on every
+push to main). The GitHub Pages copy at
+https://jayhwan-lim.github.io/apt-price-map/ stays up as a fallback; its
+canonical link points to the new domain. The pre-move state is kept on branch
+`backup/github-pages-v1`.
+
 Pick a complex and a base point, and see every complex whose base price was
 within ±5% of it, ranked by how much each has risen since.
 
