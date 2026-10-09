@@ -283,7 +283,10 @@
   }
 
   async function loadData() {
-    const data = await loadJson(CFG.dataUrl);
+    // index.html starts this fetch during HTML parsing so the download
+    // overlaps script loading; fall back to a direct fetch if absent.
+    let data = window.__dataPromise ? await window.__dataPromise : null;
+    if (!data) data = await loadJson(CFG.dataUrl);
     if (!data) {
       el.note.textContent = "아직 수집된 데이터가 없습니다";
       el.empty.querySelector("p:last-child").textContent =
@@ -291,6 +294,8 @@
       return false;
     }
     state.data = data;
+    if (window.__aptMapPerf) window.__aptMapPerf.dataReadyMs =
+      Math.round(performance.now() - window.__aptMapPerf.startedAt);
     for (const c of data.complexes) {
       c._norm = normalize(c.nm);
       state.byKey.set(c.key, c);
@@ -879,8 +884,27 @@
   // Lines need each complex's full history, so load the regions of the
   // selected and checked complexes first.
   let chartSeq = 0;
+  // Chart.js is only needed after a complex is selected, so it loads on
+  // demand instead of blocking the initial page load.
+  let chartLibPromise = null;
+  function loadChartLib() {
+    if (window.Chart) return Promise.resolve();
+    if (!chartLibPromise) {
+      chartLibPromise = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      }).catch(() => { chartLibPromise = null; });
+    }
+    return chartLibPromise;
+  }
+
   async function renderChart() {
-    if (!window.Chart || state.loading || !state.refBase) return;
+    if (state.loading || !state.refBase) return;
+    await loadChartLib();
+    if (!window.Chart) return;
     const my = ++chartSeq;
     const entries = state.checked.map((k) => state.entries.get(k)).filter(Boolean);
     const codes = new Set([state.ref.code, ...entries.map((e) => e.c.code)]);
@@ -980,8 +1004,18 @@
 
   // ---------- map ----------
   const map = (() => {
-    let kmap = null, clusterer = null, markersBand = null;
+    let kmap = null, clusterer = null;
     const overlays = new Map(); // key -> CustomOverlay
+    const markerCache = new Map(); // Reuse markers when returning to a region
+    let activeMarkerKeys = new Set();
+    const MARKER_CACHE_LIMIT = 4000;
+    const VIEWPORT_PADDING = 0.25;
+    const perf = {
+      startedAt: performance.now(), sdkReadyMs: null, dataReadyMs: null,
+      firstRefreshMs: null, lastRefreshMs: null,
+      markersCreated: 0, visibleClusterMarkers: 0, visibleOverlays: 0,
+    };
+    window.__aptMapPerf = perf;
 
     function load() {
       return new Promise((resolve) => {
@@ -1003,9 +1037,10 @@
         el.fallback.hidden = false;
         return;
       }
+      perf.sdkReadyMs = Math.round(performance.now() - perf.startedAt);
       kmap = new kakao.maps.Map(document.getElementById("map"), {
-        center: new kakao.maps.LatLng(37.48, 127.03),
-        level: 9,
+        center: new kakao.maps.LatLng(37.505, 127.005),
+        level: 6,
       });
       kmap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
       clusterer = new kakao.maps.MarkerClusterer({
@@ -1022,18 +1057,59 @@
 
     const mappable = (c) => c.lat != null && c.lng != null;
 
-    function rebuildMarkers() {
-      if (!clusterer || markersBand === state.band) return;
-      markersBand = state.band;
-      clusterer.clear();
-      const markers = [];
-      for (const c of state.data.complexes) {
-        if (!mappable(c)) continue;
-        const m = new kakao.maps.Marker({ position: new kakao.maps.LatLng(c.lat, c.lng) });
-        kakao.maps.event.addListener(m, "click", () => selectComplex(c));
-        markers.push(m);
+    // Build only visible cluster markers, with extra margin for grid clustering.
+    // The close-up views (level <= 5) display prices/dots without creating
+    // thousands of otherwise invisible Kakao marker objects.
+    function syncClusterMarkers() {
+      if (!clusterer) return;
+      if (kmap.getLevel() <= LABEL_LEVEL) {
+        if (activeMarkerKeys.size) {
+          clusterer.setMap(null);
+          clusterer.clear();
+          activeMarkerKeys.clear();
+        }
+        perf.visibleClusterMarkers = 0;
+        return;
       }
-      clusterer.addMarkers(markers);
+      const bounds = kmap.getBounds();
+      const sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
+      const latPad = (ne.getLat() - sw.getLat()) * VIEWPORT_PADDING;
+      const lngPad = (ne.getLng() - sw.getLng()) * VIEWPORT_PADDING;
+      const south = sw.getLat() - latPad, north = ne.getLat() + latPad;
+      const west = sw.getLng() - lngPad, east = ne.getLng() + lngPad;
+      const visible = [];
+      const nextKeys = new Set();
+      for (const c of state.data.complexes) {
+        if (!mappable(c) || c.lat < south || c.lat > north || c.lng < west || c.lng > east) continue;
+        nextKeys.add(c.key);
+        let marker = markerCache.get(c.key);
+        if (marker) {
+          markerCache.delete(c.key); // recent positions kept in cache
+          markerCache.set(c.key, marker);
+        } else {
+          marker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(c.lat, c.lng) });
+          kakao.maps.event.addListener(marker, "click", () => selectComplex(c));
+          markerCache.set(c.key, marker);
+          perf.markersCreated++;
+        }
+        visible.push(marker);
+      }
+      const unchanged = nextKeys.size === activeMarkerKeys.size &&
+        [...nextKeys].every((key) => activeMarkerKeys.has(key));
+      if (!unchanged) {
+        clusterer.setMap(null);
+        clusterer.clear();
+        clusterer.addMarkers(visible);
+        activeMarkerKeys = nextKeys;
+        clusterer.setMap(kmap);
+      }
+      perf.visibleClusterMarkers = visible.length;
+      // Evict stale markers only; never remove active viewport markers.
+      while (markerCache.size > MARKER_CACHE_LIMIT) {
+        const oldest = markerCache.keys().next().value;
+        if (activeMarkerKeys.has(oldest)) break;
+        markerCache.delete(oldest);
+      }
     }
 
     // Pin price: with a base month, that year's median for the band;
@@ -1084,7 +1160,8 @@
 
     function refresh() {
       if (!kmap || !state.data) return;
-      rebuildMarkers();
+      const refreshStartedAt = performance.now();
+      syncClusterMarkers();
       for (const o of overlays.values()) o.setMap(null);
       overlays.clear();
 
@@ -1100,7 +1177,6 @@
       }
 
       const level = kmap.getLevel();
-      clusterer.setMap(level > LABEL_LEVEL ? kmap : null);
       if (level <= LABEL_LEVEL) {
         const bounds = kmap.getBounds();
         const inView = state.data.complexes.filter((c) =>
@@ -1133,6 +1209,9 @@
         o.setMap(kmap);
         overlays.set(key, o);
       }
+      perf.visibleOverlays = overlays.size;
+      perf.lastRefreshMs = Math.round((performance.now() - refreshStartedAt) * 10) / 10;
+      if (perf.firstRefreshMs == null) perf.firstRefreshMs = Math.round(performance.now() - perf.startedAt);
       el.legend.hidden = !state.ref;
       if (state.ref && hasPoint()) {
         document.getElementById("legend-year").textContent =
