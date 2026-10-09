@@ -13,6 +13,15 @@ within ±5% of it, ranked by how much each has risen since.
   12-month average with fewer trades is shown as 표본 부족 and ranks after
   solid ones.
 
+Two ways to start:
+
+- 단지로 시작: pick a complex and a base year/month (above).
+- 가격으로 시작: pick a base month and a budget; every complex x area band
+  whose base price that month (same rule) was within the tolerance, any
+  size, sorted by growth either way. Uses the same year/<YYYY>.json files
+  (1-2 per search, 0.35-0.74 MB gzip each), so no extra index is built.
+  URL keys: st=p, pm=YYYYMM, pa=<억>, ps=asc (t/s/d shared).
+
 ## Pipeline
 
 | Step | Script | Output |

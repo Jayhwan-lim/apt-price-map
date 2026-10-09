@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261010">
+  <link rel="stylesheet" href="style.css?v=20261010b">
 </head>
 <body>
   <div class="app">
@@ -33,17 +33,21 @@
           <h1>그땐 얼마?</h1>
           <p class="data-note" id="data-note">데이터를 불러오는 중…</p>
         </div>
-        <div class="search">
+        <div class="start-tabs" role="tablist" aria-label="시작 방식">
+          <button type="button" role="tab" class="start-tab is-on" data-start="complex" aria-selected="true">단지로 시작</button>
+          <button type="button" role="tab" class="start-tab" data-start="price" aria-selected="false">가격으로 시작</button>
+        </div>
+        <div class="search" id="search-box">
           <label class="sr-only" for="search-input">단지 검색</label>
           <input id="search-input" type="search" autocomplete="off"
                  placeholder="단지명 또는 동 이름으로 검색 (예: 원베일리, 은마)">
           <ul id="search-results" class="search-results" role="listbox" hidden></ul>
         </div>
         <div class="filters" role="group" aria-label="비교 조건">
-          <label>선택 단지 면적
+          <label id="band-label">선택 단지 면적
             <select id="band-select"></select>
           </label>
-          <label>비교 평형
+          <label id="cmpband-label">비교 평형
             <select id="cmpband-select">
               <option value="all" selected>다른 면적도 포함 (같은 총액 기준)</option>
               <option value="same">같은 면적만</option>
@@ -71,6 +75,35 @@
       </header>
 
       <div class="panel-body" id="panel-body">
+        <section class="price" id="price-section" hidden>
+          <p class="step-label" id="p-year-label">기준 연도</p>
+          <div class="years" id="p-year-row" role="radiogroup" aria-labelledby="p-year-label"></div>
+          <p class="step-label" id="p-month-label">기준 월</p>
+          <div class="months" id="p-month-row" role="radiogroup" aria-labelledby="p-month-label"></div>
+          <p class="step-label"><label for="p-amount">그때 금액</label></p>
+          <div class="amount-row">
+            <span class="amount-input"><input id="p-amount" type="number" inputmode="decimal" min="0.5" max="200" step="0.1" value="8"> 억</span>
+            <div class="chips" id="p-chips">
+              <button type="button" class="chip" data-v="3">3억</button>
+              <button type="button" class="chip" data-v="5">5억</button>
+              <button type="button" class="chip" data-v="8">8억</button>
+              <button type="button" class="chip" data-v="10">10억</button>
+              <button type="button" class="chip" data-v="15">15억</button>
+              <button type="button" class="chip" data-v="20">20억</button>
+            </div>
+          </div>
+          <p class="price-rule">면적과 상관없이 총액으로 찾습니다. 각 단지·평형의 기준가는 단지 모드와 같은 규칙(기준월 전후 1개월 평균, 5건 미만이면 전후 3개월까지, 그래도 부족하면 연 중앙값)으로 냅니다.</p>
+          <div class="price-head">
+            <h3 id="p-summary">조건을 고르세요</h3>
+            <div class="seg" role="group" aria-label="정렬">
+              <button type="button" class="seg-btn is-on" data-psort="desc" aria-pressed="true">상승률 높은 순</button>
+              <button type="button" class="seg-btn" data-psort="asc" aria-pressed="false">낮은 순</button>
+            </div>
+          </div>
+          <p class="similar-hint" id="p-hint">단지 이름을 누르면 그 단지·평형·기준월로 단지 모드 비교가 열립니다.</p>
+          <ol class="similar-list" id="p-list"></ol>
+        </section>
+
         <div class="empty" id="empty-state">
           <p class="empty-title">비교할 단지를 고르세요</p>
           <p>지도에서 단지를 누르거나 위에서 검색하면, 그 단지의 연도별 가격이 나옵니다. 연도를 고르면 그해 비슷한 가격이던 단지들과 가격 흐름을 비교할 수 있습니다.</p>
@@ -129,7 +162,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="config.js?v=20261010"></script>
-  <script src="app.js?v=20261010"></script>
+  <script src="config.js?v=20261010b"></script>
+  <script src="app.js?v=20261010b"></script>
 </body>
 </html>

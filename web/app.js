@@ -49,6 +49,9 @@
     simSec: $("similar-section"), simTitle: $("similar-title"), simList: $("similar-list"),
     tradesSec: $("trades-section"), tradesBody: $("trades-body"),
     fallback: $("map-fallback"), legend: $("map-legend"),
+    searchBox: $("search-box"), bandLabel: $("band-label"), cmpBandLabel: $("cmpband-label"),
+    priceSec: $("price-section"), pYears: $("p-year-row"), pMonths: $("p-month-row"),
+    pAmount: $("p-amount"), pChips: $("p-chips"), pSummary: $("p-summary"), pList: $("p-list"),
   };
 
   const state = {
@@ -62,6 +65,8 @@
     entries: new Map(),     // entry key ("complexKey#band") -> similar entry
     checked: [],            // entry keys, in the order they were checked
     slotOf: new Map(),      // entry key -> palette slot (1..7), sticky while checked
+    start: "complex",       // "complex" (start from a complex) or "price" (from a month + budget)
+    price: { mi: null, amount: 80000, sort: "desc", results: [], loading: false },
   };
 
   // ---------- formatting ----------
@@ -202,7 +207,7 @@
   function basePrice(c, band, mi) {
     for (const k of WINDOWS) {
       const w = windowAvg(c, mi - k, mi + k, band);
-      if (w && w.n >= MIN_N) return { ...w, kind: "avg", k, end: w.hi };
+      if (w && w.n >= MIN_N) return { ...w, kind: "avg", k, end: w.hi, mi };
     }
     const y = ymOf(mi)[0];
     const s = stat(c, y, band);
@@ -323,8 +328,10 @@
   }
 
   // ---------- selection ----------
-  async function selectComplex(c, { pan = false, month = null, year = null } = {}) {
+  async function selectComplex(c, { pan = false, month = null, year = null, band = null } = {}) {
     if (pan) map.panTo(c);
+    if (state.start !== "complex") setStart("complex", { run: false });
+    if (band && c.b.includes(band)) { state.band = band; el.band.value = band; }
     state.ref = c;
     state.loading = true;
     render();
@@ -338,7 +345,7 @@
         .sort((a, b) => b[1] - a[1])[0];
       if (best) { state.band = best[0]; el.band.value = best[0]; }
     }
-    if (month != null && months(c).has(month)) {
+    if (month != null && month >= 0 && month <= lastMi()) {
       state.basis = "month";
       state.month = month;
       state.viewYear = ymOf(month)[0];
@@ -367,7 +374,7 @@
     if (!c) { render(); return; }
     await loadRegion(c.code);
     if (my !== recomputeSeq) return;
-    if (state.basis === "month" && (state.month == null || !months(c).has(state.month))) {
+    if (state.basis === "month" && (state.month == null || state.month < 0 || state.month > lastMi())) {
       state.basis = "year";
       state.month = null;
     }
@@ -397,28 +404,23 @@
     render();
   }
 
-  // (complex, area band) pairs whose base price for the base month (same rule
-  // as the selected complex) was within the tolerance of the selected
-  // complex's base price. Any band qualifies unless "same band only" is on.
-  // Sorted by growth since then, highest first; growth is bucketed to 0.5%p
-  // so near-ties go to the larger sample.
-  function findSimilar(ref, refBase) {
-    const mi = state.month;
-    const base = refBase.avg;
+  // Shared matching for both modes: every (complex, area band) whose base
+  // price (baseOf) is within the tolerance of `target`. Thin or outlying
+  // bases follow the same rules everywhere.
+  function matchCandidates(target, baseOf, { exclude = null, bandsOf = (c) => c.b, scopeRef = null } = {}) {
     const out = [];
     for (const c of state.data.complexes) {
-      if (c === ref) continue;
+      if (c === exclude) continue;
       if (state.scope === "seoul" && c.sido !== "서울특별시") continue;
       if (state.scope === "gyeonggi" && c.sido !== "경기도") continue;
-      if (state.scope === "sgg" && (c.code !== ref.code || c.gu !== ref.gu)) continue;
-      const bands = state.sameBand ? [state.band] : c.b;
-      for (const band of bands) {
+      if (state.scope === "sgg" && scopeRef && (c.code !== scopeRef.code || c.gu !== scopeRef.gu)) continue;
+      for (const band of bandsOf(c)) {
         if (!c.b.includes(band)) continue;
-        const w = pointBase(c, band);
+        const w = baseOf(c, band);
         if (!w) continue;
-        const diff = (w.avg - base) / base;
+        const diff = (w.avg - target) / target;
         if (Math.abs(diff) > state.tol) continue;
-        if (w.kind === "avg" && isOutlier(c, band, mi, w.avg)) continue;
+        if (w.kind === "avg" && isOutlier(c, band, w.mi, w.avg)) continue;
         const now = nowPrice(c, band);
         const growth = growthOf(w, now);
         const sample = now ? Math.min(w.n, now.n) : w.n;
@@ -426,16 +428,31 @@
         out.push({ c, band, key: `${c.key}#${band}`, w, diff, now, growth, sample, solid });
       }
     }
+    return out;
+  }
+
+  // Growth order (dir "desc" or "asc"), bucketed to 0.5%p with larger samples
+  // first; thin current prices after solid ones; no growth last.
+  function sortEntries(out, dir = "desc") {
     const bucket = (g) => Math.round(g * 200);
+    const sign = dir === "asc" ? -1 : 1;
     out.sort((a, b) => {
       if (a.growth == null && b.growth == null) return Math.abs(a.diff) - Math.abs(b.diff);
       if (a.growth == null) return 1;
       if (b.growth == null) return -1;
-      // Current prices from thin samples rank after solid ones.
       if (a.solid !== b.solid) return a.solid ? -1 : 1;
-      return bucket(b.growth) - bucket(a.growth) || b.sample - a.sample;
+      return sign * (bucket(b.growth) - bucket(a.growth)) || b.sample - a.sample;
     });
     return out;
+  }
+
+  // Complex mode: other complexes priced like the selected one at its base
+  // point. Any band qualifies unless "same band only" is on.
+  function findSimilar(ref, refBase) {
+    const out = matchCandidates(refBase.avg, pointBase, {
+      exclude: ref, scopeRef: ref, bandsOf: (c) => (state.sameBand ? [state.band] : c.b),
+    });
+    return sortEntries(out, "desc");
   }
 
   function refGrowth() {
@@ -462,8 +479,10 @@
 
   // ---------- rendering ----------
   function render() {
+    if (state.start === "price") { renderPrice(); map.refresh(); writeHash(); return; }
     const c = state.ref;
     const has = !!c;
+    el.priceSec.hidden = true;
     el.empty.hidden = has;
     el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = !has;
     el.tradesSec.hidden = !has;
@@ -474,6 +493,138 @@
     }
     map.refresh();
     writeHash();
+  }
+
+  // ---------- price mode ----------
+  // Start from a month and a budget: every (complex, band) whose base price
+  // that month (same rule as complex mode) was within the tolerance.
+  function setStart(mode, { run = true } = {}) {
+    state.start = mode;
+    const price = mode === "price";
+    document.querySelectorAll(".start-tab").forEach((t) => {
+      const on = t.dataset.start === mode;
+      t.classList.toggle("is-on", on);
+      t.setAttribute("aria-selected", String(on));
+    });
+    el.searchBox.hidden = price;
+    for (const [lab, sel] of [[el.bandLabel, el.band], [el.cmpBandLabel, el.cmpBand]]) {
+      lab.classList.toggle("is-off", price);
+      sel.disabled = price;
+    }
+    const sgg = el.scope.querySelector('option[value="sgg"]');
+    sgg.disabled = price;
+    if (price && state.scope === "sgg") { state.scope = "all"; el.scope.value = "all"; }
+    if (price) {
+      state.ref = null;
+      state.checked = [];
+      state.slotOf.clear();
+      el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = true;
+      el.priceSec.hidden = false;
+      if (state.price.mi == null) state.price.mi = Math.max(0, lastMi() - 60);
+      if (run) runPrice();
+    } else {
+      state.similar = [];
+      el.priceSec.hidden = true;
+      if (run) render();
+    }
+  }
+
+  let priceSeq = 0;
+  async function runPrice() {
+    const my = ++priceSeq;
+    const P = state.price;
+    if (!yearsReady(P.mi)) {
+      P.loading = true;
+      render();
+      await ensureYears(P.mi);
+      if (my !== priceSeq || state.start !== "price") return;
+    }
+    P.loading = false;
+    P.results = sortEntries(matchCandidates(P.amount, (c, band) => basePrice(c, band, P.mi)), P.sort);
+    state.similar = P.results.slice(0, SIM_LIMIT);
+    render();
+  }
+
+  function median(xs) {
+    const a = [...xs].sort((x, y) => x - y);
+    if (!a.length) return null;
+    const m = a.length >> 1;
+    return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  }
+
+  function renderPrice() {
+    const P = state.price;
+    el.priceSec.hidden = false;
+    const [py, pm] = ymOf(P.mi);
+    // Year and month buttons, same look as complex mode.
+    el.pYears.innerHTML = state.data.years.map((y) => `<button type="button" class="year-btn compact" role="radio"
+        aria-checked="${y === py}" data-year="${y}"><span class="p">${y}</span></button>`).join("");
+    el.pMonths.innerHTML = Array.from({ length: 12 }, (_, i) => {
+      const mi = miOf(py, i + 1);
+      const ok = mi >= 0 && mi <= lastMi();
+      return `<button type="button" class="month-btn" role="radio" aria-checked="${mi === P.mi}"
+          data-mi="${mi}" ${ok ? "" : "disabled"}><span class="p">${i + 1}월</span></button>`;
+    }).join("");
+    const eok = P.amount / 10000;
+    if (document.activeElement !== el.pAmount) el.pAmount.value = String(Math.round(eok * 10) / 10);
+    el.pChips.querySelectorAll(".chip").forEach((ch) => ch.classList.toggle("is-on", Number(ch.dataset.v) === eok));
+    document.querySelectorAll("[data-psort]").forEach((b) => {
+      const on = b.dataset.psort === P.sort;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    const when = `${py}년 ${pm}월`;
+    const tolTxt = `±${Math.round(state.tol * 100)}%`;
+    if (P.loading) {
+      el.pSummary.textContent = `${when} 데이터를 불러오는 중…`;
+      el.pList.innerHTML = `<li class="sim-empty">거래 데이터를 불러오는 중입니다 (연도별 파일, 1~2개).</li>`;
+      return;
+    }
+    const all = P.results;
+    if (!all.length) {
+      el.pSummary.textContent = `${when}에 ${fmtPrice(P.amount)}(${tolTxt})이던 단지가 없습니다`;
+      el.pList.innerHTML = `<li class="sim-empty">금액이나 가격 범위, 비교 지역을 바꿔 보세요.</li>`;
+      return;
+    }
+    const nowMed = median(all.filter((e) => e.now).map((e) => e.now.avg));
+    const gs = all.filter((e) => e.growth != null && e.solid).map((e) => e.growth);
+    const range = gs.length ? `, 상승률 최고 ${fmtPct(Math.max(...gs))} · 중앙 ${fmtPct(median(gs))} · 최저 ${fmtPct(Math.min(...gs))}` : "";
+    const rangeNote = gs.length ? ` (상승률 요약은 현재가 표본 ${MIN_N}건 이상 ${gs.length}곳 기준)` : "";
+    el.pSummary.textContent = `${when}에 ${fmtPrice(P.amount)}(${tolTxt})이던 단지·평형 ${all.length.toLocaleString("ko-KR")}곳 — 지금 중앙값 ${fmtPrice(nowMed)}${range}`;
+    document.getElementById("p-hint").textContent = `단지 이름을 누르면 그 단지·평형·기준월로 단지 모드 비교가 열립니다.${rangeNote}`;
+    const shown = all.slice(0, SIM_LIMIT);
+    el.pList.innerHTML = shown.map((e, i) => priceRow(e, i + 1, py)).join("") +
+      (all.length > shown.length ? `<li class="sim-empty">상위 ${shown.length}곳만 표시합니다 (전체 ${all.length.toLocaleString("ko-KR")}곳). 정렬을 바꾸면 반대쪽 끝부터 보입니다.</li>` : "");
+  }
+
+  function priceRow({ c, band, key, w, diff, now, growth }, rank, year) {
+    const sampleNote = growth != null && now && Math.min(w.n, now.n) < SMALL_N
+      ? `<div class="sample">표본 ${w.n}·${now.n}건</div>` : "";
+    const ppm = perM2(c, band, year);
+    return `<li class="sim-item price-item">
+      <span class="rank">${rank}</span>
+      <button type="button" class="sim-name" data-key="${escapeAttr(key)}" title="이 단지·평형으로 단지 모드 비교 열기">${escapeHtml(c.nm)}</button>
+      <span class="band-tag other" title="전용 ${escapeAttr(bandTag(band))}">${escapeHtml(bandTag(band))}${ppm ? ` · ${ppm}` : ""}</span>
+      <div class="sim-nums">
+        <div class="now">${now ? `현재 ${fmtPrice(now.avg)}` : "최근 거래 부족"}</div>
+        <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준 대비 ${fmtPct(growth)}`}</div>
+        ${sampleNote}
+      </div>
+      <div class="sim-meta">${escapeHtml(where(c))}${c.by ? `, ${c.by}년` : ""}<br>기준: ${baseText(w, diff)}${now ? `<br>현재: ${nowText(now)}` : ""}</div>
+    </li>`;
+  }
+
+  // Open a price-mode result in complex mode at the same band and month.
+  function openFromPrice(key) {
+    const e = state.price.results.find((x) => x.key === key);
+    if (!e) return;
+    selectComplex(e.c, { pan: true, month: state.price.mi, band: e.band });
+  }
+
+  function setPriceAmount(eok) {
+    if (!(eok > 0)) return;
+    state.price.amount = Math.round(eok * 10000);
+    runPrice();
   }
 
   function renderRef() {
@@ -966,8 +1117,21 @@
   })();
 
   // ---------- URL state ----------
+  // Price mode keys: st=p, pm=YYYYMM, pa=억, ps=asc (t/s/d shared).
   function writeHash() {
     const p = new URLSearchParams();
+    if (state.start === "price") {
+      const [y, m] = ymOf(state.price.mi);
+      p.set("st", "p");
+      p.set("pm", `${y}${String(m).padStart(2, "0")}`);
+      p.set("pa", String(Math.round(state.price.amount / 1000) / 10));
+      if (state.price.sort === "asc") p.set("ps", "asc");
+      if (state.variant === "all") p.set("d", "1");
+      if (state.tol !== 0.05) p.set("t", state.tol);
+      if (state.scope !== "all") p.set("s", state.scope);
+      history.replaceState(null, "", `#${p.toString()}`);
+      return;
+    }
     if (state.ref) p.set("k", state.ref.key);
     if (state.ref && state.basis === "year" && state.viewYear != null) p.set("y", state.viewYear);
     if (state.ref && state.basis === "month" && state.month != null && state.data) {
@@ -998,6 +1162,18 @@
     el.direct.checked = state.variant === "all";
     el.cmpBand.value = state.sameBand ? "same" : "all";
     setSegButtons();
+    if (p.get("st") === "p") {
+      const pm = p.get("pm");
+      if (pm && /^\d{6}$/.test(pm)) {
+        const mi = miOf(Number(pm.slice(0, 4)), Number(pm.slice(4, 6)));
+        if (mi >= 0 && mi <= lastMi()) state.price.mi = mi;
+      }
+      const pa = Number(p.get("pa"));
+      if (pa > 0) state.price.amount = Math.round(pa * 10000);
+      if (p.get("ps") === "asc") state.price.sort = "asc";
+      setStart("price");
+      return;
+    }
     const c = p.get("k") && state.byKey.get(p.get("k"));
     if (!c) return;
     let month = null;
@@ -1007,7 +1183,7 @@
   }
 
   function setSegButtons() {
-    document.querySelectorAll(".seg-btn").forEach((b) => {
+    document.querySelectorAll(".seg-btn[data-mode], .seg-btn[data-gran]").forEach((b) => {
       const on = b.dataset.mode ? b.dataset.mode === state.mode : b.dataset.gran === state.gran;
       b.classList.toggle("is-on", on);
       b.setAttribute("aria-pressed", String(on));
@@ -1072,6 +1248,13 @@
     document.querySelectorAll(".seg").forEach((seg) => seg.addEventListener("click", (e) => {
       const b = e.target.closest(".seg-btn");
       if (!b) return;
+      if (b.dataset.psort) {
+        state.price.sort = b.dataset.psort;
+        sortEntries(state.price.results, state.price.sort);
+        state.similar = state.price.results.slice(0, SIM_LIMIT);
+        render();
+        return;
+      }
       if (b.dataset.mode) state.mode = b.dataset.mode;
       if (b.dataset.gran) state.gran = b.dataset.gran;
       setSegButtons();
@@ -1080,10 +1263,40 @@
     }));
 
     darkQuery.addEventListener("change", () => { if (state.ref) { renderSimilar(); renderChart(); map.refresh(); } });
+
+    // Price mode
+    document.querySelector(".start-tabs").addEventListener("click", (e) => {
+      const t = e.target.closest(".start-tab");
+      if (t && t.dataset.start !== state.start) setStart(t.dataset.start);
+    });
+    el.pYears.addEventListener("click", (e) => {
+      const b = e.target.closest(".year-btn");
+      if (!b) return;
+      const [, m] = ymOf(state.price.mi);
+      state.price.mi = Math.max(0, Math.min(lastMi(), miOf(Number(b.dataset.year), m)));
+      runPrice();
+    });
+    el.pMonths.addEventListener("click", (e) => {
+      const b = e.target.closest(".month-btn");
+      if (!b || b.disabled) return;
+      state.price.mi = Number(b.dataset.mi);
+      runPrice();
+    });
+    el.pChips.addEventListener("click", (e) => {
+      const ch = e.target.closest(".chip");
+      if (ch) setPriceAmount(Number(ch.dataset.v));
+    });
+    el.pAmount.addEventListener("change", () => setPriceAmount(Number(el.pAmount.value)));
+    el.pAmount.addEventListener("keydown", (e) => { if (e.key === "Enter") setPriceAmount(Number(el.pAmount.value)); });
+    el.pList.addEventListener("click", (e) => {
+      const b = e.target.closest(".sim-name");
+      if (b) openFromPrice(b.dataset.key);
+    });
   }
 
   function afterFilter(bandChanged) {
     monthCache.clear();
+    if (state.start === "price") { runPrice(); return; }
     if (!state.ref) { map.refresh(); writeHash(); return; }
     recompute({ resetChecks: bandChanged });
     if (bandChanged) loadTrades(state.ref);
@@ -1097,7 +1310,7 @@
   const escapeAttr = escapeHtml;
 
   // Expose helpers for tests.
-  window.__aptMap = { state, findSimilar, stat, months, windowAvg, basePrice, nowPrice, fmtPrice, selectComplex };
+  window.__aptMap = { state, findSimilar, matchCandidates, stat, months, windowAvg, basePrice, nowPrice, fmtPrice, selectComplex, setStart };
 
   (async function start() {
     bind();

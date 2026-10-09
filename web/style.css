@@ -115,6 +115,34 @@ button, input, select { font: inherit; color: inherit; }
 .search-results li[aria-selected="true"], .search-results li:hover { background: var(--plane); }
 .search-results .where { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
+.start-tabs { display: flex; gap: 0; border: 1px solid var(--line-strong); border-radius: var(--radius-s); overflow: hidden; }
+.start-tab {
+  flex: 1; border: 0; background: var(--surface); padding: 7px 10px; cursor: pointer;
+  font-size: 13.5px; color: var(--ink-2);
+}
+.start-tab + .start-tab { border-left: 1px solid var(--line-strong); }
+.start-tab.is-on { background: var(--ink); color: var(--surface); font-weight: 600; }
+.filters label.is-off { opacity: 0.45; }
+.amount-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 6px; }
+.amount-input { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.amount-input input {
+  width: 92px; height: 36px; padding: 0 10px; font-size: 16px; font-weight: 600;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-s); background: var(--surface);
+  font-variant-numeric: tabular-nums;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px;
+  padding: 4px 11px; font-size: 12.5px; cursor: pointer;
+}
+.chip.is-on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.year-btn.compact { padding: 6px 10px; }
+.price .years { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
+.price-rule { margin-top: 10px; font-size: 12px; color: var(--muted); }
+.price-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.price-head h3 { font-size: 15px; font-weight: 600; }
+.price-item .sim-name { text-align: left; }
+.price-item .rank { font-size: 12px; }
 .filters { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; }
 .filters label { display: grid; gap: 2px; font-size: 12px; color: var(--ink-2); }
 .filters select {
