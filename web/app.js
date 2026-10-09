@@ -10,6 +10,9 @@
   const SIM_LIMIT = 60;
   const NOW_WINDOW = 3;   // "current price" = trade-weighted average of the latest 3 months
   const NOW_LOOKBACK = 12; // ...or of the 3 months up to its last trade within a year
+  // A month's average this far from its year's median (with 3+ trades that
+  // year) is likely a gift/related-party sale; such matches are skipped.
+  const OUTLIER = 0.25;
   const LABEL_LEVEL = 5;  // Kakao level at or below which every complex gets a price label
   const LABEL_CAP = 300;
 
@@ -18,6 +21,14 @@
     light: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"],
     dark: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
   };
+  // Area bands: label and the usual 평형 (supply-area) name for that size.
+  const BAND_INFO = {
+    lt50: ["50㎡ 미만", "약 20평형 이하"], 59: ["59㎡", "약 25평형"], 74: ["74㎡", "약 30평형"],
+    84: ["84㎡", "약 34평형"], 100: ["100㎡대", "약 40평형대"], gt120: ["120㎡ 이상", "약 50평형 이상"],
+  };
+  const bandShort = (b) => (BAND_INFO[b] ? BAND_INFO[b][0] : b);
+  const bandTag = (b) => (BAND_INFO[b] ? `${BAND_INFO[b][0]}, ${BAND_INFO[b][1]}` : b);
+
   const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
   const palette = () => (darkQuery.matches ? SERIES.dark : SERIES.light);
   const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -26,6 +37,7 @@
   const el = {
     note: $("data-note"), search: $("search-input"), results: $("search-results"),
     band: $("band-select"), tol: $("tol-select"), scope: $("scope-select"), direct: $("direct-toggle"),
+    cmpBand: $("cmpband-select"),
     empty: $("empty-state"), refSec: $("ref-section"), refName: $("ref-name"), refMeta: $("ref-meta"),
     years: $("year-row"), months: $("month-row"), refPrice: $("ref-price"),
     chartSec: $("chart-section"), canvas: $("chart"), chartTitle: $("chart-title"), chartNote: $("chart-note"),
@@ -37,9 +49,11 @@
   const state = {
     data: null, monthly: null, byKey: new Map(), bands: new Map(),
     band: "84", variant: "ex", tol: 0.05, scope: "all", mode: "price", gran: "month",
+    sameBand: false,        // false: compare against every area band of other complexes
     ref: null, month: null, viewYear: null, similar: [], similarTotal: 0,
-    checked: [],            // complex keys, in the order they were checked
-    slotOf: new Map(),      // key -> palette slot (1..7), sticky while checked
+    entries: new Map(),     // entry key ("complexKey#band") -> similar entry
+    checked: [],            // entry keys, in the order they were checked
+    slotOf: new Map(),      // entry key -> palette slot (1..7), sticky while checked
   };
   let monthlyReady = null;
 
@@ -102,13 +116,13 @@
     monthCache.set(key, m);
     return m;
   }
-  function monthVal(c, mi) {
-    const v = months(c).get(mi);
+  function monthVal(c, mi, band = state.band) {
+    const v = months(c, band).get(mi);
     return v ? { n: v[0], avg: v[1] } : null;
   }
   // Trade-weighted average over months lo..hi inclusive.
-  function windowAvg(c, lo, hi) {
-    const m = months(c);
+  function windowAvg(c, lo, hi, band = state.band) {
+    const m = months(c, band);
     let n = 0, sum = 0;
     for (let i = lo; i <= hi; i++) {
       const v = m.get(i);
@@ -118,16 +132,22 @@
   }
   // Current price: latest 3 months, or the 3 months up to the complex's last
   // trade if that was within the past year.
-  function nowPrice(c) {
+  function nowPrice(c, band = state.band) {
     const L = lastMi();
-    const w = windowAvg(c, L - NOW_WINDOW + 1, L);
+    const w = windowAvg(c, L - NOW_WINDOW + 1, L, band);
     if (w) return w;
     let last = -1;
-    for (const k of months(c).keys()) if (k <= L && k > last) last = k;
+    for (const k of months(c, band).keys()) if (k <= L && k > last) last = k;
     if (last < 0 || last < L - NOW_LOOKBACK + 1) return null;
-    return windowAvg(c, last - NOW_WINDOW + 1, last);
+    return windowAvg(c, last - NOW_WINDOW + 1, last, band);
   }
   const fmtRange = (w) => (w.lo === w.hi ? fmtMonth(w.lo) : `${fmtMonth(Math.max(w.lo, 0))}~${fmtMonth(w.hi)}`);
+
+  function isOutlier(c, band, mi, avg) {
+    const s = stat(c, ymOf(mi)[0], band);
+    if (!s || s[0] < 3) return false;
+    return Math.abs(avg - s[1]) / s[1] > OUTLIER;
+  }
 
   function latestMonth(c, inYear = null) {
     let best = -1;
@@ -238,39 +258,46 @@
     const found = state.month != null ? findSimilar(c, state.month) : [];
     state.similarTotal = found.length;
     state.similar = found.slice(0, SIM_LIMIT);
+    state.entries = new Map(state.similar.map((e) => [e.key, e]));
     if (resetChecks) {
       state.checked = [];
       state.slotOf.clear();
-      state.similar.slice(0, DEFAULT_CHECKED).forEach((s) => check(s.c.key, true));
+      state.similar.slice(0, DEFAULT_CHECKED).forEach((s) => check(s.key, true));
     } else {
-      // Keep checks that are still in the list; colors stay with their complex.
-      const keep = new Set(state.similar.map((s) => s.c.key));
+      // Keep checks that are still in the list; colors stay with their entry.
+      const keep = new Set(state.similar.map((s) => s.key));
       state.checked.filter((k) => !keep.has(k)).forEach((k) => check(k, false));
     }
     render();
   }
 
-  // Complexes whose average price around the base month (±1 month, so a
-  // complex without a trade in that exact month still counts) was within the
-  // tolerance of the selected complex's average that month. Sorted by how
-  // much they have risen since, highest first.
+  // (complex, area band) pairs whose average price around the base month
+  // (±1 month, so one without a trade in that exact month still counts) was
+  // within the tolerance of the selected complex's average that month. Any
+  // band qualifies unless "same band only" is on: a smaller unit in a pricier
+  // area may have cost the same. Sorted by growth since, highest first.
   function findSimilar(ref, mi) {
     const baseV = monthVal(ref, mi);
     if (!baseV) return [];
     const base = baseV.avg;
     const out = [];
     for (const c of state.data.complexes) {
-      if (c === ref || !c.st[state.band]) continue;
+      if (c === ref) continue;
       if (state.scope === "seoul" && c.sido !== "서울특별시") continue;
       if (state.scope === "gyeonggi" && c.sido !== "경기도") continue;
       if (state.scope === "sgg" && (c.code !== ref.code || c.gu !== ref.gu)) continue;
-      const w = windowAvg(c, mi - 1, mi + 1);
-      if (!w) continue;
-      const diff = (w.avg - base) / base;
-      if (Math.abs(diff) > state.tol) continue;
-      const now = nowPrice(c);
-      const growth = now && now.hi > mi + 1 ? (now.avg - w.avg) / w.avg : null;
-      out.push({ c, w, diff, now, growth });
+      const bands = state.sameBand ? [state.band] : Object.keys(c.st);
+      for (const band of bands) {
+        if (!c.st[band]) continue;
+        const w = windowAvg(c, mi - 1, mi + 1, band);
+        if (!w) continue;
+        const diff = (w.avg - base) / base;
+        if (Math.abs(diff) > state.tol) continue;
+        if (isOutlier(c, band, mi, w.avg)) continue;
+        const now = nowPrice(c, band);
+        const growth = now && now.hi > mi + 1 ? (now.avg - w.avg) / w.avg : null;
+        out.push({ c, band, key: `${c.key}#${band}`, w, diff, now, growth });
+      }
     }
     out.sort((a, b) => {
       if (a.growth == null && b.growth == null) return Math.abs(a.diff) - Math.abs(b.diff);
@@ -361,21 +388,23 @@
       ? `현재 <strong>${fmtPrice(now.avg)}</strong> (${fmtRange(now)} 평균, ${now.n}건)`
       : "최근 1년 안에 거래가 없어 현재가를 낼 수 없습니다";
     el.refPrice.innerHTML = `
-      <span>${fmtMonthKo(state.month)} 평균 <strong>${fmtPrice(base.avg)}</strong> (${base.n}건)</span>
+      <span>${fmtMonthKo(state.month)} 평균 <strong>${fmtPrice(base.avg)}</strong> (${base.n}건, 전용 ${escapeHtml(bandTag(state.band))})</span>
       <span>${nowTxt}</span>
+      ${isOutlier(c, state.band, state.month, base.avg)
+        ? `<span class="warn">이 달 가격이 ${ymOf(state.month)[0]}년 중위가와 25% 넘게 차이 납니다. 특수거래일 수 있으니 다른 달도 확인해 보세요.</span>` : ""}
       <span class="growth"><span class="pct chg ${chgClass(growth)}">${growth == null ? "–" : fmtPct(growth)}</span><br>
         <span class="lbl">기준월 대비</span></span>`;
   }
 
-  function simRow({ c, w, diff, now, growth }, isRef) {
+  function simRow({ c, band, key, w, diff, now, growth }, isRef) {
     const pal = palette();
-    const on = isRef || state.slotOf.has(c.key);
-    const color = isRef ? pal[0] : on ? pal[state.slotOf.get(c.key)] : "transparent";
+    const on = isRef || state.slotOf.has(key);
+    const color = isRef ? pal[0] : on ? pal[state.slotOf.get(key)] : "transparent";
     const full = !on && state.checked.length >= MAX_CMP;
     const first = isRef
       ? `<span class="rank">기준</span>`
-      : `<input type="checkbox" data-key="${escapeAttr(c.key)}" ${on ? "checked" : ""} ${full ? "disabled" : ""}
-               aria-label="${escapeAttr(c.nm)} 그래프에 표시">`;
+      : `<input type="checkbox" data-key="${escapeAttr(key)}" ${on ? "checked" : ""} ${full ? "disabled" : ""}
+               aria-label="${escapeAttr(c.nm)} ${escapeAttr(bandShort(band))} 그래프에 표시">`;
     const baseTxt = isRef
       ? `${fmtMonthKo(state.month)} 평균 ${fmtPrice(w.avg)} (${w.n}건)`
       : `${fmtRange(w)} 평균 ${fmtPrice(w.avg)} (기준 대비 ${fmtPct(diff)}, ${w.n}건)`;
@@ -383,6 +412,7 @@
       ${first}
       <button type="button" class="sim-name" data-key="${escapeAttr(c.key)}">
         <span class="swatch" style="background:${color}"></span>${escapeHtml(c.nm)}${isRef ? `<span class="ref-tag">선택한 단지</span>` : ""}</button>
+      <span class="band-tag${band === state.band ? "" : " other"}" title="전용 ${escapeAttr(bandTag(band))}">${escapeHtml(bandTag(band))}</span>
       <div class="sim-nums">
         <div class="now">${now ? `현재 ${fmtPrice(now.avg)}` : "최근 거래 없음"}</div>
         <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준월 대비 ${fmtPct(growth)}`}</div>
@@ -395,11 +425,11 @@
     const n = state.similar.length, total = state.similarTotal;
     const tolTxt = `±${Math.round(state.tol * 100)}%`;
     el.simTitle.textContent = state.month != null
-      ? `${fmtMonthKo(state.month)}에 비슷한 가격(${tolTxt})이던 단지 ${total.toLocaleString("ko-KR")}개` +
+      ? `${fmtMonthKo(state.month)}에 비슷한 가격(${tolTxt})이던 ${state.sameBand ? "같은 평형 " : ""}단지 ${total.toLocaleString("ko-KR")}개` +
         (total > n ? ` 중 상위 ${n}개` : "")
       : "비슷한 가격대 단지";
     const { base, now, growth } = state.month != null ? refGrowth() : {};
-    const refRow = base ? simRow({ c: state.ref, w: base, diff: 0, now, growth }, true) : "";
+    const refRow = base ? simRow({ c: state.ref, band: state.band, key: "", w: base, diff: 0, now, growth }, true) : "";
     if (!n) {
       el.simList.innerHTML = refRow +
         `<li class="sim-empty">조건에 맞는 단지가 없습니다. 가격 범위를 넓히거나 비교 지역을 바꿔 보세요.</li>`;
@@ -446,34 +476,34 @@
 
   // Index base: the selected complex uses its exact base-month average,
   // comparison complexes the ±1-month average they were matched on.
-  function indexBase(c, isRef) {
-    if (state.gran === "year") return (stat(c, ymOf(state.month)[0]) || [])[1] || null;
-    const w = isRef ? monthVal(c, state.month) : windowAvg(c, state.month - 1, state.month + 1);
+  function indexBase(c, band, isRef) {
+    if (state.gran === "year") return (stat(c, ymOf(state.month)[0], band) || [])[1] || null;
+    const w = isRef ? monthVal(c, state.month, band) : windowAvg(c, state.month - 1, state.month + 1, band);
     return w ? w.avg : null;
   }
 
-  function seriesFor(c, isRef) {
-    const base = state.mode === "index" ? indexBase(c, isRef) : null;
+  function seriesFor(c, band, isRef) {
+    const base = state.mode === "index" ? indexBase(c, band, isRef) : null;
     const toV = (m) => (state.mode === "index" ? (base ? (m / base) * 100 : null) : m / 10000);
     if (state.gran === "year") {
       return state.data.years.map((y) => {
-        const s = stat(c, y);
+        const s = stat(c, y, band);
         return s ? { v: toV(s[1]), n: s[0], m: s[1] } : { v: null, n: 0, m: null };
       });
     }
     return Array.from({ length: state.monthly.count }, (_, mi) => {
-      const v = monthVal(c, mi);
+      const v = monthVal(c, mi, band);
       return v ? { v: toV(v.avg), n: v.n, m: v.avg } : { v: null, n: 0, m: null };
     });
   }
 
-  function dataset(c, color, isRef) {
-    const pts = seriesFor(c, isRef);
+  function dataset(c, band, color, isRef) {
+    const pts = seriesFor(c, band, isRef);
     const surface = cssVar("--surface");
     const thin = state.gran === "year" ? 3 : 2;
     const monthly = state.gran === "month";
     return {
-      label: c.nm,
+      label: `${c.nm} ${bandShort(band)}`,
       data: pts.map((p) => p.v),
       _pts: pts,
       borderColor: color,
@@ -493,10 +523,10 @@
   function renderChart() {
     if (!window.Chart || state.month == null) return;
     const pal = palette();
-    const sets = [dataset(state.ref, pal[0], true)];
+    const sets = [dataset(state.ref, state.band, pal[0], true)];
     for (const key of state.checked) {
-      const c = state.byKey.get(key);
-      if (c) sets.push(dataset(c, pal[state.slotOf.get(key)], false));
+      const e = state.entries.get(key);
+      if (e) sets.push(dataset(e.c, e.band, pal[state.slotOf.get(key)], false));
     }
     const monthly = state.gran === "month";
     const labels = monthly
@@ -639,16 +669,16 @@
     }
 
     // Pin price: yearly median in the base month's year (or the latest year).
-    function pinYear(c) {
+    function pinYear(c, band) {
       const y = state.month != null ? ymOf(state.month)[0] : null;
-      if (y != null && stat(c, y)) return y;
-      const ys = state.data.years.filter((yy) => stat(c, yy));
+      if (y != null && stat(c, y, band)) return y;
+      const ys = state.data.years.filter((yy) => stat(c, yy, band));
       return ys.length ? ys[ys.length - 1] : null;
     }
 
-    function pinFor(c, kind, color) {
-      const y = pinYear(c);
-      const s = y != null ? stat(c, y) : null;
+    function pinFor(c, kind, color, band = state.band) {
+      const y = pinYear(c, band);
+      const s = y != null ? stat(c, y, band) : null;
       const wrap = document.createElement("div");
       wrap.className = "pin-wrap";
       const pin = document.createElement("button");
@@ -656,7 +686,8 @@
       pin.className = `pin ${kind}`;
       if (color) pin.style.setProperty("--c", color);
       pin.title = `${c.nm} (${where(c)})`;
-      pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${s ? fmtPrice(s[1]) : "–"}</span>`;
+      const tag = band !== state.band ? `<span class="b">${escapeHtml(bandShort(band))}</span>` : "";
+      pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${s ? fmtPrice(s[1]) : "–"}</span>`;
       pin.addEventListener("click", () => selectComplex(c));
       wrap.appendChild(pin);
       return new kakao.maps.CustomOverlay({
@@ -688,11 +719,14 @@
       overlays.clear();
 
       const pal = palette();
-      const want = new Map(); // key -> [complex, kind, color]
-      if (state.ref) want.set(state.ref.key, [state.ref, "ref", null]);
+      const want = new Map(); // complex key -> [complex, kind, color, band]
+      if (state.ref) want.set(state.ref.key, [state.ref, "ref", null, state.band]);
+      // A complex can match in several bands; a checked band wins the pin.
       for (const s of state.similar) {
-        const on = state.slotOf.has(s.c.key);
-        want.set(s.c.key, [s.c, on ? "cmp" : "sim", on ? pal[state.slotOf.get(s.c.key)] : null]);
+        const on = state.slotOf.has(s.key);
+        const cur = want.get(s.c.key);
+        if (cur && (cur[1] === "ref" || cur[1] === "cmp" || !on)) continue;
+        want.set(s.c.key, [s.c, on ? "cmp" : "sim", on ? pal[state.slotOf.get(s.key)] : null, s.band]);
       }
 
       const level = kmap.getLevel();
@@ -716,16 +750,16 @@
           const p = pt(c);
           if (hasBand && n < LABEL_CAP && !clashes(p)) {
             placed.push(p);
-            want.set(c.key, [c, "", null]);
+            want.set(c.key, [c, "", null, state.band]);
             n++;
           } else {
-            want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null]);
+            want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null, state.band]);
           }
         }
       }
-      for (const [key, [c, kind, color]] of want) {
+      for (const [key, [c, kind, color, band]] of want) {
         if (!mappable(c)) continue;
-        const o = kind === "dot" || kind === "dot-nb" ? dotFor(c, kind === "dot") : pinFor(c, kind, color);
+        const o = kind === "dot" || kind === "dot-nb" ? dotFor(c, kind === "dot") : pinFor(c, kind, color, band);
         o.setMap(kmap);
         overlays.set(key, o);
       }
@@ -733,7 +767,7 @@
       if (state.ref && state.month != null) {
         const band = state.bands.get(state.band);
         document.getElementById("legend-year").textContent =
-          `핀 가격: ${ymOf(state.month)[0]}년 ${band ? band.key.replace(/^lt|^gt/, "") : ""}㎡대 중위가`;
+          `핀 가격: ${ymOf(state.month)[0]}년 ${band ? bandShort(band.key) : ""} 연간 중위가 (다른 평형은 핀에 표시)`;
       }
     }
 
@@ -766,6 +800,7 @@
     if (state.scope !== "all") p.set("s", state.scope);
     if (state.mode !== "price") p.set("m", state.mode);
     if (state.gran !== "month") p.set("g", state.gran);
+    if (state.sameBand) p.set("sb", "1");
     history.replaceState(null, "", `#${p.toString()}`);
   }
   function readHash() {
@@ -776,10 +811,12 @@
     if (p.get("s")) state.scope = p.get("s");
     if (p.get("m") === "index") state.mode = "index";
     if (p.get("g") === "year") state.gran = "year";
+    if (p.get("sb") === "1") state.sameBand = true;
     el.band.value = state.band;
     el.tol.value = String(state.tol);
     el.scope.value = state.scope;
     el.direct.checked = state.variant === "all";
+    el.cmpBand.value = state.sameBand ? "same" : "all";
     setSegButtons();
     const c = p.get("k") && state.byKey.get(p.get("k"));
     if (!c) return;
@@ -818,6 +855,7 @@
     el.tol.addEventListener("change", () => { state.tol = Number(el.tol.value); afterFilter(false); });
     el.scope.addEventListener("change", () => { state.scope = el.scope.value; afterFilter(false); });
     el.direct.addEventListener("change", () => { state.variant = el.direct.checked ? "all" : "ex"; afterFilter(false); });
+    el.cmpBand.addEventListener("change", () => { state.sameBand = el.cmpBand.value === "same"; afterFilter(false); });
 
     // Picking a year shows its months and moves the base to that year's
     // latest month with trades; picking a month sets the base month.

@@ -40,8 +40,14 @@
           <ul id="search-results" class="search-results" role="listbox" hidden></ul>
         </div>
         <div class="filters" role="group" aria-label="비교 조건">
-          <label>면적
+          <label>선택 단지 면적
             <select id="band-select"></select>
+          </label>
+          <label>비교 평형
+            <select id="cmpband-select">
+              <option value="all" selected>평형 무관</option>
+              <option value="same">같은 평형만</option>
+            </select>
           </label>
           <label>가격 범위
             <select id="tol-select">

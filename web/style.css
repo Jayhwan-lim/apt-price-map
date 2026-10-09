@@ -175,6 +175,7 @@ button, input, select { font: inherit; color: inherit; }
 .ref-price .growth .pct { font-size: 20px; font-weight: 600; }
 .ref-price .growth .lbl { font-size: 11.5px; color: var(--muted); }
 .ref-price .empty-note { grid-column: 1 / -1; }
+.ref-price .warn { grid-column: 1; font-size: 12px; color: var(--up); }
 
 /* Chart */
 .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
@@ -203,6 +204,11 @@ button, input, select { font: inherit; color: inherit; }
 .sim-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .swatch { flex: none; width: 14px; height: 3px; border-radius: 2px; background: transparent; }
 .sim-meta { grid-column: 2; font-size: 12px; color: var(--muted); }
+.band-tag {
+  grid-column: 2; justify-self: start; font-size: 11.5px; font-weight: 500;
+  padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-2);
+}
+.band-tag.other { border-color: var(--ink-2); color: var(--ink); background: var(--plane); }
 .sim-nums { grid-row: 1 / span 2; grid-column: 3; text-align: right; font-variant-numeric: tabular-nums; }
 .sim-nums .now { font-weight: 600; }
 .sim-nums .chg { font-size: 12px; }
@@ -242,6 +248,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 .pin .n { font-size: 11px; color: #4d5b67; max-width: 9em; overflow: hidden; text-overflow: ellipsis; }
 .pin .v { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pin .b { font-size: 10.5px; font-weight: 500; color: #4d5b67; margin-right: 4px; }
 .pin.sim { border: 1.5px dashed #6c7a86; }
 .pin.cmp { border: 2.5px solid var(--c); }
 .pin.ref { background: #2a78d6; border-color: #2a78d6; color: #fff; z-index: 3; }
