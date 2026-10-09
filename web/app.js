@@ -630,7 +630,7 @@
       clusterer.clear();
       const markers = [];
       for (const c of state.data.complexes) {
-        if (!mappable(c) || !c.st[state.band]) continue;
+        if (!mappable(c)) continue;
         const m = new kakao.maps.Marker({ position: new kakao.maps.LatLng(c.lat, c.lng) });
         kakao.maps.event.addListener(m, "click", () => selectComplex(c));
         markers.push(m);
@@ -666,6 +666,21 @@
       });
     }
 
+    // Small clickable dot for complexes whose label would overlap another, or
+    // that have no trades in the selected area band (greyed).
+    function dotFor(c, hasBand) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = `dot-pin${hasBand ? "" : " no-band"}`;
+      dot.title = `${c.nm} (${where(c)})${hasBand ? "" : ", 이 면적 거래 없음"}`;
+      dot.setAttribute("aria-label", c.nm);
+      dot.addEventListener("click", () => selectComplex(c));
+      return new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(c.lat, c.lng),
+        content: dot, xAnchor: 0.5, yAnchor: 0.5, zIndex: 0,
+      });
+    }
+
     function refresh() {
       if (!kmap || !state.data) return;
       rebuildMarkers();
@@ -685,7 +700,7 @@
       if (level <= LABEL_LEVEL) {
         const bounds = kmap.getBounds();
         const inView = state.data.complexes.filter((c) =>
-          mappable(c) && c.st[state.band] && !want.has(c.key) &&
+          mappable(c) && !want.has(c.key) &&
           bounds.contain(new kakao.maps.LatLng(c.lat, c.lng)));
         inView.sort((a, b) => volume(b) - volume(a));
         // Skip labels that would sit on top of one already placed; busier
@@ -697,17 +712,20 @@
         for (const [c] of want.values()) if (mappable(c)) placed.push(pt(c));
         let n = 0;
         for (const c of inView) {
-          if (n >= LABEL_CAP) break;
+          const hasBand = !!c.st[state.band];
           const p = pt(c);
-          if (clashes(p)) continue;
-          placed.push(p);
-          want.set(c.key, [c, "", null]);
-          n++;
+          if (hasBand && n < LABEL_CAP && !clashes(p)) {
+            placed.push(p);
+            want.set(c.key, [c, "", null]);
+            n++;
+          } else {
+            want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null]);
+          }
         }
       }
       for (const [key, [c, kind, color]] of want) {
         if (!mappable(c)) continue;
-        const o = pinFor(c, kind, color);
+        const o = kind === "dot" || kind === "dot-nb" ? dotFor(c, kind === "dot") : pinFor(c, kind, color);
         o.setMap(kmap);
         overlays.set(key, o);
       }
