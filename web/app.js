@@ -396,7 +396,18 @@
         <span class="lbl">기준월 대비</span></span>`;
   }
 
-  function simRow({ c, band, key, w, diff, now, growth }, isRef) {
+  // Where a comparison complex stands now against the selected one: they
+  // were priced alike in the base month, so the current gap is how far it
+  // pulled ahead (우위) or fell behind (열세).
+  function vsRef(now, refNow) {
+    if (!now || !refNow) return "";
+    const r = now.avg / refNow.avg - 1;
+    const word = r > 0.01 ? "우위" : r < -0.01 ? "열세" : "비슷";
+    const name = `${state.ref.nm} ${bandShort(state.band)}`;
+    return `<div class="vs">${escapeHtml(name)} 대비 현재가 <b class="chg ${chgClass(r)}">${fmtPct(r)} ${word}</b></div>`;
+  }
+
+  function simRow({ c, band, key, w, diff, now, growth }, isRef, refNow = null) {
     const pal = palette();
     const on = isRef || state.slotOf.has(key);
     const color = isRef ? pal[0] : on ? pal[state.slotOf.get(key)] : "transparent";
@@ -418,6 +429,7 @@
         <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준월 대비 ${fmtPct(growth)}`}</div>
       </div>
       <div class="sim-meta">${escapeHtml(where(c))}${c.by ? `, ${c.by}년` : ""}<br>${baseTxt}</div>
+      ${isRef ? "" : vsRef(now, refNow)}
     </li>`;
   }
 
@@ -435,7 +447,7 @@
         `<li class="sim-empty">조건에 맞는 단지가 없습니다. 가격 범위를 넓히거나 비교 지역을 바꿔 보세요.</li>`;
       return;
     }
-    el.simList.innerHTML = refRow + state.similar.map((s) => simRow(s, false)).join("");
+    el.simList.innerHTML = refRow + state.similar.map((s) => simRow(s, false, now)).join("");
   }
 
   // Update swatches and limits in place so the checkbox keeps keyboard focus.
