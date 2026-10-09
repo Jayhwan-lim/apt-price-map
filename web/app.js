@@ -283,7 +283,10 @@
   }
 
   async function loadData() {
-    const data = await loadJson(CFG.dataUrl);
+    // index.html starts this fetch during HTML parsing so the download
+    // overlaps script loading; fall back to a direct fetch if absent.
+    let data = window.__dataPromise ? await window.__dataPromise : null;
+    if (!data) data = await loadJson(CFG.dataUrl);
     if (!data) {
       el.note.textContent = "아직 수집된 데이터가 없습니다";
       el.empty.querySelector("p:last-child").textContent =
@@ -881,8 +884,27 @@
   // Lines need each complex's full history, so load the regions of the
   // selected and checked complexes first.
   let chartSeq = 0;
+  // Chart.js is only needed after a complex is selected, so it loads on
+  // demand instead of blocking the initial page load.
+  let chartLibPromise = null;
+  function loadChartLib() {
+    if (window.Chart) return Promise.resolve();
+    if (!chartLibPromise) {
+      chartLibPromise = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      }).catch(() => { chartLibPromise = null; });
+    }
+    return chartLibPromise;
+  }
+
   async function renderChart() {
-    if (!window.Chart || state.loading || !state.refBase) return;
+    if (state.loading || !state.refBase) return;
+    await loadChartLib();
+    if (!window.Chart) return;
     const my = ++chartSeq;
     const entries = state.checked.map((k) => state.entries.get(k)).filter(Boolean);
     const codes = new Set([state.ref.code, ...entries.map((e) => e.c.code)]);
