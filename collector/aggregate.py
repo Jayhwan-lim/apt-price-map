@@ -11,12 +11,30 @@ Rules (agreed defaults):
     trades changes the numbers (the web falls back to "ex" otherwise).
     with prices in 10,000 KRW (만원) and per-m2 in 만원/m2 on exclusive area.
 
-Outputs:
-    web/data/complexes.json        complex list + yearly stats
-    web/data/monthly.json          per complex x band monthly trade count and average
+Outputs (the web loads complexes.json up front and the rest on demand):
+    web/data/complexes.json        complex list for the map and search: location,
+                                   area bands present, trade volume and the
+                                   precomputed current price per band ("nw")
+    web/data/region/<code>.json    per city/district: full yearly stats ("st") and
+                                   monthly counts/averages ("m"), for the selected
+                                   complex's year/month buttons and chart lines
+    web/data/year/<YYYY>.json      per year, all complexes: that year's stats and
+                                   monthly counts/averages, for similar-price matching
     web/data/trades/<code>.json    raw trade list per city/district, for detail view
     data/complex_index.csv         id, address, name (input for geocode.py)
+
+Monthly arrays are flat [month_index, n, avg, ...] triples (month_index counts
+from "mstart" in complexes.json), "e" excluding direct trades and "a" listing
+only months where including them differs.
+
+Current price ("nw", per band, [avg, n, first_mi, last_mi]): trade-weighted
+average over the latest 3 months of data, widened to 6 and then 12 months until
+it has at least NOW_MIN_N trades. If 12 months still fall short the 12-month
+average is kept (n < NOW_MIN_N marks it as a thin sample); omitted with no trades.
 """
+
+NOW_MIN_N = 5
+NOW_WINDOWS = (3, 6, 12)
 
 import csv
 import gzip
@@ -94,38 +112,91 @@ def summarize(values, areas):
     ]
 
 
-def write_monthly(monthly, ids):
-    """Monthly averages, compact: per complex id and band a flat list of
-    [month_index, n, avg] triples (excluding direct trades), followed by
-    "a": the same for all trades, listed only for months where it differs.
-    month_index counts from the "start" month."""
+def month_arrays(cells, y0, m0, keep=None):
+    """Flat [mi, n, avg] arrays for one band: "e" (direct trades excluded) and
+    "a" (included) where it differs. keep(mi) filters months."""
+    ex, alld = [], []
+    for (y, m), (n_ex, s_ex, n_all, s_all) in sorted(cells.items()):
+        mi = (y - y0) * 12 + (m - m0)
+        if keep and not keep(mi):
+            continue
+        avg_ex = round(s_ex / n_ex) if n_ex else 0
+        avg_all = round(s_all / n_all)
+        if n_ex:
+            ex += [mi, n_ex, avg_ex]
+        if (n_all, avg_all) != (n_ex, avg_ex):
+            alld += [mi, n_all, avg_all]
+    return {"e": ex, "a": alld} if alld else {"e": ex}
+
+
+def now_price(cells, y0, m0, last_mi, use_all):
+    """[avg, n, first_mi, last_mi] over the latest 3/6/12 months with >= NOW_MIN_N trades."""
+    by_mi = {}
+    for (y, m), (n_ex, s_ex, n_all, s_all) in cells.items():
+        by_mi[(y - y0) * 12 + (m - m0)] = (n_all, s_all) if use_all else (n_ex, s_ex)
+    for w in NOW_WINDOWS:
+        lo = last_mi - w + 1
+        n = sum(by_mi.get(i, (0, 0))[0] for i in range(lo, last_mi + 1))
+        if n >= NOW_MIN_N or (w == NOW_WINDOWS[-1] and n):
+            tot = sum(by_mi.get(i, (0, 0))[1] for i in range(lo, last_mi + 1))
+            return [round(tot / n), n, lo, last_mi]
+    return None
+
+
+def write_split(complexes, stats_by_cid, monthly, ids, regions_of):
+    """Write region/<code>.json and year/<YYYY>.json; return month metadata."""
     keys = [k for by_band in monthly.values() for cells in by_band.values() for k in cells]
-    if not keys:
-        return
     y0, m0 = min(keys)
     y1, m1 = max(keys)
     count = (y1 - y0) * 12 + (m1 - m0) + 1
-    out = {}
+    last_mi = count - 1
+
+    region_out = defaultdict(dict)
+    year_out = defaultdict(dict)
+    nw_out = {}
     for cid, by_band in monthly.items():
-        entry = {}
-        for band, cells in by_band.items():
-            ex, alld = [], []
-            for (y, m), (n_ex, s_ex, n_all, s_all) in sorted(cells.items()):
-                mi = (y - y0) * 12 + (m - m0)
-                avg_ex = round(s_ex / n_ex) if n_ex else 0
-                avg_all = round(s_all / n_all)
-                if n_ex:
-                    ex += [mi, n_ex, avg_ex]
-                if (n_all, avg_all) != (n_ex, avg_ex):
-                    alld += [mi, n_all, avg_all]
-            entry[band] = {"e": ex, "a": alld} if alld else {"e": ex}
-        out[str(ids[cid])] = entry
-    payload = {
-        "generated": datetime.now(KST).isoformat(timespec="seconds"),
-        "start": f"{y0:04d}{m0:02d}", "count": count, "c": out,
-    }
-    (WEB_DATA / "monthly.json").write_text(
-        json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+        i = str(ids[cid])
+        st = stats_by_cid.get(cid, {})
+        m_full = {b: month_arrays(cells, y0, m0) for b, cells in by_band.items()}
+        region_out[regions_of[cid]][i] = {"st": st, "m": m_full}
+        nw = {}
+        for b, cells in by_band.items():
+            e = now_price(cells, y0, m0, last_mi, False)
+            a = now_price(cells, y0, m0, last_mi, True)
+            if e or a:
+                nw[b] = {"e": e} if a == e else {"e": e, "a": a}
+        if nw:
+            nw_out[cid] = nw
+        years = {y for cells in by_band.values() for (y, _m) in cells}
+        for y in years:
+            lo, hi = (y - y0) * 12 + (1 - m0), (y - y0) * 12 + (12 - m0)
+            m_y = {}
+            for b, cells in by_band.items():
+                arr = month_arrays(cells, y0, m0, keep=lambda mi: lo <= mi <= hi)
+                if arr["e"] or arr.get("a"):
+                    m_y[b] = arr
+            st_y = {}
+            for b, v in st.items():
+                one = {k: v[k][str(y)] for k in ("ex", "all") if k in v and str(y) in v[k]}
+                if one:
+                    st_y[b] = one
+            year_out[y][i] = {"st": st_y, "m": m_y}
+
+    for sub in ("region", "year"):
+        d = WEB_DATA / sub
+        d.mkdir(parents=True, exist_ok=True)
+        for old in d.glob("*.json"):
+            old.unlink()
+    for code, body in region_out.items():
+        (WEB_DATA / "region" / f"{code}.json").write_text(
+            json.dumps({"c": body}, separators=(",", ":")), encoding="utf-8")
+    for y, body in year_out.items():
+        (WEB_DATA / "year" / f"{y}.json").write_text(
+            json.dumps({"c": body}, separators=(",", ":")), encoding="utf-8")
+    old_monthly = WEB_DATA / "monthly.json"
+    if old_monthly.exists():
+        old_monthly.unlink()
+    return {"mstart": f"{y0:04d}{m0:02d}", "mcount": count}, nw_out
 
 
 def main():
@@ -203,7 +274,8 @@ def main():
                 if r["lat"] and r["lng"]:
                     geo[r["key"]] = (float(r["lat"]), float(r["lng"]))
 
-    complexes, years = [], set()
+    complexes, years, stats_by_cid = [], set(), {}
+    band_order = [k for k, *_ in BANDS]
     for cid in ordered:
         info = meta[cid]
         sido, sgg, gu = regions.get(info["stable"], ("", "", ""))
@@ -222,27 +294,37 @@ def main():
             for by_year in by_variant.values():
                 years.update(by_year)
         lat, lng = geo.get(cid, (None, None))
+        stats_by_cid[cid] = stats
         complexes.append({
             "id": ids[cid], "key": cid,
             "nm": info.get("latest_name") or info["names"].most_common(1)[0][0],
             "sido": sido, "sgg": sgg, "gu": gu, "code": info["stable"],
-            "umd": info["umd"], "jb": info["jibun"], "road": info["road"],
+            "umd": info["umd"], "jb": info["jibun"],
             "by": int(info["build"].most_common(1)[0][0]) if info["build"] else None,
-            "lat": lat, "lng": lng, "st": stats,
+            "lat": round(lat, 5) if lat is not None else None,
+            "lng": round(lng, 5) if lng is not None else None,
+            "b": [b for b in band_order if b in stats],
+            "v": sum(a[0] for v in stats.values() for a in v["ex"].values()),
         })
 
     WEB_DATA.mkdir(parents=True, exist_ok=True)
+    mmeta, nw = write_split(complexes, stats_by_cid, monthly, ids,
+                            {cid: meta[cid]["stable"] for cid in ordered})
+    by_id = {ids[cid]: cid for cid in ordered}
+    for c in complexes:
+        n = nw.get(by_id[c["id"]])
+        if n:
+            c["nw"] = n
     out = {
         "generated": datetime.now(KST).isoformat(timespec="seconds"),
         "years": sorted(years),
         "bands": [{"key": k, "label": lbl, "lo": lo, "hi": hi} for k, lbl, lo, hi in BANDS],
         "stat_fields": ["n", "median", "min", "max", "median_per_m2"],
+        **mmeta,
         "complexes": complexes,
     }
     (WEB_DATA / "complexes.json").write_text(
         json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-
-    write_monthly(monthly, ids)
 
     (WEB_DATA / "trades").mkdir(exist_ok=True)
     for stable, by_cid in trades.items():

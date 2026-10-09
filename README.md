@@ -3,16 +3,22 @@
 Map-based comparison of Seoul/Gyeonggi apartment trade prices, built on the
 MOLIT RTMS open API (data.go.kr, `getRTMSDataSvcAptTradeDev`).
 
-Pick a complex and a base month, and see every complex whose average price
-around that month (±1 month) was within ±5% of it, ranked by how much each has
-risen since (current price = trade-weighted average of the latest 3 months).
+Pick a complex and a base point, and see every complex whose base price was
+within ±5% of it, ranked by how much each has risen since.
+
+- Base year: that year's median (needs 3+ trades).
+- Base month: trade-weighted average over the month ±1, widened to ±2 and ±3
+  until it holds 5+ trades, else that year's median (shown as 표본 부족).
+- Current price: latest 3 months, widened to 6 and 12 until 5+ trades; a
+  12-month average with fewer trades is shown as 표본 부족 and ranks after
+  solid ones.
 
 ## Pipeline
 
 | Step | Script | Output |
 |---|---|---|
 | Collect | `collector/fetch.py` | `data/raw/<LAWD_CD>/<YYYYMM>.csv.gz` (resumable) |
-| Aggregate | `collector/aggregate.py` | `web/data/complexes.json`, `web/data/monthly.json`, `web/data/trades/<code>.json` |
+| Aggregate | `collector/aggregate.py` | `web/data/complexes.json` (loaded first), `web/data/region/<code>.json`, `web/data/year/<YYYY>.json`, `web/data/trades/<code>.json` (on demand) |
 | Geocode | `collector/geocode.py` | `data/geo.csv` (Kakao Local API, cached) |
 
 Statistic rules: cancelled trades excluded; direct trades excluded in the

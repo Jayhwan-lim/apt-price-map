@@ -8,10 +8,15 @@
   const MAX_CMP = 7;
   const DEFAULT_CHECKED = 4;
   const SIM_LIMIT = 60;
-  const NOW_WINDOW = 3;   // "current price" = trade-weighted average of the latest 3 months
-  const NOW_LOOKBACK = 12; // ...or of the 3 months up to its last trade within a year
-  // A month's average this far from its year's median (with 3+ trades that
-  // year) is likely a gift/related-party sale; such matches are skipped.
+  // Base price rule: trade-weighted average over base month ±1, widened to ±2
+  // and ±3 months until it holds MIN_N trades; otherwise that year's median if
+  // the year has FALLBACK_MIN_N trades; otherwise no base price (excluded).
+  const MIN_N = 5;
+  const WINDOWS = [1, 2, 3];
+  const FALLBACK_MIN_N = 3;
+  const SMALL_N = 10;      // below this, sample sizes are shown next to growth
+  // A base average this far from its year's median (with 3+ trades that year)
+  // is likely a gift/related-party sale; such matches are skipped.
   const OUTLIER = 0.25;
   const LABEL_LEVEL = 5;  // Kakao level at or below which every complex gets a price label
   const LABEL_CAP = 300;
@@ -47,15 +52,17 @@
   };
 
   const state = {
-    data: null, monthly: null, byKey: new Map(), bands: new Map(),
+    data: null, byKey: new Map(), bands: new Map(),
     band: "84", variant: "ex", tol: 0.05, scope: "all", mode: "price", gran: "month",
     sameBand: false,        // false: compare against every area band of other complexes
-    ref: null, month: null, viewYear: null, similar: [], similarTotal: 0,
+    // Base point: basis "year" (that year's median, viewYear) or "month"
+    // (window around month index `month`).
+    ref: null, basis: "year", month: null, viewYear: null, refBase: null, loading: false,
+    similar: [], similarTotal: 0,
     entries: new Map(),     // entry key ("complexKey#band") -> similar entry
     checked: [],            // entry keys, in the order they were checked
     slotOf: new Map(),      // entry key -> palette slot (1..7), sticky while checked
   };
-  let monthlyReady = null;
 
   // ---------- formatting ----------
   function fmtPrice(manwon) {
@@ -74,45 +81,89 @@
   const where = (c) => [c.sgg, c.gu, c.umd].filter(Boolean).join(" ");
 
   // ---------- months ----------
-  // Month index 0 = monthly.start (e.g. 201901).
+  // Month index 0 = data.mstart (e.g. 201901).
   function ymOf(mi) {
-    const s = state.monthly.start;
+    const s = state.data.mstart;
     const t = Number(s.slice(0, 4)) * 12 + Number(s.slice(4, 6)) - 1 + mi;
     return [Math.floor(t / 12), (t % 12) + 1];
   }
   function miOf(y, m) {
-    const s = state.monthly.start;
+    const s = state.data.mstart;
     return (y * 12 + m - 1) - (Number(s.slice(0, 4)) * 12 + Number(s.slice(4, 6)) - 1);
   }
   const fmtMonth = (mi) => { const [y, m] = ymOf(mi); return `${y}.${String(m).padStart(2, "0")}`; };
   const fmtMonthKo = (mi) => { const [y, m] = ymOf(mi); return `${y}년 ${m}월`; };
-  const lastMi = () => state.monthly.count - 1;
+  const lastMi = () => state.data.mcount - 1;
+  function fmtRange(lo, hi) {
+    if (lo === hi) return fmtMonth(lo);
+    const [y1] = ymOf(lo), [y2, m2] = ymOf(hi);
+    return y1 === y2 ? `${fmtMonth(lo)}~${String(m2).padStart(2, "0")}` : `${fmtMonth(lo)}~${fmtMonth(hi)}`;
+  }
 
-  // ---------- data access ----------
+  // ---------- on-demand data ----------
+  // region/<code>.json: full history for one city/district (selected complex,
+  // chart lines). year/<YYYY>.json: one year for every complex (matching).
+  const regionStore = new Map(), yearStore = new Map();
+  const pending = new Map();
+  const monthCache = new Map();
+  function loadInto(store, id, url) {
+    if (store.has(id)) return Promise.resolve(store.get(id));
+    const k = url;
+    if (!pending.has(k)) {
+      pending.set(k, loadJson(url).then((d) => {
+        store.set(id, d ? d.c : {});
+        monthCache.clear();
+        pending.delete(k);
+        return store.get(id);
+      }));
+    }
+    return pending.get(k);
+  }
+  const loadRegion = (code) => loadInto(regionStore, code, CFG.regionUrl(code));
+  const loadYear = (y) => loadInto(yearStore, y, CFG.yearUrl(y));
+  // Years covering base month ±3 (the widest window), which include the base year.
+  function yearsFor(mi) {
+    const ys = new Set();
+    for (let i = Math.max(0, mi - 3); i <= Math.min(lastMi(), mi + 3); i++) ys.add(ymOf(i)[0]);
+    return [...ys];
+  }
+  const yearsReady = (mi) => yearsFor(mi).every((y) => yearStore.has(y));
+  const ensureYears = (mi) => Promise.all(yearsFor(mi).map(loadYear));
+
   // Yearly stat: [n, median, min, max, median_per_m2]. "all" only stores
   // years that differ from "ex", so it falls back to "ex".
   function stat(c, year, band = state.band, variant = state.variant) {
-    const b = c.st[band];
+    const r = regionStore.get(c.code);
+    const re = r && r[c.id];
+    if (re) {
+      const b = re.st[band];
+      if (!b) return null;
+      const y = String(year);
+      if (variant === "all" && b.all && b.all[y]) return b.all[y];
+      return (b.ex && b.ex[y]) || null;
+    }
+    const yr = yearStore.get(Number(year));
+    const ye = yr && yr[c.id];
+    const b = ye && ye.st[band];
     if (!b) return null;
-    const y = String(year);
-    if (variant === "all" && b.all && b.all[y]) return b.all[y];
-    return (b.ex && b.ex[y]) || null;
+    return (variant === "all" && b.all) || b.ex || null;
   }
 
-  // Monthly: Map(month index -> [n, avg]) for the current band and variant.
-  const monthCache = new Map();
+  // Monthly: Map(month index -> [n, avg]) from whatever is loaded.
   function months(c, band = state.band, variant = state.variant) {
     const key = `${c.id}|${band}|${variant}`;
     let m = monthCache.get(key);
     if (m) return m;
     m = new Map();
-    const entry = state.monthly && state.monthly.c[c.id];
-    const b = entry && entry[band];
-    if (b) {
-      const fill = (arr) => { for (let i = 0; i < arr.length; i += 3) m.set(arr[i], [arr[i + 1], arr[i + 2]]); };
-      fill(b.e || []);
-      if (variant === "all" && b.a) fill(b.a);
-    }
+    const fill = (b) => {
+      if (!b) return;
+      const put = (arr) => { for (let i = 0; i < arr.length; i += 3) m.set(arr[i], [arr[i + 1], arr[i + 2]]); };
+      put(b.e || []);
+      if (variant === "all" && b.a) put(b.a);
+    };
+    const r = regionStore.get(c.code);
+    if (r && r[c.id]) fill(r[c.id].m[band]);
+    else for (const yr of yearStore.values()) if (yr[c.id]) fill(yr[c.id].m[band]);
     monthCache.set(key, m);
     return m;
   }
@@ -120,8 +171,9 @@
     const v = months(c, band).get(mi);
     return v ? { n: v[0], avg: v[1] } : null;
   }
-  // Trade-weighted average over months lo..hi inclusive.
+  // Trade-weighted average over months lo..hi inclusive (clipped to the data).
   function windowAvg(c, lo, hi, band = state.band) {
+    lo = Math.max(0, lo); hi = Math.min(lastMi(), hi);
     const m = months(c, band);
     let n = 0, sum = 0;
     for (let i = lo; i <= hi; i++) {
@@ -130,18 +182,53 @@
     }
     return n ? { n, avg: sum / n, lo, hi } : null;
   }
-  // Current price: latest 3 months, or the 3 months up to the complex's last
-  // trade if that was within the past year.
-  function nowPrice(c, band = state.band) {
-    const L = lastMi();
-    const w = windowAvg(c, L - NOW_WINDOW + 1, L, band);
-    if (w) return w;
-    let last = -1;
-    for (const k of months(c, band).keys()) if (k <= L && k > last) last = k;
-    if (last < 0 || last < L - NOW_LOOKBACK + 1) return null;
-    return windowAvg(c, last - NOW_WINDOW + 1, last, band);
+
+  // Year basis: that year's median, needing FALLBACK_MIN_N trades.
+  function yearBase(c, band, y) {
+    const s = stat(c, y, band);
+    if (!s || s[0] < FALLBACK_MIN_N) return null;
+    const lo = Math.max(0, miOf(y, 1)), hi = Math.min(lastMi(), miOf(y, 12));
+    return { avg: s[1], n: s[0], kind: "year", year: y, lo, hi, end: hi };
   }
-  const fmtRange = (w) => (w.lo === w.hi ? fmtMonth(w.lo) : `${fmtMonth(Math.max(w.lo, 0))}~${fmtMonth(w.hi)}`);
+  // Base for the current basis.
+  function pointBase(c, band) {
+    return state.basis === "year" ? yearBase(c, band, state.viewYear) : basePrice(c, band, state.month);
+  }
+  const baseYear = () => (state.basis === "year" ? state.viewYear : state.month != null ? ymOf(state.month)[0] : null);
+  const hasPoint = () => (state.basis === "year" ? state.viewYear != null : state.month != null);
+  const pointLabel = () => (state.basis === "year" ? `${state.viewYear}년` : fmtMonthKo(state.month));
+
+  // Month basis per the rule above. kind "avg" (window) or "median" (fallback).
+  function basePrice(c, band, mi) {
+    for (const k of WINDOWS) {
+      const w = windowAvg(c, mi - k, mi + k, band);
+      if (w && w.n >= MIN_N) return { ...w, kind: "avg", k, end: w.hi };
+    }
+    const y = ymOf(mi)[0];
+    const s = stat(c, y, band);
+    if (s && s[0] >= FALLBACK_MIN_N) {
+      const lo = Math.max(0, miOf(y, 1)), hi = Math.min(lastMi(), miOf(y, 12));
+      return { avg: s[1], n: s[0], kind: "median", year: y, lo, hi, end: hi };
+    }
+    return null;
+  }
+  function baseText(b, withDiff = null) {
+    const diff = withDiff == null ? "" : `기준 대비 ${fmtPct(withDiff)}, `;
+    if (b.kind === "avg") {
+      return `${fmtRange(b.lo, b.hi)} ${b.hi - b.lo + 1}개월 평균 ${fmtPrice(b.avg)} (${diff}${b.n}건)`;
+    }
+    if (b.kind === "year") return `${b.year}년 연 중앙값 ${fmtPrice(b.avg)} (${diff}${b.n}건)`;
+    return `<span class="badge-thin">표본 부족 — ${b.year}년 연 중앙값 기준</span> ${fmtPrice(b.avg)} (${diff}${b.n}건)`;
+  }
+
+  // Current price, precomputed per band: latest 3/6/12 months with >= 5 trades.
+  function nowPrice(c, band = state.band, variant = state.variant) {
+    const b = c.nw && c.nw[band];
+    const v = b && ((variant === "all" && b.a) || b.e);
+    return v ? { avg: v[0], n: v[1], lo: v[2], hi: v[3], thin: v[1] < MIN_N } : null;
+  }
+  const nowText = (now) => `${fmtRange(now.lo, now.hi)} 평균, ${now.n}건${now.thin ? ` <span class="badge-thin">표본 부족</span>` : ""}`;
+  const growthOf = (base, now) => (base && now && now.hi > base.end ? (now.avg - base.avg) / base.avg : null);
 
   function isOutlier(c, band, mi, avg) {
     const s = stat(c, ymOf(mi)[0], band);
@@ -156,6 +243,12 @@
       if (k > best) best = k;
     }
     return best >= 0 ? best : null;
+  }
+
+  // ㎡당 median for a band in a year, shown when bands are mixed.
+  function perM2(c, band, year) {
+    const s = stat(c, year, band);
+    return s && s[4] ? `㎡당 ${Math.round(s[4]).toLocaleString("ko-KR")}만` : "";
   }
 
   async function loadJson(url) {
@@ -197,7 +290,7 @@
     if (!q || !state.data) return closeSearch();
     const starts = [], contains = [];
     for (const c of state.data.complexes) {
-      if (!Object.keys(c.st).length) continue;
+      if (!c.b.length) continue;
       if (c._norm.startsWith(q)) starts.push(c);
       else if (c._norm.includes(q) || normalize(c.umd) === q) contains.push(c);
       if (starts.length >= 12) break;
@@ -230,32 +323,65 @@
   }
 
   // ---------- selection ----------
-  async function selectComplex(c, { pan = false, month = null } = {}) {
+  async function selectComplex(c, { pan = false, month = null, year = null } = {}) {
     if (pan) map.panTo(c);
-    await monthlyReady;
-    if (!state.monthly) return;
+    state.ref = c;
+    state.loading = true;
+    render();
+    await loadRegion(c.code);
+    if (state.ref !== c) return;
     // A complex can lack the current band; switch to its most-traded band.
-    if (!c.st[state.band]) {
-      const best = Object.entries(c.st)
-        .map(([b, v]) => [b, Object.values(v.ex || v.all || {}).reduce((s, a) => s + a[0], 0)])
+    if (!c.b.includes(state.band)) {
+      const st = (regionStore.get(c.code)[c.id] || {}).st || {};
+      const best = Object.entries(st)
+        .map(([b, v]) => [b, Object.values(v.ex || {}).reduce((s, a) => s + a[0], 0)])
         .sort((a, b) => b[1] - a[1])[0];
       if (best) { state.band = best[0]; el.band.value = best[0]; }
     }
-    state.ref = c;
-    state.month = month != null && months(c).has(month) ? month : latestMonth(c);
-    state.viewYear = state.month != null ? ymOf(state.month)[0] : null;
+    if (month != null && months(c).has(month)) {
+      state.basis = "month";
+      state.month = month;
+      state.viewYear = ymOf(month)[0];
+    } else {
+      state.basis = "year";
+      state.month = null;
+      state.viewYear = year != null && stat(c, year) ? year : defaultYear(c);
+    }
     recompute({ resetChecks: true });
     loadTrades(c);
   }
 
-  function recompute({ resetChecks = false } = {}) {
+  // Default base year: the latest complete year with enough trades (so there
+  // is a "since then"), else the latest year with any.
+  function defaultYear(c) {
+    const cur = ymOf(lastMi())[0];
+    const ys = state.data.years.filter((y) => stat(c, y));
+    const full = ys.filter((y) => y < cur && stat(c, y)[0] >= FALLBACK_MIN_N);
+    return full.length ? full[full.length - 1] : ys.length ? ys[ys.length - 1] : null;
+  }
+
+  let recomputeSeq = 0;
+  async function recompute({ resetChecks = false } = {}) {
+    const my = ++recomputeSeq;
     const c = state.ref;
     if (!c) { render(); return; }
-    if (state.month == null || !months(c).has(state.month)) {
-      state.month = latestMonth(c);
-      if (state.month != null) state.viewYear = ymOf(state.month)[0];
+    await loadRegion(c.code);
+    if (my !== recomputeSeq) return;
+    if (state.basis === "month" && (state.month == null || !months(c).has(state.month))) {
+      state.basis = "year";
+      state.month = null;
     }
-    const found = state.month != null ? findSimilar(c, state.month) : [];
+    if (state.basis === "year" && (state.viewYear == null || !stat(c, state.viewYear))) state.viewYear = defaultYear(c);
+    const need = !hasPoint() ? [] : state.basis === "year" ? [state.viewYear] : yearsFor(state.month);
+    if (need.some((y) => !yearStore.has(y))) {
+      state.loading = true;
+      render();
+      await Promise.all(need.map(loadYear));
+      if (my !== recomputeSeq) return;
+    }
+    state.loading = false;
+    state.refBase = hasPoint() ? pointBase(c, state.band) : null;
+    const found = state.refBase ? findSimilar(c, state.refBase) : [];
     state.similarTotal = found.length;
     state.similar = found.slice(0, SIM_LIMIT);
     state.entries = new Map(state.similar.map((e) => [e.key, e]));
@@ -271,49 +397,51 @@
     render();
   }
 
-  // (complex, area band) pairs whose average price around the base month
-  // (±1 month, so one without a trade in that exact month still counts) was
-  // within the tolerance of the selected complex's average that month. Any
-  // band qualifies unless "same band only" is on: a smaller unit in a pricier
-  // area may have cost the same. Sorted by growth since, highest first.
-  function findSimilar(ref, mi) {
-    const baseV = monthVal(ref, mi);
-    if (!baseV) return [];
-    const base = baseV.avg;
+  // (complex, area band) pairs whose base price for the base month (same rule
+  // as the selected complex) was within the tolerance of the selected
+  // complex's base price. Any band qualifies unless "same band only" is on.
+  // Sorted by growth since then, highest first; growth is bucketed to 0.5%p
+  // so near-ties go to the larger sample.
+  function findSimilar(ref, refBase) {
+    const mi = state.month;
+    const base = refBase.avg;
     const out = [];
     for (const c of state.data.complexes) {
       if (c === ref) continue;
       if (state.scope === "seoul" && c.sido !== "서울특별시") continue;
       if (state.scope === "gyeonggi" && c.sido !== "경기도") continue;
       if (state.scope === "sgg" && (c.code !== ref.code || c.gu !== ref.gu)) continue;
-      const bands = state.sameBand ? [state.band] : Object.keys(c.st);
+      const bands = state.sameBand ? [state.band] : c.b;
       for (const band of bands) {
-        if (!c.st[band]) continue;
-        const w = windowAvg(c, mi - 1, mi + 1, band);
+        if (!c.b.includes(band)) continue;
+        const w = pointBase(c, band);
         if (!w) continue;
         const diff = (w.avg - base) / base;
         if (Math.abs(diff) > state.tol) continue;
-        if (isOutlier(c, band, mi, w.avg)) continue;
+        if (w.kind === "avg" && isOutlier(c, band, mi, w.avg)) continue;
         const now = nowPrice(c, band);
-        const growth = now && now.hi > mi + 1 ? (now.avg - w.avg) / w.avg : null;
-        out.push({ c, band, key: `${c.key}#${band}`, w, diff, now, growth });
+        const growth = growthOf(w, now);
+        const sample = now ? Math.min(w.n, now.n) : w.n;
+        const solid = !!now && !now.thin;
+        out.push({ c, band, key: `${c.key}#${band}`, w, diff, now, growth, sample, solid });
       }
     }
+    const bucket = (g) => Math.round(g * 200);
     out.sort((a, b) => {
       if (a.growth == null && b.growth == null) return Math.abs(a.diff) - Math.abs(b.diff);
       if (a.growth == null) return 1;
       if (b.growth == null) return -1;
-      return b.growth - a.growth;
+      // Current prices from thin samples rank after solid ones.
+      if (a.solid !== b.solid) return a.solid ? -1 : 1;
+      return bucket(b.growth) - bucket(a.growth) || b.sample - a.sample;
     });
     return out;
   }
 
   function refGrowth() {
-    const c = state.ref;
-    const base = monthVal(c, state.month);
-    const now = nowPrice(c);
-    const growth = base && now && now.hi > state.month ? (now.avg - base.avg) / base.avg : null;
-    return { base, now, growth };
+    const base = state.refBase;
+    const now = state.ref ? nowPrice(state.ref) : null;
+    return { base, now, growth: growthOf(base, now) };
   }
 
   function check(key, on) {
@@ -354,50 +482,68 @@
     const bits = [`${c.sido === "서울특별시" ? "서울" : "경기"} ${where(c)}${c.jb ? " " + c.jb : ""}`];
     if (c.by) bits.push(`${c.by}년 준공`);
     el.refMeta.textContent = bits.join(", ");
+    if (!regionStore.has(c.code)) {
+      el.years.innerHTML = el.months.innerHTML = "";
+      el.refPrice.innerHTML = `<span class="empty-note">단지 데이터를 불러오는 중…</span>`;
+      return;
+    }
 
-    // Year row: yearly median, and which year's months are shown below.
+    // Year row: picking a year uses that year's median as the base price.
     el.years.innerHTML = state.data.years.map((y) => {
       const s = stat(c, y);
       const inView = y === state.viewYear;
       const hasMonths = latestMonth(c, y) != null;
-      return `<button type="button" class="year-btn${s && s[0] < 3 ? " thin" : ""}${inView ? " in-view" : ""}"
-                role="radio" aria-checked="${state.month != null && ymOf(state.month)[0] === y}"
+      const on = state.basis === "year" && state.viewYear === y;
+      return `<button type="button" class="year-btn${s && s[0] < 3 ? " thin" : ""}${inView && !on ? " in-view" : ""}"
+                role="radio" aria-checked="${on}"
                 data-year="${y}" ${hasMonths ? "" : "disabled"}
                 title="${s ? `${y}년 ${s[0]}건, 중위가 ${fmtPrice(s[1])} (최저 ${fmtPrice(s[2])} ~ 최고 ${fmtPrice(s[3])})` : "거래 없음"}">
                 <span class="y">${y}</span><span class="p">${s ? fmtPrice(s[1]) : "–"}</span></button>`;
     }).join("");
 
-    // Month row for the year in view: monthly average.
+    // Month row for the year in view: that month's own average and count.
     const y = state.viewYear;
     el.months.innerHTML = y == null ? "" : Array.from({ length: 12 }, (_, i) => {
       const mi = miOf(y, i + 1);
       const v = mi >= 0 && mi <= lastMi() ? monthVal(c, mi) : null;
-      const on = mi === state.month;
+      const on = state.basis === "month" && mi === state.month;
       return `<button type="button" class="month-btn" role="radio" aria-checked="${on}"
                 data-mi="${mi}" ${v ? "" : "disabled"}
                 title="${v ? `${y}년 ${i + 1}월 ${v.n}건 평균 ${fmtPrice(v.avg)}` : "거래 없음"}">
-                <span class="y">${i + 1}월</span><span class="p">${v ? fmtPrice(v.avg) : "–"}</span></button>`;
+                <span class="y">${i + 1}월 · ${v ? v.n : 0}건</span><span class="p">${v ? fmtPrice(v.avg) : "–"}</span></button>`;
     }).join("");
 
-    const { base, now, growth } = state.month != null ? refGrowth() : {};
-    if (!base) {
+    if (!hasPoint()) {
       el.refPrice.innerHTML = `<span class="empty-note">이 면적에는 거래가 없습니다. 위에서 면적을 바꿔 보세요.</span>`;
       return;
     }
+    if (state.loading) {
+      el.refPrice.innerHTML = `<span class="empty-note">비교 데이터를 불러오는 중…</span>`;
+      return;
+    }
+    const { base, now, growth } = refGrowth();
+    if (!base) {
+      el.refPrice.innerHTML = state.basis === "year"
+        ? `<span class="empty-note">${state.viewYear}년 거래가 ${FALLBACK_MIN_N}건 미만이라 연 중앙값 기준가를 낼 수 없습니다. 다른 연도나 월을 골라 보세요.</span>`
+        : `<span class="empty-note">${fmtMonthKo(state.month)} 전후 3개월 거래가 ${MIN_N}건 미만이고 그해 거래도 ${FALLBACK_MIN_N}건 미만이라 기준가를 낼 수 없습니다. 거래가 많은 다른 달을 골라 보세요.</span>`;
+      return;
+    }
     const nowTxt = now
-      ? `현재 <strong>${fmtPrice(now.avg)}</strong> (${fmtRange(now)} 평균, ${now.n}건)`
-      : "최근 1년 안에 거래가 없어 현재가를 낼 수 없습니다";
+      ? `현재 <strong>${fmtPrice(now.avg)}</strong> (${nowText(now)})`
+      : "최근 1년 거래가 없어 현재가를 낼 수 없습니다";
+    const ppm = state.sameBand ? "" : perM2(c, state.band, baseYear());
     el.refPrice.innerHTML = `
-      <span>${fmtMonthKo(state.month)} 평균 <strong>${fmtPrice(base.avg)}</strong> (${base.n}건, 전용 ${escapeHtml(bandTag(state.band))})</span>
+      <span>${pointLabel()} 기준가 <strong>${fmtPrice(base.avg)}</strong> · 전용 ${escapeHtml(bandTag(state.band))}${ppm ? ` · ${ppm} (${baseYear()}년 중위)` : ""}</span>
+      <span class="basis">${baseText(base)}</span>
       <span>${nowTxt}</span>
-      ${isOutlier(c, state.band, state.month, base.avg)
-        ? `<span class="warn">이 달 가격이 ${ymOf(state.month)[0]}년 중위가와 25% 넘게 차이 납니다. 특수거래일 수 있으니 다른 달도 확인해 보세요.</span>` : ""}
+      ${base.kind === "avg" && isOutlier(c, state.band, state.month, base.avg)
+        ? `<span class="warn">기준가가 ${baseYear()}년 중위가와 25% 넘게 차이 납니다. 특수거래가 섞였을 수 있으니 다른 달도 확인해 보세요.</span>` : ""}
       <span class="growth"><span class="pct chg ${chgClass(growth)}">${growth == null ? "–" : fmtPct(growth)}</span><br>
-        <span class="lbl">기준월 대비</span></span>`;
+        <span class="lbl">기준가 대비</span></span>`;
   }
 
   // Where a comparison complex stands now against the selected one: they
-  // were priced alike in the base month, so the current gap is how far it
+  // were priced alike at the base point, so the current gap is how far it
   // pulled ahead (우위) or fell behind (열세).
   function vsRef(now, refNow) {
     if (!now || !refNow) return "";
@@ -416,35 +562,41 @@
       ? `<span class="rank">기준</span>`
       : `<input type="checkbox" data-key="${escapeAttr(key)}" ${on ? "checked" : ""} ${full ? "disabled" : ""}
                aria-label="${escapeAttr(c.nm)} ${escapeAttr(bandShort(band))} 그래프에 표시">`;
-    const baseTxt = isRef
-      ? `${fmtMonthKo(state.month)} 평균 ${fmtPrice(w.avg)} (${w.n}건)`
-      : `${fmtRange(w)} 평균 ${fmtPrice(w.avg)} (기준 대비 ${fmtPct(diff)}, ${w.n}건)`;
+    const sampleNote = growth != null && now && Math.min(w.n, now.n) < SMALL_N
+      ? `<div class="sample">표본 ${w.n}·${now.n}건</div>` : "";
+    const ppm = state.sameBand ? "" : perM2(c, band, baseYear());
     return `<li class="sim-item${isRef ? " is-ref" : ""}">
       ${first}
       <button type="button" class="sim-name" data-key="${escapeAttr(c.key)}">
         <span class="swatch" style="background:${color}"></span>${escapeHtml(c.nm)}${isRef ? `<span class="ref-tag">선택한 단지</span>` : ""}</button>
-      <span class="band-tag${band === state.band ? "" : " other"}" title="전용 ${escapeAttr(bandTag(band))}">${escapeHtml(bandTag(band))}</span>
+      <span class="band-tag${band === state.band ? "" : " other"}" title="전용 ${escapeAttr(bandTag(band))}">${escapeHtml(bandTag(band))}${ppm ? ` · ${ppm}` : ""}</span>
       <div class="sim-nums">
-        <div class="now">${now ? `현재 ${fmtPrice(now.avg)}` : "최근 거래 없음"}</div>
-        <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준월 대비 ${fmtPct(growth)}`}</div>
+        <div class="now">${now ? `현재 ${fmtPrice(now.avg)}` : "최근 거래 부족"}</div>
+        <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준 대비 ${fmtPct(growth)}`}</div>
+        ${sampleNote}
       </div>
-      <div class="sim-meta">${escapeHtml(where(c))}${c.by ? `, ${c.by}년` : ""}<br>${baseTxt}</div>
+      <div class="sim-meta">${escapeHtml(where(c))}${c.by ? `, ${c.by}년` : ""}<br>기준: ${baseText(w, isRef ? null : diff)}${now ? `<br>현재: ${nowText(now)}` : ""}</div>
       ${isRef ? "" : vsRef(now, refNow)}
     </li>`;
   }
 
   function renderSimilar() {
+    if (state.loading || !regionStore.has(state.ref.code)) {
+      el.simTitle.textContent = "비슷한 가격대 단지";
+      el.simList.innerHTML = `<li class="sim-empty">비교 데이터를 불러오는 중…</li>`;
+      return;
+    }
     const n = state.similar.length, total = state.similarTotal;
     const tolTxt = `±${Math.round(state.tol * 100)}%`;
-    el.simTitle.textContent = state.month != null
-      ? `${fmtMonthKo(state.month)}에 비슷한 가격(${tolTxt})이던 ${state.sameBand ? "같은 평형 " : ""}단지 ${total.toLocaleString("ko-KR")}개` +
+    el.simTitle.textContent = hasPoint()
+      ? `${pointLabel()} 기준가와 비슷했던(${tolTxt}) ${state.sameBand ? "같은 평형 " : ""}단지 ${total.toLocaleString("ko-KR")}개` +
         (total > n ? ` 중 상위 ${n}개` : "")
       : "비슷한 가격대 단지";
-    const { base, now, growth } = state.month != null ? refGrowth() : {};
+    const { base, now, growth } = hasPoint() ? refGrowth() : {};
     const refRow = base ? simRow({ c: state.ref, band: state.band, key: "", w: base, diff: 0, now, growth }, true) : "";
     if (!n) {
       el.simList.innerHTML = refRow +
-        `<li class="sim-empty">조건에 맞는 단지가 없습니다. 가격 범위를 넓히거나 비교 지역을 바꿔 보세요.</li>`;
+        `<li class="sim-empty">${base ? "조건에 맞는 단지가 없습니다. 가격 범위를 넓히거나 비교 지역을 바꿔 보세요." : "기준가를 낼 수 없는 시점입니다. 거래가 많은 다른 연도나 달을 골라 보세요."}</li>`;
       return;
     }
     el.simList.innerHTML = refRow + state.similar.map((s) => simRow(s, false, now)).join("");
@@ -466,36 +618,41 @@
   // ---------- chart ----------
   let chart = null;
 
+  // Marks the selected complex's base period: a shaded span over the months
+  // its base price covers (monthly view), or a dashed line at the base year.
   const baseMarker = {
     id: "baseMarker",
-    afterDatasetsDraw(ch) {
-      const i = state.gran === "month" ? state.month : state.data.years.indexOf(ymOf(state.month)[0]);
-      if (i == null || i < 0) return;
-      const x = ch.scales.x.getPixelForValue(i);
+    beforeDatasetsDraw(ch) {
+      const b = state.refBase;
+      if (!b) return;
       const { top, bottom } = ch.chartArea;
       const ctx = ch.ctx;
       ctx.save();
-      ctx.strokeStyle = cssVar("--line-strong");
-      ctx.setLineDash([4, 4]);
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x, top);
-      ctx.lineTo(x, bottom);
-      ctx.stroke();
+      if (state.gran === "month") {
+        const x0 = ch.scales.x.getPixelForValue(b.lo), x1 = ch.scales.x.getPixelForValue(b.hi);
+        const pad = Math.max(2, (ch.scales.x.getPixelForValue(1) - ch.scales.x.getPixelForValue(0)) / 2);
+        ctx.fillStyle = cssVar("--plane");
+        ctx.fillRect(x0 - pad, top, x1 - x0 + pad * 2, bottom - top);
+      } else {
+        const x = ch.scales.x.getPixelForValue(state.data.years.indexOf(baseYear()));
+        ctx.strokeStyle = cssVar("--line-strong");
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+      }
       ctx.restore();
     },
   };
 
   // Index base: the selected complex uses its exact base-month average,
   // comparison complexes the ±1-month average they were matched on.
-  function indexBase(c, band, isRef) {
-    if (state.gran === "year") return (stat(c, ymOf(state.month)[0], band) || [])[1] || null;
-    const w = isRef ? monthVal(c, state.month, band) : windowAvg(c, state.month - 1, state.month + 1, band);
-    return w ? w.avg : null;
+  // Index base: the base price each line was matched on (yearly view: that year's median).
+  function indexBase(c, band, entry) {
+    if (state.gran === "year") return (stat(c, baseYear(), band) || [])[1] || null;
+    return entry ? entry.avg : null;
   }
 
-  function seriesFor(c, band, isRef) {
-    const base = state.mode === "index" ? indexBase(c, band, isRef) : null;
+  function seriesFor(c, band, entry) {
+    const base = state.mode === "index" ? indexBase(c, band, entry) : null;
     const toV = (m) => (state.mode === "index" ? (base ? (m / base) * 100 : null) : m / 10000);
     if (state.gran === "year") {
       return state.data.years.map((y) => {
@@ -503,14 +660,14 @@
         return s ? { v: toV(s[1]), n: s[0], m: s[1] } : { v: null, n: 0, m: null };
       });
     }
-    return Array.from({ length: state.monthly.count }, (_, mi) => {
+    return Array.from({ length: state.data.mcount }, (_, mi) => {
       const v = monthVal(c, mi, band);
       return v ? { v: toV(v.avg), n: v.n, m: v.avg } : { v: null, n: 0, m: null };
     });
   }
 
-  function dataset(c, band, color, isRef) {
-    const pts = seriesFor(c, band, isRef);
+  function dataset(c, band, color, isRef, entry) {
+    const pts = seriesFor(c, band, entry);
     const surface = cssVar("--surface");
     const thin = state.gran === "year" ? 3 : 2;
     const monthly = state.gran === "month";
@@ -532,20 +689,32 @@
     };
   }
 
-  function renderChart() {
-    if (!window.Chart || state.month == null) return;
-    const pal = palette();
-    const sets = [dataset(state.ref, state.band, pal[0], true)];
-    for (const key of state.checked) {
-      const e = state.entries.get(key);
-      if (e) sets.push(dataset(e.c, e.band, pal[state.slotOf.get(key)], false));
+  // Lines need each complex's full history, so load the regions of the
+  // selected and checked complexes first.
+  let chartSeq = 0;
+  async function renderChart() {
+    if (!window.Chart || state.loading || !state.refBase) return;
+    const my = ++chartSeq;
+    const entries = state.checked.map((k) => state.entries.get(k)).filter(Boolean);
+    const codes = new Set([state.ref.code, ...entries.map((e) => e.c.code)]);
+    const missing = [...codes].filter((code) => !regionStore.has(code));
+    if (missing.length) {
+      await Promise.all(missing.map(loadRegion));
+      if (my !== chartSeq) return;
     }
+    drawChart(entries);
+  }
+
+  function drawChart(entries) {
+    const pal = palette();
+    const sets = [dataset(state.ref, state.band, pal[0], true, state.refBase)];
+    for (const e of entries) sets.push(dataset(e.c, e.band, pal[state.slotOf.get(e.key)], false, e.w));
     const monthly = state.gran === "month";
     const labels = monthly
-      ? Array.from({ length: state.monthly.count }, (_, mi) => fmtMonth(mi))
+      ? Array.from({ length: state.data.mcount }, (_, mi) => fmtMonth(mi))
       : state.data.years.map(String);
     el.chartTitle.textContent = monthly ? "월별 평균가격" : "연도별 중위가격";
-    document.querySelector('.seg-btn[data-mode="index"]').textContent = monthly ? "기준월 = 100" : "기준연도 = 100";
+    document.querySelector('.seg-btn[data-mode="index"]').textContent = "기준가 = 100";
     el.chartNote.textContent = monthly
       ? "빈 원은 그 달 거래가 1건뿐인 값입니다. 거래가 없는 달은 앞뒤를 이어 그렸습니다."
       : "빈 원은 그해 거래가 3건 미만이라 대표성이 낮은 값입니다.";
@@ -680,17 +849,19 @@
       clusterer.addMarkers(markers);
     }
 
-    // Pin price: yearly median in the base month's year (or the latest year).
-    function pinYear(c, band) {
-      const y = state.month != null ? ymOf(state.month)[0] : null;
-      if (y != null && stat(c, y, band)) return y;
-      const ys = state.data.years.filter((yy) => stat(c, yy, band));
-      return ys.length ? ys[ys.length - 1] : null;
+    // Pin price: with a base month, that year's median for the band;
+    // before any selection, the current price.
+    function pinPrice(c, band) {
+      if (state.ref && hasPoint()) {
+        const s = stat(c, baseYear(), band);
+        return s ? s[1] : null;
+      }
+      const now = nowPrice(c, band);
+      return now ? now.avg : null;
     }
 
     function pinFor(c, kind, color, band = state.band) {
-      const y = pinYear(c, band);
-      const s = y != null ? stat(c, y, band) : null;
+      const price = pinPrice(c, band);
       const wrap = document.createElement("div");
       wrap.className = "pin-wrap";
       const pin = document.createElement("button");
@@ -699,7 +870,7 @@
       if (color) pin.style.setProperty("--c", color);
       pin.title = `${c.nm} (${where(c)})`;
       const tag = band !== state.band ? `<span class="b">${escapeHtml(bandShort(band))}</span>` : "";
-      pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${s ? fmtPrice(s[1]) : "–"}</span>`;
+      pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
       pin.addEventListener("click", () => selectComplex(c));
       wrap.appendChild(pin);
       return new kakao.maps.CustomOverlay({
@@ -758,7 +929,7 @@
         for (const [c] of want.values()) if (mappable(c)) placed.push(pt(c));
         let n = 0;
         for (const c of inView) {
-          const hasBand = !!c.st[state.band];
+          const hasBand = c.b.includes(state.band);
           const p = pt(c);
           if (hasBand && n < LABEL_CAP && !clashes(p)) {
             placed.push(p);
@@ -776,18 +947,14 @@
         overlays.set(key, o);
       }
       el.legend.hidden = !state.ref;
-      if (state.ref && state.month != null) {
+      if (state.ref && hasPoint()) {
         const band = state.bands.get(state.band);
         document.getElementById("legend-year").textContent =
-          `핀 가격: ${ymOf(state.month)[0]}년 ${band ? bandShort(band.key) : ""} 연간 중위가 (다른 평형은 핀에 표시)`;
+          `핀 가격: ${baseYear()}년 ${band ? bandShort(band.key) : ""} 연간 중위가 (다른 평형은 핀에 표시)`;
       }
     }
 
-    function volume(c) {
-      const b = c.st[state.band];
-      const v = b && b.ex;
-      return v ? Object.values(v).reduce((s, a) => s + a[0], 0) : 0;
-    }
+    const volume = (c) => c.v || 0;
 
     function panTo(c) {
       if (!kmap || !mappable(c)) return;
@@ -802,7 +969,8 @@
   function writeHash() {
     const p = new URLSearchParams();
     if (state.ref) p.set("k", state.ref.key);
-    if (state.month != null && state.monthly) {
+    if (state.ref && state.basis === "year" && state.viewYear != null) p.set("y", state.viewYear);
+    if (state.ref && state.basis === "month" && state.month != null && state.data) {
       const [y, m] = ymOf(state.month);
       p.set("mo", `${y}${String(m).padStart(2, "0")}`);
     }
@@ -835,8 +1003,7 @@
     let month = null;
     const mo = p.get("mo");
     if (mo && /^\d{6}$/.test(mo)) month = miOf(Number(mo.slice(0, 4)), Number(mo.slice(4, 6)));
-    else if (p.get("y")) month = latestMonth(c, Number(p.get("y"))); // links from the yearly version
-    selectComplex(c, { month, pan: true });
+    selectComplex(c, { month, year: p.get("y") ? Number(p.get("y")) : null, pan: true });
   }
 
   function setSegButtons() {
@@ -874,16 +1041,15 @@
     el.years.addEventListener("click", (e) => {
       const b = e.target.closest(".year-btn");
       if (!b || b.disabled || !state.ref) return;
-      const y = Number(b.dataset.year);
-      const mi = latestMonth(state.ref, y);
-      if (mi == null) return;
-      state.viewYear = y;
-      state.month = mi;
+      state.basis = "year";
+      state.viewYear = Number(b.dataset.year);
+      state.month = null;
       recompute({ resetChecks: true });
     });
     el.months.addEventListener("click", (e) => {
       const b = e.target.closest(".month-btn");
       if (!b || b.disabled) return;
+      state.basis = "month";
       state.month = Number(b.dataset.mi);
       recompute({ resetChecks: true });
     });
@@ -931,19 +1097,13 @@
   const escapeAttr = escapeHtml;
 
   // Expose helpers for tests.
-  window.__aptMap = { state, findSimilar, stat, months, windowAvg, nowPrice, fmtPrice, selectComplex };
+  window.__aptMap = { state, findSimilar, stat, months, windowAvg, basePrice, nowPrice, fmtPrice, selectComplex };
 
   (async function start() {
     bind();
     const mapReady = map.init();
-    monthlyReady = loadJson(CFG.monthlyUrl).then((m) => { state.monthly = m; });
     const ok = await loadData();
     if (!ok) return;
-    await monthlyReady;
-    if (!state.monthly) {
-      el.note.textContent += " (월별 데이터를 불러오지 못했습니다)";
-      return;
-    }
     readHash();
     await mapReady;
     map.refresh();
