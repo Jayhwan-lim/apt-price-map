@@ -1174,7 +1174,12 @@
       setStart("price");
       return;
     }
-    const c = p.get("k") && state.byKey.get(p.get("k"));
+    let c = p.get("k") && state.byKey.get(p.get("k"));
+    if (!c && p.get("k")) {
+      // Old link to a lot that is now split into several complexes: open the busiest.
+      const prefix = `${p.get("k")}#`;
+      c = state.data.complexes.filter((x) => x.key.startsWith(prefix)).sort((a, b) => b.v - a.v)[0];
+    }
     if (!c) return;
     let month = null;
     const mo = p.get("mo");

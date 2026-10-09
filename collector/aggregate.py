@@ -94,10 +94,26 @@ def read_raw():
                 yield code, row
 
 
-def complex_key(stable, row):
+def lot_key(stable, row):
     jibun = row["jibun"].strip()
     tail = jibun if jibun else row["aptNm"].strip()
     return f"{stable}|{row['umdNm'].strip()}|{tail}"
+
+
+def shared_lots():
+    """Lots that hold more than one complex (distinct aptSeq), e.g. 개포동 12 =
+    성원대치2단지 + 삼익대청. Their complexes get keys "<lot>#<aptSeq>"; every
+    other complex keeps the plain lot key so existing links stay valid."""
+    seqs = defaultdict(set)
+    for code, row in read_raw():
+        seqs[lot_key(stable_code(code), row)].add(row["aptSeq"].strip())
+    return {lot for lot, s in seqs.items() if len(s) > 1}
+
+
+def complex_key(stable, row, shared):
+    lot = lot_key(stable, row)
+    seq = row["aptSeq"].strip()
+    return f"{lot}#{seq}" if lot in shared and seq else lot
 
 
 def summarize(values, areas):
@@ -201,6 +217,7 @@ def write_split(complexes, stats_by_cid, monthly, ids, regions_of):
 
 def main():
     regions = base_regions()
+    shared = shared_lots()
     seen = {}
     meta = defaultdict(lambda: {"names": Counter(), "build": Counter(), "road": "",
                                 "last": "", "umd": "", "jibun": "", "stable": ""})
@@ -229,7 +246,7 @@ def main():
             continue
         seen.setdefault(dedupe, code)
 
-        cid = complex_key(stable, row)
+        cid = complex_key(stable, row, shared)
         date = f"{y:04d}{m:02d}{(d or 0):02d}"
         info = meta[cid]
         info["stable"], info["umd"], info["jibun"] = stable, row["umdNm"].strip(), row["jibun"].strip()
@@ -293,7 +310,9 @@ def main():
                 stats[band]["all"] = alld
             for by_year in by_variant.values():
                 years.update(by_year)
-        lat, lng = geo.get(cid, (None, None))
+        # Complexes split off a shared lot start from the lot's coordinates
+        # until geocode.py finds their own.
+        lat, lng = geo.get(cid) or geo.get(cid.split("#")[0]) or (None, None)
         stats_by_cid[cid] = stats
         complexes.append({
             "id": ids[cid], "key": cid,
@@ -343,6 +362,7 @@ def main():
             w.writerow([c["key"], addr, c["nm"], " ".join(p for p in (c["sgg"], c["gu"]) if p)])
 
     print(json.dumps({
+        "shared_lots": len(shared),
         "rows": n_rows, "duplicates": n_dup, "cancelled": n_cancel,
         "complexes": len(complexes), "geocoded": sum(1 for c in complexes if c["lat"]),
         "years": sorted(years),

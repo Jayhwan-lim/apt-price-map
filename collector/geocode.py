@@ -4,6 +4,7 @@ Reads data/complex_index.csv (written by aggregate.py). Only complexes not yet
 in the cache are looked up, so reruns are cheap. Lookup order:
   1. address search with the lot-number address
   2. keyword search with "<city> <dong> <apartment name>" as a fallback
+(reversed for complexes split off a shared lot, keys containing "#").
 
 Environment:
     KAKAO_REST_KEY   Kakao REST API key  [required]
@@ -62,11 +63,18 @@ def main():
             if time.monotonic() > deadline:
                 print("time budget reached; the next run continues")
                 break
-            hit, source = lookup(session, ADDR_URL, row["address"]), "address"
-            if hit is None:
-                umd = row["address"].split()[-2] if len(row["address"].split()) > 1 else ""
-                hit, source = lookup(session, KEYWORD_URL,
-                                     f"{row['sgg_text']} {umd} {row['name']}"), "keyword"
+            umd = row["address"].split()[-2] if len(row["address"].split()) > 1 else ""
+            keyword = f"{row['sgg_text']} {umd} {row['name']}"
+            if "#" in row["key"]:
+                # One of several complexes on a shared lot: the lot address
+                # would stack them, so try the complex name first.
+                hit, source = lookup(session, KEYWORD_URL, keyword), "keyword"
+                if hit is None:
+                    hit, source = lookup(session, ADDR_URL, row["address"]), "address"
+            else:
+                hit, source = lookup(session, ADDR_URL, row["address"]), "address"
+                if hit is None:
+                    hit, source = lookup(session, KEYWORD_URL, keyword), "keyword"
             if hit is None:
                 missed += 1
                 cache[row["key"]] = {"key": row["key"], "lat": "", "lng": "", "source": "miss"}
