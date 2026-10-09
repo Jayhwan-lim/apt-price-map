@@ -30,6 +30,7 @@ jobs:
       # Job-level so step `if:` conditions can see whether optional secrets exist
       KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      CLOUDFLARE_DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +57,7 @@ jobs:
         run: python collector/geocode.py && python collector/aggregate.py
 
       - name: Commit data
+        id: commit
         if: always()
         run: |
           git config user.name "github-actions[bot]"
@@ -68,7 +70,15 @@ jobs:
             # Code may have been pushed while this run was collecting
             git pull --rebase origin main
             git push
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # Redeploy Cloudflare Pages (geuttaeneolma.com) after a data commit. Skipped
+      # until the CLOUDFLARE_DEPLOY_HOOK_URL secret exists. The URL stays in env
+      # only; GitHub masks it in logs.
+      - name: Trigger Cloudflare Pages deploy
+        if: always() && steps.commit.outputs.pushed == 'true' && env.CLOUDFLARE_DEPLOY_HOOK_URL != ''
+        run: curl -fsS -X POST -o /dev/null "$CLOUDFLARE_DEPLOY_HOOK_URL" && echo "deploy hook called"
 
       - name: Notify Slack
         if: always() && env.SLACK_WEBHOOK_URL != ''
