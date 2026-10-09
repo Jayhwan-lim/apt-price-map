@@ -1018,7 +1018,7 @@
       perf.sdkReadyMs = Math.round(performance.now() - perf.startedAt);
       kmap = new kakao.maps.Map(document.getElementById("map"), {
         center: new kakao.maps.LatLng(37.505, 127.005),
-        level: 4,
+        level: 6,
       });
       kmap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
       clusterer = new kakao.maps.MarkerClusterer({
@@ -1036,7 +1036,7 @@
     const mappable = (c) => c.lat != null && c.lng != null;
 
     // Build only visible cluster markers, with extra margin for grid clustering.
-    // The initial close-up (level <= 5) displays prices/dots without creating
+    // The close-up views (level <= 5) display prices/dots without creating
     // thousands of otherwise invisible Kakao marker objects.
     function syncClusterMarkers() {
       if (!clusterer) return;
