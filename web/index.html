@@ -35,7 +35,7 @@
         <div class="search">
           <label class="sr-only" for="search-input">단지 검색</label>
           <input id="search-input" type="search" autocomplete="off"
-                 placeholder="단지명 또는 동 이름으로 검색 (예: 위례센트럴자이)">
+                 placeholder="단지명 또는 동 이름으로 검색 (예: 원베일리, 은마)">
           <ul id="search-results" class="search-results" role="listbox" hidden></ul>
         </div>
         <div class="filters" role="group" aria-label="비교 조건">
@@ -74,27 +74,35 @@
             <h2 id="ref-name"></h2>
             <p class="ref-meta" id="ref-meta"></p>
           </div>
-          <p class="step-label" id="year-label">기준 연도</p>
+          <p class="step-label" id="year-label">연도 (연간 중위가)</p>
           <div class="years" id="year-row" role="radiogroup" aria-labelledby="year-label"></div>
-          <p class="ref-price" id="ref-price"></p>
+          <p class="step-label" id="month-label">기준 월 (그 달 평균가)</p>
+          <div class="months" id="month-row" role="radiogroup" aria-labelledby="month-label"></div>
+          <div class="ref-price" id="ref-price"></div>
         </section>
 
         <section class="chart-section" id="chart-section" hidden>
           <div class="chart-head">
-            <h3>연도별 중위가격</h3>
-            <div class="seg" role="radiogroup" aria-label="그래프 단위">
-              <button type="button" class="seg-btn is-on" data-mode="price" aria-pressed="true">가격</button>
-              <button type="button" class="seg-btn" data-mode="index" aria-pressed="false">기준연도 = 100</button>
+            <h3 id="chart-title">월별 평균가격</h3>
+            <div class="chart-controls">
+              <div class="seg" role="group" aria-label="그래프 기간 단위">
+                <button type="button" class="seg-btn is-on" data-gran="month" aria-pressed="true">월별</button>
+                <button type="button" class="seg-btn" data-gran="year" aria-pressed="false">연도별</button>
+              </div>
+              <div class="seg" role="group" aria-label="그래프 값">
+                <button type="button" class="seg-btn is-on" data-mode="price" aria-pressed="true">가격</button>
+                <button type="button" class="seg-btn" data-mode="index" aria-pressed="false">기준월 = 100</button>
+              </div>
             </div>
           </div>
-          <div class="chart-box"><canvas id="chart" aria-label="연도별 중위가격 비교 그래프" role="img"></canvas></div>
-          <p class="chart-note">빈 원은 그해 거래가 3건 미만이라 대표성이 낮은 값입니다.</p>
+          <div class="chart-box"><canvas id="chart" aria-label="가격 비교 그래프" role="img"></canvas></div>
+          <p class="chart-note" id="chart-note"></p>
         </section>
 
         <section class="similar" id="similar-section" hidden>
           <div class="similar-head">
             <h3 id="similar-title"></h3>
-            <p class="similar-hint">체크한 단지가 그래프에 나옵니다 (최대 7개)</p>
+            <p class="similar-hint" id="similar-hint">지금까지 상승률이 높은 순입니다. 체크한 단지가 그래프에 나옵니다 (최대 7개).</p>
           </div>
           <ol class="similar-list" id="similar-list"></ol>
         </section>

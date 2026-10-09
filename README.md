@@ -3,15 +3,16 @@
 Map-based comparison of Seoul/Gyeonggi apartment trade prices, built on the
 MOLIT RTMS open API (data.go.kr, `getRTMSDataSvcAptTradeDev`).
 
-Pick a complex on the map, pick a year, and see every complex whose median
-price in that year was within ±5% of it, with their price lines over time.
+Pick a complex and a base month, and see every complex whose average price
+around that month (±1 month) was within ±5% of it, ranked by how much each has
+risen since (current price = trade-weighted average of the latest 3 months).
 
 ## Pipeline
 
 | Step | Script | Output |
 |---|---|---|
 | Collect | `collector/fetch.py` | `data/raw/<LAWD_CD>/<YYYYMM>.csv.gz` (resumable) |
-| Aggregate | `collector/aggregate.py` | `web/data/complexes.json`, `web/data/trades/<code>.json` |
+| Aggregate | `collector/aggregate.py` | `web/data/complexes.json`, `web/data/monthly.json`, `web/data/trades/<code>.json` |
 | Geocode | `collector/geocode.py` | `data/geo.csv` (Kakao Local API, cached) |
 
 Statistic rules: cancelled trades excluded; direct trades excluded in the

@@ -13,6 +13,7 @@ Rules (agreed defaults):
 
 Outputs:
     web/data/complexes.json        complex list + yearly stats
+    web/data/monthly.json          per complex x band monthly trade count and average
     web/data/trades/<code>.json    raw trade list per city/district, for detail view
     data/complex_index.csv         id, address, name (input for geocode.py)
 """
@@ -93,6 +94,40 @@ def summarize(values, areas):
     ]
 
 
+def write_monthly(monthly, ids):
+    """Monthly averages, compact: per complex id and band a flat list of
+    [month_index, n, avg] triples (excluding direct trades), followed by
+    "a": the same for all trades, listed only for months where it differs.
+    month_index counts from the "start" month."""
+    keys = [k for by_band in monthly.values() for cells in by_band.values() for k in cells]
+    if not keys:
+        return
+    y0, m0 = min(keys)
+    y1, m1 = max(keys)
+    count = (y1 - y0) * 12 + (m1 - m0) + 1
+    out = {}
+    for cid, by_band in monthly.items():
+        entry = {}
+        for band, cells in by_band.items():
+            ex, alld = [], []
+            for (y, m), (n_ex, s_ex, n_all, s_all) in sorted(cells.items()):
+                mi = (y - y0) * 12 + (m - m0)
+                avg_ex = round(s_ex / n_ex) if n_ex else 0
+                avg_all = round(s_all / n_all)
+                if n_ex:
+                    ex += [mi, n_ex, avg_ex]
+                if (n_all, avg_all) != (n_ex, avg_ex):
+                    alld += [mi, n_all, avg_all]
+            entry[band] = {"e": ex, "a": alld} if alld else {"e": ex}
+        out[str(ids[cid])] = entry
+    payload = {
+        "generated": datetime.now(KST).isoformat(timespec="seconds"),
+        "start": f"{y0:04d}{m0:02d}", "count": count, "c": out,
+    }
+    (WEB_DATA / "monthly.json").write_text(
+        json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+
+
 def main():
     regions = base_regions()
     seen = {}
@@ -101,6 +136,8 @@ def main():
     # stats[cid][band][variant][year] -> (prices, areas)
     buckets = defaultdict(lambda: defaultdict(lambda: defaultdict(
         lambda: defaultdict(lambda: ([], [])))))
+    # monthly[cid][band][(y, m)] -> [n_ex, sum_ex, n_all, sum_all]
+    monthly = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [0, 0, 0, 0])))
     trades = defaultdict(lambda: defaultdict(list))
     n_rows = n_dup = n_cancel = 0
 
@@ -143,6 +180,12 @@ def main():
         band = band_of(area)
         if band is None:
             continue
+        cell = monthly[cid][band][(y, m)]
+        cell[2] += 1
+        cell[3] += amount
+        if not direct:
+            cell[0] += 1
+            cell[1] += amount
         variants = ("all",) if direct else ("all", "ex")
         for v in variants:
             prices, areas = buckets[cid][band][v][y]
@@ -198,6 +241,8 @@ def main():
     }
     (WEB_DATA / "complexes.json").write_text(
         json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    write_monthly(monthly, ids)
 
     (WEB_DATA / "trades").mkdir(exist_ok=True)
     for stable, by_cid in trades.items():
