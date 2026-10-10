@@ -26,6 +26,10 @@ class InventoryTest(unittest.TestCase):
         self.assertEqual(out["verified_units"], 2)
         self.assertEqual(out["F_all"]["pre_2023_selected"], 1)
         self.assertEqual(out["D_known"]["unfilled_slots"], 1)
+        self.assertEqual(out["dong_unmatched"], 0)
+        with self.assertRaises(ValueError):
+            audit(rows, [["101동", 3, 60.0, 2]], "35",
+                  {"35": [35.0, 35.5, 35.12, 2]})
 
 
 if __name__ == "__main__":
