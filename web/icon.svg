@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#14202b"/>
+  <g fill="#ffffff">
+    <rect x="113" y="237" width="54" height="70" rx="9"/>
+    <rect x="187" y="191" width="54" height="116" rx="9"/>
+    <rect x="261" y="135" width="54" height="172" rx="9"/>
+  </g>
+  <polyline points="113,226 214,181 288,118" fill="none" stroke="#eb6834" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+  <text x="256" y="425" font-family="sans-serif" font-size="76" font-weight="bold" fill="#ffffff" text-anchor="middle">그땐 얼마?</text>
+</svg>
