@@ -1,6 +1,9 @@
 name: collect-trades
 
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/collect.yml']
   workflow_dispatch:
     inputs:
       start_ym:
