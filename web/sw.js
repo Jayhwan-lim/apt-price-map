@@ -8,8 +8,6 @@ const SHELL = [
   "config.js?v=20261010f",
   "app.js?v=20261010f",
   "manifest.webmanifest",
-  "icon-192.png",
-  "icon-512.png",
 ];
 
 self.addEventListener("install", (e) => {
