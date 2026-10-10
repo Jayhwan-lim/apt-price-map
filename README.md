@@ -51,10 +51,13 @@ Repository secrets:
 | `SLACK_WEBHOOK_URL` | optional | Incoming webhook for run summaries |
 
 Then run **Actions → collect-trades → Run workflow**. The dev quota is
-10,000 calls/day; a full Seoul+Gyeonggi backfill from 2019 needs roughly
-7,000–8,000, so it normally finishes in one run. If it stops early, run it
-again the next day and it continues where it left off. A weekly schedule
-then refreshes the latest three months (late reports and cancellations).
+10,000 calls/day; the historical backfill starts in January 2006. It exceeds one day's 10,000-call
+development quota, so multiple runs are needed; existing month files are
+skipped and partial runs resume where they left off. The weekly schedule
+continues the backfill and refreshes the latest three months (late reports and
+cancellations). The trade-price distribution counts transactions in the
+collected date range, not distinct households or each unit's last purchase.
+The UI displays the actual earliest and latest contract month per area type.
 
 ## Site
 
