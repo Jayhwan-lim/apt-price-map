@@ -1,10 +1,10 @@
 {
-  "started": "2026-10-10T04:39:22+09:00",
-  "written": 222,
-  "rows": 29088,
+  "started": "2026-10-10T22:36:17+09:00",
+  "written": 8924,
+  "rows": 2244527,
   "failures": [],
-  "result": "complete",
-  "calls": 222,
-  "remaining": 0,
-  "finished": "2026-10-10T04:40:45+09:00"
+  "result": "partial: per-run cap of 9000 calls reached",
+  "calls": 9000,
+  "remaining": 2569,
+  "finished": "2026-10-10T23:47:05+09:00"
 }
