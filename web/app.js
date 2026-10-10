@@ -1054,6 +1054,7 @@
     window.__aptMapPerf = perf;
 
     function load() {
+      if (window.__kakaoSdkPromise) return window.__kakaoSdkPromise;
       return new Promise((resolve) => {
         const s = document.createElement("script");
         s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${CFG.kakaoJsKey}&autoload=false&libraries=clusterer`;
