@@ -287,14 +287,18 @@
   // the full dataset then swaps in for stats, panels and price mode.
   async function loadSlim() {
     let rows = window.__mapPromise ? await window.__mapPromise : await loadJson(CFG.mapIndexUrl);
+    let indexSource = "all";
     // Keep the older shards as a fallback during a partial deployment.
     if (!Array.isArray(rows) || !rows.length) {
+      indexSource = "parts";
       const parts = await Promise.all(
         Array.from({ length: CFG.mapPartCount }, (_, i) => loadJson(CFG.mapParts(i))));
       if (parts.some((pt) => !Array.isArray(pt))) return false;
       rows = parts.flat();
     }
     if (!rows.length) return false;
+    el.note.dataset.indexSource = indexSource;
+    el.note.dataset.indexReadyMs = String(Math.round(performance.now()));
     const complexes = rows.map((r) => ({ key: r[0], nm: r[1], lat: r[2], lng: r[3], b: [] }));
     state.data = { generated: "", complexes };
     for (const c of complexes) {
@@ -1076,6 +1080,7 @@
         return;
       }
       perf.sdkReadyMs = Math.round(performance.now() - perf.startedAt);
+      el.note.dataset.sdkReadyMs = String(Math.round(performance.now()));
       kmap = new kakao.maps.Map(document.getElementById("map"), {
         center: new kakao.maps.LatLng(37.505, 127.005),
         level: 6,
@@ -1249,7 +1254,10 @@
       }
       perf.visibleOverlays = overlays.size;
       perf.lastRefreshMs = Math.round((performance.now() - refreshStartedAt) * 10) / 10;
-      if (perf.firstRefreshMs == null) perf.firstRefreshMs = Math.round(performance.now() - perf.startedAt);
+      if (perf.firstRefreshMs == null) {
+        perf.firstRefreshMs = Math.round(performance.now() - perf.startedAt);
+        el.note.dataset.mapReadyMs = String(Math.round(performance.now()));
+      }
       el.legend.hidden = !state.ref;
       if (state.ref && hasPoint()) {
         document.getElementById("legend-year").textContent =
