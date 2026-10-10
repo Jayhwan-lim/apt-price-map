@@ -286,9 +286,14 @@
   // Two-phase load: a slim name+coordinates index paints the map first;
   // the full dataset then swaps in for stats, panels and price mode.
   async function loadSlim() {
-    let rows = window.__mapPromise ? await window.__mapPromise : null;
-    if (!rows) rows = await loadJson(CFG.mapUrl);
-    if (!rows || !rows.length) return false;
+    let parts = window.__mapPromise ? await window.__mapPromise : null;
+    if (!parts) {
+      parts = await Promise.all(
+        Array.from({ length: CFG.mapPartCount }, (_, i) => loadJson(CFG.mapParts(i))));
+    }
+    if (!parts || parts.some((pt) => !pt)) return false;
+    const rows = parts.flat();
+    if (!rows.length) return false;
     const complexes = rows.map((r) => ({ key: r[0], nm: r[1], lat: r[2], lng: r[3], b: [] }));
     state.data = { generated: "", complexes };
     for (const c of complexes) {
