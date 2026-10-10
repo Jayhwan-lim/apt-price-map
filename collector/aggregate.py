@@ -396,6 +396,13 @@ def main():
     (WEB_DATA / "complexes.json").write_text(
         json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
+    # Slim first-paint index for the web app: [key, name, lat, lng] only, so
+    # the map renders before the full complexes.json has downloaded.
+    slim = [[c["key"], c["nm"], round(c["lat"], 5), round(c["lng"], 5)]
+            for c in complexes if c["lat"] and c["lng"]]
+    (WEB_DATA / "mapindex.json").write_text(
+        json.dumps(slim, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
     (WEB_DATA / "trades").mkdir(exist_ok=True)
     for stable, by_cid in trades.items():
         payload = {
