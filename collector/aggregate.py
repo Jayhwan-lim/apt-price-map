@@ -256,6 +256,71 @@ def spread_stacked(complexes, radius_m=35):
             c["lng"] = round(lng + dlng * math.cos(a), 5)
 
 
+def _png_bytes(size, pixel):
+    import struct, zlib
+    rows = []
+    for y in range(size):
+        row = bytearray(b"\x00")
+        for x in range(size):
+            row += bytes(pixel(x, y))
+        rows.append(bytes(row))
+
+    def chunk(tag, data):
+        return (struct.pack(">I", len(data)) + tag + data
+                + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF))
+    return (b"\x89PNG\r\n\x1a\n"
+            + chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(b"".join(rows), 6))
+            + chunk(b"IEND", b""))
+
+
+def _write_icon_pngs(web_dir):
+    """App icons drawn in pure Python (the collector has no imaging libs):
+    ink rounded square, white rising bars, orange trend line. No text —
+    the OS shows the app name next to the icon anyway."""
+    ink = (20, 32, 43, 255); white = (255, 255, 255, 255)
+    orange = (235, 104, 52, 255); clear = (0, 0, 0, 0)
+
+    def sd_round_box(px, py, cx, cy, hx, hy, r):
+        qx = abs(px - cx) - (hx - r); qy = abs(py - cy) - (hy - r)
+        ax = max(qx, 0.0); ay = max(qy, 0.0)
+        return (ax * ax + ay * ay) ** 0.5 + min(max(qx, qy), 0.0) - r
+
+    def seg_dist(px, py, x1, y1, x2, y2):
+        dx, dy = x2 - x1, y2 - y1
+        t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)))
+        ex, ey = px - (x1 + t * dx), py - (y1 + t * dy)
+        return (ex * ex + ey * ey) ** 0.5
+
+    def render(size, pad_frac, radius_frac):
+        s = float(size)
+
+        def pixel(x, y):
+            px, py = x + 0.5, y + 0.5
+            if sd_round_box(px, py, s / 2, s / 2, s / 2, s / 2, s * radius_frac) > 0:
+                return clear
+            col = ink
+            pad = s * pad_frac; base = s * 0.66
+            bw = s * 0.105; gap = s * 0.05
+            for i, h in enumerate((0.15, 0.26, 0.39)):
+                bx = pad + i * (bw + gap)
+                if sd_round_box(px, py, bx + bw / 2, base - s * h / 2,
+                                bw / 2, s * h / 2, s * 0.018) <= 0:
+                    col = white
+            pts = [(pad, base - s * 0.175), (pad + bw + gap, base - s * 0.285),
+                   (pad + 2 * (bw + gap), base - s * 0.425)]
+            for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+                if seg_dist(px, py, x1, y1, x2, y2) <= s * 0.011:
+                    col = orange
+            return col
+        return _png_bytes(size, pixel)
+
+    web_dir.joinpath("icon-512.png").write_bytes(render(512, 0.22, 0.22))
+    web_dir.joinpath("icon-maskable-512.png").write_bytes(render(512, 0.32, 0.22))
+    web_dir.joinpath("icon-192.png").write_bytes(render(192, 0.22, 0.22))
+    web_dir.joinpath("icon-180.png").write_bytes(render(180, 0.22, 0.0))
+
+
 def main():
     regions = base_regions()
     shared = shared_lots()
@@ -409,6 +474,8 @@ def main():
         (parts_dir / f"part-{i:02d}.json").write_text(
             json.dumps(slim[i * per:(i + 1) * per], ensure_ascii=False,
                        separators=(",", ":")), encoding="utf-8")
+
+    _write_icon_pngs(WEB_DATA.parent)
 
     (WEB_DATA / "trades").mkdir(exist_ok=True)
     for stable, by_cid in trades.items():
