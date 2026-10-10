@@ -41,7 +41,16 @@ self.addEventListener("fetch", (e) => {
     e.respondWith((async () => {
       const cache = await caches.open(EXT_CACHE);
       const hit = await cache.match(req);
-      if (hit) return hit;
+      if (hit) {
+        // Refresh the unversioned SDK for the next visit without
+        // delaying this one.
+        if (url.hostname === "dapi.kakao.com") {
+          e.waitUntil(fetch(req).then((res) =>
+            (res.ok || res.type === "opaque") ? cache.put(req, res.clone()) : undefined
+          ).catch(() => {}));
+        }
+        return hit;
+      }
       const res = await fetch(req);
       if (res.ok || res.type === "opaque") {
         e.waitUntil(cache.put(req, res.clone()).then(() => trimExt(cache)).catch(() => {}));
