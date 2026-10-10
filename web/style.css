@@ -345,7 +345,7 @@ button, input, select { font: inherit; color: inherit; }
 
 /* Coupang Partners slot: hidden entirely until a banner is pasted into
    #coupang-slot (activation is a separate, deliberate step). */
-.ad-slot { margin-top: 18px; text-align: center; }
+.ad-slot { padding: 12px 20px 4px; border-top: 1px solid var(--line); text-align: center; }
 .ad-slot:has(.ad-slot-body:empty) { display: none; }
 .ad-slot-body iframe { max-width: 100%; }
 .ad-note { margin-top: 6px; font-size: 11px; color: var(--muted); }
