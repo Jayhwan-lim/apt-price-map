@@ -343,9 +343,8 @@ button, input, select { font: inherit; color: inherit; }
   * { scroll-behavior: auto !important; transition: none !important; }
 }
 
-/* Coupang Partners slot: hidden entirely until a banner is pasted into
-   #coupang-slot (activation is a separate, deliberate step). */
+/* Hide the ad area if the partner script is blocked or has not rendered. */
 .ad-slot { padding: 12px 20px 4px; border-top: 1px solid var(--line); text-align: center; }
-.ad-slot:has(.ad-slot-body:empty) { display: none; }
+.ad-slot:not(:has(.ad-slot-body iframe)) { display: none; }
 .ad-slot-body iframe { max-width: 100%; }
 .ad-note { margin-top: 6px; font-size: 11px; color: var(--muted); }
