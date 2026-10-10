@@ -223,6 +223,35 @@ button, input, select { font: inherit; color: inherit; }
 .chart-box { position: relative; height: 280px; margin-top: 10px; }
 .chart-note { margin-top: 6px; font-size: 12px; color: var(--muted); }
 
+/* Prices of reported transactions, not inferred household purchase prices. */
+.trade-distribution h3 { font-size: 15px; font-weight: 600; }
+.trade-distribution-hint, .trade-distribution-note {
+  margin-top: 5px; font-size: 12px; color: var(--muted);
+}
+.trade-reference-label { display: block; margin-top: 12px; font-size: 12px; color: var(--ink-2); }
+#trade-reference {
+  width: 100%; height: 36px; margin-top: 4px; padding: 0 9px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-s);
+  background: var(--surface);
+}
+.trade-distribution-summary {
+  display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 12px;
+  padding: 10px 12px; background: var(--plane); border-radius: var(--radius-s);
+  font-size: 12px; color: var(--ink-2);
+}
+.trade-distribution-summary strong { color: var(--ink); }
+.trade-distribution-bars { margin-top: 12px; display: grid; gap: 6px; }
+.trade-distribution-row {
+  display: grid; grid-template-columns: 90px minmax(0, 1fr) 40px;
+  align-items: center; gap: 8px; font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.trade-distribution-range { color: var(--ink-2); white-space: nowrap; }
+.trade-distribution-track { height: 14px; border-radius: 3px; background: var(--plane); overflow: hidden; }
+.trade-distribution-fill { display: block; height: 100%; background: var(--ref); border-radius: 3px; min-width: 2px; }
+.trade-distribution-row.is-higher .trade-distribution-fill { background: var(--up); }
+.trade-distribution-count { text-align: right; font-weight: 600; }
+.trade-distribution-empty { font-size: 12px; color: var(--muted); }
+
 /* Similar complexes: doubles as the chart legend */
 .similar-head { display: grid; gap: 2px; }
 .similar-hint { font-size: 12px; color: var(--muted); }
