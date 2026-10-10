@@ -1149,7 +1149,7 @@
       el.note.dataset.sdkReadyMs = String(Math.round(performance.now()));
       kmap = new kakao.maps.Map(document.getElementById("map"), {
         center: new kakao.maps.LatLng(37.505, 127.005),
-        level: 2, // Kakao's 50 m scale on the initial map
+        level: 3, // Kakao's 50 m scale on the initial map
       });
       kmap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
       clusterer = new kakao.maps.MarkerClusterer({
