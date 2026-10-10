@@ -301,24 +301,34 @@ def _write_icon_pngs(web_dir):
                 return clear
             col = ink
             pad = s * pad_frac; base = s * 0.66
-            bw = s * 0.105; gap = s * 0.05
-            for i, h in enumerate((0.15, 0.26, 0.39)):
+            # Four bars centred in the padded span (the 3-bar layout sat
+            # left-heavy); bar widths scale with the span so the maskable
+            # variant stays inside its safe zone.
+            span = s - 2 * pad
+            bw = span * 0.184; gap = span * 0.088
+            heights = (0.13, 0.22, 0.32, 0.44)
+            tops = []
+            for i, h in enumerate(heights):
                 bx = pad + i * (bw + gap)
+                tops.append((bx + bw / 2, base - s * h - s * 0.025))
                 if sd_round_box(px, py, bx + bw / 2, base - s * h / 2,
                                 bw / 2, s * h / 2, s * 0.018) <= 0:
                     col = white
-            pts = [(pad, base - s * 0.175), (pad + bw + gap, base - s * 0.285),
-                   (pad + 2 * (bw + gap), base - s * 0.425)]
-            for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+            for (x1, y1), (x2, y2) in zip(tops, tops[1:]):
                 if seg_dist(px, py, x1, y1, x2, y2) <= s * 0.011:
                     col = orange
             return col
         return _png_bytes(size, pixel)
 
-    web_dir.joinpath("icon-512.png").write_bytes(render(512, 0.22, 0.22))
-    web_dir.joinpath("icon-maskable-512.png").write_bytes(render(512, 0.32, 0.22))
-    web_dir.joinpath("icon-192.png").write_bytes(render(192, 0.22, 0.22))
-    web_dir.joinpath("icon-180.png").write_bytes(render(180, 0.22, 0.0))
+    # Never overwrite an icon that is already committed: a hand-designed
+    # file in the repo wins over the generated one.
+    for name, args in (("icon-512.png", (512, 0.22, 0.22)),
+                       ("icon-maskable-512.png", (512, 0.32, 0.22)),
+                       ("icon-192.png", (192, 0.22, 0.22)),
+                       ("icon-180.png", (180, 0.22, 0.0))):
+        path = web_dir.joinpath(name)
+        if not path.exists():
+            path.write_bytes(render(*args))
 
 
 def main():
