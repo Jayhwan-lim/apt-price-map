@@ -1,0 +1,20 @@
+name: Unit inventory audit checks
+
+on:
+  pull_request:
+    paths:
+      - 'collector/unit_inventory.py'
+      - 'collector/audit_unit_models.py'
+      - 'collector/test_unit_models.py'
+      - '.github/workflows/unit-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s collector -p 'test_unit_models.py' -v

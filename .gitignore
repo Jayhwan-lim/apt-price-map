@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 *.tmp
 .env
+data/units/
+data/unit_manifest.json
