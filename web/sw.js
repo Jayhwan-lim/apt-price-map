@@ -1,12 +1,12 @@
-/* 그땐 얼마? service worker — release tag: 20261010f (keep in step with the
+/* 그땐 얼마? service worker — release tag: 20261010g (keep in step with the
  * ?v= tags in index.html; bump both together on every release). */
-const CACHE = "geuttaen-20261010f";
+const CACHE = "geuttaen-20261010g";
 const SHELL = [
   "./",
   "index.html",
-  "style.css?v=20261010f",
-  "config.js?v=20261010f",
-  "app.js?v=20261010f",
+  "style.css?v=20261010g",
+  "config.js?v=20261010g",
+  "app.js?v=20261010g",
   "manifest.webmanifest",
 ];
 
