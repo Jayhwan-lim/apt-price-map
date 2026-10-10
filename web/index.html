@@ -20,9 +20,12 @@
     // Start downloading the slim map index while the rest of the page is
     // still parsing; web/app.js (loadSlim) awaits this promise and fetches
     // the full dataset right after the map has painted.
-    window.__mapPromise = fetch("data/mapindex.json")
-      .then((r) => (r.ok ? r.json() : null))
-      .catch(() => null);
+    window.__mapPromise = Promise.all(
+      Array.from({ length: 12 }, (_, i) =>
+        fetch(`data/mapindex/part-${String(i).padStart(2, "0")}.json`)
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null))
+    );
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
