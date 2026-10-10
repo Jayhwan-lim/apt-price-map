@@ -463,11 +463,14 @@ def main():
 
     # Slim first-paint index for the web app: [key, name, lat, lng] only, so
     # the map renders before the full complexes.json has downloaded.
-    # Sharded so each file stays small enough to commit through the API.
+    # Keep the old shards for clients still running an earlier release.
     slim = [[c["key"], c["nm"], round(c["lat"], 5), round(c["lng"], 5)]
             for c in complexes if c["lat"] and c["lng"]]
     parts_dir = WEB_DATA / "mapindex"
     parts_dir.mkdir(exist_ok=True)
+    # One compressed transfer avoids waiting for the slowest of 12 requests.
+    (parts_dir / "all.json").write_text(
+        json.dumps(slim, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     n_parts = 12
     per = (len(slim) + n_parts - 1) // n_parts
     for i in range(n_parts):
