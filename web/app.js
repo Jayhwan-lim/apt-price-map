@@ -82,7 +82,7 @@
     entries: new Map(),     // entry key ("complexKey#band") -> similar entry
     checked: [],            // entry keys, in the order they were checked
     slotOf: new Map(),      // entry key -> palette slot (1..7), sticky while checked
-    slim: false, pendingKey: null, fullPromise: null,  // two-phase data load
+    slim: false, pendingKey: null, fullPromise: null, kickFull: null,  // two-phase data load
     start: "complex",       // "complex" (start from a complex) or "price" (from a month + budget)
     price: { mi: null, amount: 80000, sort: "desc", results: [], loading: false },
   };
@@ -376,6 +376,7 @@
     if (state.slim) {
       // Full stats are still downloading; open this complex once they land.
       state.pendingKey = c.key;
+      if (state.kickFull) state.kickFull();
       el.note.textContent = "단지 상세 정보를 불러오는 중입니다…";
       return;
     }
@@ -601,6 +602,7 @@
 
   let priceSeq = 0;
   async function runPrice() {
+    if (state.kickFull) state.kickFull();
     if (state.slim && state.fullPromise) await state.fullPromise;
     const my = ++priceSeq;
     const P = state.price;
@@ -1469,7 +1471,24 @@
       // A slim-phase render problem must never block the full data load.
       try { map.refresh(); } catch (e) { /* the full refresh below retries */ }
     }
-    state.fullPromise = loadFull();
+    // The full dataset (750KB gzip, ~4.7MB parsed) must not compete with
+    // first paint: tiles and cluster rendering get the network and the
+    // main thread first. The download starts on the first map interaction,
+    // shortly after paint, or immediately for deep links and selections
+    // (selectComplex / runPrice call kickFull themselves).
+    state.fullPromise = new Promise((resolve) => {
+      state.kickFull = () => {
+        if (!state.kickFull) return;
+        state.kickFull = null;
+        resolve(loadFull());
+      };
+    });
+    setTimeout(() => { if (state.kickFull) state.kickFull(); }, 1200);
+    ["pointerdown", "touchstart", "wheel"].forEach((ev) =>
+      document.getElementById("map").addEventListener(ev,
+        () => { if (state.kickFull) state.kickFull(); },
+        { once: true, passive: true }));
+    if (location.hash) state.kickFull();
     const ok = await state.fullPromise;
     if (!ok) {
       if (!slimOk) {
