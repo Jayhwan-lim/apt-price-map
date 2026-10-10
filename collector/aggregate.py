@@ -369,7 +369,7 @@ def main():
         cancelled = bool(row["cdealType"].strip())
         direct = row["dealingGbn"].strip() == "직거래"
         trades[stable][cid].append([date, area, to_int(row["floor"]), amount,
-                                    int(direct), int(cancelled)])
+                                    int(direct), int(cancelled), row.get("aptDong", "").strip()])
         if cancelled:
             n_cancel += 1
             continue
@@ -483,7 +483,7 @@ def main():
     (WEB_DATA / "trades").mkdir(exist_ok=True)
     for stable, by_cid in trades.items():
         payload = {
-            "fields": ["date", "area", "floor", "amount", "direct", "cancelled"],
+            "fields": ["date", "area", "floor", "amount", "direct", "cancelled", "dong"],
             "complexes": {str(ids[c]): sorted(rows, reverse=True) for c, rows in by_cid.items()},
         }
         (WEB_DATA / "trades" / f"{stable}.json").write_text(
