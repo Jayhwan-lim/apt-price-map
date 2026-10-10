@@ -152,7 +152,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 .filters .check { display: flex; align-items: center; gap: 6px; height: 32px; font-size: 13px; color: var(--ink); }
 
-.panel-body { overflow-y: auto; padding: 0 20px 24px; }
+.panel-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 20px 24px; }
 .panel-body > section, .panel-body > details { padding-top: 18px; }
 
 .empty { padding: 32px 0; color: var(--ink-2); display: grid; gap: 8px; max-width: 36em; }
