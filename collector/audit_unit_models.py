@@ -22,6 +22,13 @@ def type_of(types, area):
                else min(abs(area - types[k][0]), abs(area - types[k][1])))
 
 
+def dong_key(value):
+    name = "".join(str(value or "").split())
+    if name.endswith("동"):
+        name = name[:-1]
+    return str(int(name)) if name.isdigit() else name
+
+
 def select(trades, capacity, grouping):
     pools = defaultdict(list)
     for trade in trades:
@@ -50,23 +57,28 @@ def metrics(selected, total, capacity):
 def audit(rows, pools, band, types, include_direct=False):
     f_capacity, d_capacity = Counter(), Counter()
     for dong, floor, area, n in pools:
-        if type_of(types, float(area)) != band:
+        area = float(area)
+        nearest = type_of(types, area)
+        lo, hi = types[nearest][:2]
+        if not lo - 0.2 <= area <= hi + 0.2:
+            raise ValueError(f"inventory area {area} has no matching trade band")
+        if nearest != band:
             continue
         if n <= 0:
             raise ValueError("inventory contains nonpositive count")
         f_capacity[int(floor)] += n
-        d_capacity[(str(dong).strip(), int(floor))] += n
+        d_capacity[(dong_key(dong), int(floor))] += n
     if not f_capacity:
         raise ValueError("no verified units matched the selected area band")
     valid = [r for r in rows if not r[5] and (include_direct or not r[4])
              and r[2] is not None and type_of(types, float(r[1])) == band]
-    known = [r for r in valid if str(r[6]).strip() not in ("", "-")]
+    known = [r for r in valid if dong_key(r[6]) not in ("", "-")]
     unknown = len(valid) - len(known)
     # Exact dong spelling differences are not silently matched to a unit.
     f = select(valid, f_capacity, lambda r: int(r[2]))
     fk = select(known, f_capacity, lambda r: int(r[2]))
-    d = select(known, d_capacity, lambda r: (str(r[6]).strip(), int(r[2])))
-    unmatched = sum((str(r[6]).strip(), int(r[2])) not in d_capacity for r in known)
+    d = select(known, d_capacity, lambda r: (dong_key(r[6]), int(r[2])))
+    unmatched = sum((dong_key(r[6]), int(r[2])) not in d_capacity for r in known)
     return {"band": band, "verified_units": sum(f_capacity.values()),
             "transactions_in_band": len(valid), "dong_known": len(known),
             "dong_missing": unknown, "dong_unmatched": unmatched,
