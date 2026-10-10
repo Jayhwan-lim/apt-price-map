@@ -1,13 +1,13 @@
-/* 그땐 얼마? service worker — release tag: 20261010i (keep in step with the
+/* 그땐 얼마? service worker — release tag: 20261010j (keep in step with the
  * ?v= tags in index.html; bump both together on every release). */
-const CACHE = "geuttaen-20261010i";
+const CACHE = "geuttaen-20261010j";
 const EXT_CACHE = "geuttaen-ext-v1"; // Kakao tiles + SDK: the heavy half of a cold open
 const SHELL = [
   "./",
   "index.html",
-  "style.css?v=20261010i",
-  "config.js?v=20261010i",
-  "app.js?v=20261010i",
+  "style.css?v=20261010j",
+  "config.js?v=20261010j",
+  "app.js?v=20261010j",
   "manifest.webmanifest",
 ];
 
@@ -20,7 +20,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== EXT_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -41,14 +41,21 @@ self.addEventListener("fetch", (e) => {
     e.respondWith((async () => {
       const cache = await caches.open(EXT_CACHE);
       const hit = await cache.match(req);
-      const fetched = fetch(req).then((res) => {
-        if (res.ok || res.type === "opaque") {
-          cache.put(req, res.clone());
-          trimExt(cache);
+      if (hit) {
+        // Refresh the unversioned SDK for the next visit without
+        // delaying this one.
+        if (url.hostname === "dapi.kakao.com") {
+          e.waitUntil(fetch(req).then((res) =>
+            (res.ok || res.type === "opaque") ? cache.put(req, res.clone()) : undefined
+          ).catch(() => {}));
         }
-        return res;
-      }).catch(() => hit);
-      return hit || fetched;
+        return hit;
+      }
+      const res = await fetch(req);
+      if (res.ok || res.type === "opaque") {
+        e.waitUntil(cache.put(req, res.clone()).then(() => trimExt(cache)).catch(() => {}));
+      }
+      return res;
     })());
     return;
   }
@@ -101,5 +108,5 @@ self.addEventListener("fetch", (e) => {
       )
     );
   }
-  // Everything else (Kakao SDK, map tiles, Chart.js CDN) passes through.
+  // Everything else (such as Chart.js CDN) passes through.
 });
