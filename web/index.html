@@ -16,7 +16,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#14202b">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <script src="config.js?v=20261010q"></script>
+  <script src="config.js?v=20261010r"></script>
   <script>
     // Start the Kakao SDK before the map index so its first tile requests
     // aren't queued behind twelve data downloads.
@@ -44,7 +44,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261010q">
+  <link rel="stylesheet" href="style.css?v=20261010r">
 </head>
 <body>
   <div class="app">
@@ -202,11 +202,19 @@
             </table>
           </div>
         </details>
+
+        <section class="ad-slot" id="ad-section" aria-label="광고">
+          <!-- Coupang Partners banner: paste the banner code issued in the
+               Partners center inside #coupang-slot. While it is empty, CSS
+               hides this whole section, disclosure line included. -->
+          <div class="ad-slot-body" id="coupang-slot"></div>
+          <p class="ad-note">이 게시물은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
+        </section>
       </div>
       <footer class="panel-foot">자료: 국토교통부 아파트 매매 실거래가(공공데이터포털). 해제 신고된 거래는 통계에서 뺐습니다.</footer>
     </aside>
   </div>
 
-  <script src="app.js?v=20261010q"></script>
+  <script src="app.js?v=20261010r"></script>
 </body>
 </html>
