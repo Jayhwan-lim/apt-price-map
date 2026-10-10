@@ -1042,15 +1042,17 @@
     const ref = rows[state.tradeRefIndex] || rows[0];
     const refAmount = ref[3];
     const latestMonth = Number(rows[0][0].slice(0, 4)) * 12 + Number(rows[0][0].slice(4, 6));
+    const firstMonth = latestMonth - 11;
+    const period = (mi) => `${Math.floor((mi - 1) / 12)}.${String((mi - 1) % 12 + 1).padStart(2, "0")}`;
     const recent = rows.filter((r) =>
-      Number(r[0].slice(0, 4)) * 12 + Number(r[0].slice(4, 6)) >= latestMonth - 11);
+      Number(r[0].slice(0, 4)) * 12 + Number(r[0].slice(4, 6)) >= firstMonth);
     const compared = recent.filter((r) => r !== ref);
     const high = compared.filter((r) => r[3] > refAmount).length;
     const low = compared.filter((r) => r[3] < refAmount).length;
     const same = compared.length - high - low;
     el.tradeSummary.innerHTML =
       `<span>기준 <strong>${fmtPrice(refAmount)}</strong> · ${ref[0].slice(0, 4)}.${ref[0].slice(4, 6)}.${ref[0].slice(6, 8)} · ${ref[2]}층</span>` +
-      `<span>최근 12개월 다른 거래 <strong>${compared.length}건</strong></span>` +
+      `<span>${period(firstMonth)}~${period(latestMonth)} 다른 거래 <strong>${compared.length}건</strong></span>` +
       `<span>높음 ${high}건 · 낮음 ${low}건 · 같음 ${same}건</span>`;
     if (!compared.length) {
       el.tradeBars.innerHTML = '<p class="trade-distribution-empty">비교할 최근 거래가 없습니다.</p>';
