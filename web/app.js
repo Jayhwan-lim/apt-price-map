@@ -1466,7 +1466,8 @@
     const slimOk = await loadSlim();
     if (slimOk) {
       await mapReady;
-      map.refresh();
+      // A slim-phase render problem must never block the full data load.
+      try { map.refresh(); } catch (e) { /* the full refresh below retries */ }
     }
     state.fullPromise = loadFull();
     const ok = await state.fullPromise;
