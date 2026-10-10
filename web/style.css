@@ -55,13 +55,13 @@ button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-/* Layout: map fills the left, comparison panel on the right */
+/* Layout: comparison panel on the left, map fills the remaining space */
 .app {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 440px;
+  grid-template-columns: 440px minmax(0, 1fr);
   height: 100dvh;
 }
-.map-wrap { position: relative; min-height: 0; background: var(--plane); }
+.map-wrap { grid-column: 2; position: relative; min-height: 0; background: var(--plane); }
 .map { position: absolute; inset: 0; }
 .map-fallback {
   position: absolute; inset: 0; display: grid; place-content: center; gap: 8px;
@@ -83,8 +83,9 @@ button, input, select { font: inherit; color: inherit; }
 .dot-small { width: 8px; height: 8px; background: #fff; border: 2px solid #4d5b67; }
 
 .panel {
+  grid-column: 1; grid-row: 1;
   display: flex; flex-direction: column; min-height: 0;
-  border-left: 1px solid var(--line); background: var(--surface);
+  border-right: 1px solid var(--line); background: var(--surface);
 }
 .panel-head {
   padding: 18px 20px 14px; border-bottom: 1px solid var(--line);
@@ -303,8 +304,8 @@ button, input, select { font: inherit; color: inherit; }
 
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 42dvh auto; height: auto; }
-  .map-wrap { height: 42dvh; }
-  .panel { border-left: 0; border-top: 1px solid var(--line); }
+  .map-wrap { grid-column: 1; grid-row: 1; height: 42dvh; }
+  .panel { grid-column: 1; grid-row: 2; border-right: 0; border-top: 1px solid var(--line); }
   .panel-body { overflow: visible; }
   .panel-head { padding: 14px 16px 12px; }
   .panel-body { padding: 0 16px 24px; }
