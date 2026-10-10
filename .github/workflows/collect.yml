@@ -65,7 +65,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data web/data
+          git add data web/data web/icon-192.png web/icon-512.png web/icon-maskable-512.png web/icon-180.png
           if git diff --cached --quiet; then
             echo "no changes"
           else
