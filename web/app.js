@@ -65,6 +65,8 @@
     chartSec: $("chart-section"), canvas: $("chart"), chartTitle: $("chart-title"), chartNote: $("chart-note"),
     simSec: $("similar-section"), simTitle: $("similar-title"), simList: $("similar-list"),
     tradesSec: $("trades-section"), tradesBody: $("trades-body"),
+    tradeDistSec: $("trade-distribution-section"), tradeRef: $("trade-reference"),
+    tradeSummary: $("trade-distribution-summary"), tradeBars: $("trade-distribution-bars"),
     fallback: $("map-fallback"), legend: $("map-legend"),
     searchBox: $("search-box"), bandLabel: $("band-label"), cmpBandLabel: $("cmpband-label"),
     priceSec: $("price-section"), pYears: $("p-year-row"), pMonths: $("p-month-row"),
@@ -79,6 +81,7 @@
     // (window around month index `month`).
     ref: null, basis: "year", month: null, viewYear: null, refBase: null, loading: false,
     similar: [], similarTotal: 0,
+    tradeRows: [], tradeRefIndex: 0,
     entries: new Map(),     // entry key ("complexKey#band") -> similar entry
     checked: [],            // entry keys, in the order they were checked
     slotOf: new Map(),      // entry key -> palette slot (1..7), sticky while checked
@@ -393,6 +396,10 @@
     if (state.start !== "complex") setStart("complex", { run: false });
     if (band && c.b.includes(band)) state.band = band;
     state.ref = c;
+    state.tradeRows = [];
+    el.tradeRef.innerHTML = "";
+    el.tradeSummary.textContent = "실거래 내역을 불러오는 중…";
+    el.tradeBars.innerHTML = "";
     state.loading = true;
     render();
     await loadRegion(c.code);
@@ -565,7 +572,7 @@
     el.priceSec.hidden = true;
     el.empty.hidden = has;
     el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = !has;
-    el.tradesSec.hidden = !has;
+    el.tradesSec.hidden = el.tradeDistSec.hidden = !has;
     if (has) {
       renderRef();
       renderSimilar();
@@ -598,7 +605,7 @@
       state.ref = null;
       state.checked = [];
       state.slotOf.clear();
-      el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = true;
+      el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = el.tradeDistSec.hidden = true;
       el.priceSec.hidden = false;
       if (state.price.mi == null) state.price.mi = Math.max(0, lastMi() - 60);
       if (run) runPrice();
@@ -1022,16 +1029,66 @@
     chart = new Chart(el.canvas, config);
   }
 
+  // ---------- reported transaction price distribution ----------
+  // The public feed has no unit number. Never treat a floor/area as a unique
+  // household or infer a household's last purchase/profit from this data.
+  function renderTradeDistribution() {
+    const rows = state.tradeRows;
+    if (!rows.length) {
+      el.tradeSummary.textContent = "이 면적의 공개된 거래 내역이 없습니다.";
+      el.tradeBars.innerHTML = "";
+      return;
+    }
+    const ref = rows[state.tradeRefIndex] || rows[0];
+    const refAmount = ref[3];
+    const latestMonth = Number(rows[0][0].slice(0, 4)) * 12 + Number(rows[0][0].slice(4, 6));
+    const recent = rows.filter((r) =>
+      Number(r[0].slice(0, 4)) * 12 + Number(r[0].slice(4, 6)) >= latestMonth - 11);
+    const compared = recent.filter((r) => r !== ref);
+    const high = compared.filter((r) => r[3] > refAmount).length;
+    const low = compared.filter((r) => r[3] < refAmount).length;
+    const same = compared.length - high - low;
+    el.tradeSummary.innerHTML =
+      `<span>기준 <strong>${fmtPrice(refAmount)}</strong> · ${ref[0].slice(0, 4)}.${ref[0].slice(4, 6)}.${ref[0].slice(6, 8)} · ${ref[2]}층</span>` +
+      `<span>최근 12개월 다른 거래 <strong>${compared.length}건</strong></span>` +
+      `<span>높음 ${high}건 · 낮음 ${low}건 · 같음 ${same}건</span>`;
+    if (!compared.length) {
+      el.tradeBars.innerHTML = '<p class="trade-distribution-empty">비교할 최근 거래가 없습니다.</p>';
+      return;
+    }
+    const amounts = compared.map((r) => r[3]);
+    const min = Math.min(...amounts), max = Math.max(...amounts);
+    const step = [5000, 10000, 20000, 50000, 100000, 200000]
+      .find((s) => (max - min) / s <= 9) || 500000;
+    const start = Math.floor(min / step) * step;
+    const counts = Array(Math.floor((max - start) / step) + 1).fill(0);
+    for (const amount of amounts) counts[Math.floor((amount - start) / step)]++;
+    const tallest = Math.max(...counts);
+    el.tradeBars.innerHTML = counts.map((n, i) => {
+      const lo = start + i * step;
+      const width = n ? Math.max(2, Math.round(n / tallest * 100)) : 0;
+      return `<div class="trade-distribution-row ${lo + step / 2 > refAmount ? "is-higher" : ""}">
+        <span class="trade-distribution-range">${fmtPrice(lo)}–${fmtPrice(lo + step)}</span>
+        <span class="trade-distribution-track"><i class="trade-distribution-fill" style="width:${width}%"></i></span>
+        <span class="trade-distribution-count">${n}건</span>
+      </div>`;
+    }).join("");
+  }
+
   // ---------- trades ----------
   const tradesCache = new Map();
+  let tradesRequest = 0;
   async function loadTrades(c) {
+    const request = ++tradesRequest;
     el.tradesBody.innerHTML = `<tr><td colspan="5">불러오는 중…</td></tr>`;
+    el.tradeSummary.textContent = "실거래 내역을 불러오는 중…";
+    el.tradeBars.innerHTML = "";
     let payload = tradesCache.get(c.code);
     if (!payload) {
       payload = await loadJson(CFG.tradesUrl(c.code));
       if (payload) tradesCache.set(c.code, payload);
     }
-    if (state.ref !== c) return;
+    if (state.ref !== c || request !== tradesRequest) return;
     const rows = (payload && payload.complexes[String(c.id)]) || [];
     const t = (((regionStore.get(c.code) || {})[c.id] || {}).ty || {})[state.band];
     const inBand = (a) => (!t ? true : a >= t[0] - 0.01 && a <= t[1] + 0.01);
@@ -1041,6 +1098,13 @@
          <td>${d.slice(0, 4)}.${d.slice(4, 6)}.${d.slice(6, 8)}</td><td>${a}</td><td>${f ?? ""}</td>
          <td>${fmtPrice(amt)}</td><td>${cancelled ? "해제" : direct ? "직거래" : ""}</td></tr>`).join("")
       : `<tr><td colspan="5">이 면적의 거래 내역이 없습니다.</td></tr>`;
+
+    state.tradeRows = rows.filter((r) => inBand(r[1]) && !r[5] && (state.variant === "all" || !r[4]));
+    state.tradeRefIndex = 0;
+    el.tradeRef.innerHTML = state.tradeRows.slice(0, 60).map((r, i) =>
+      `<option value="${i}">${r[0].slice(0, 4)}.${r[0].slice(4, 6)}.${r[0].slice(6, 8)} · ${r[2]}층 · ${fmtPrice(r[3])}</option>`).join("");
+    el.tradeRef.disabled = !state.tradeRows.length;
+    renderTradeDistribution();
   }
 
   // ---------- map ----------
@@ -1373,7 +1437,7 @@
     el.band.addEventListener("change", () => { if (!el.band.value) return; state.band = el.band.value; afterFilter(true); });
     el.tol.addEventListener("change", () => { state.tol = Number(el.tol.value); afterFilter(false); });
     el.scope.addEventListener("change", () => { state.scope = el.scope.value; afterFilter(false); });
-    el.direct.addEventListener("change", () => { state.variant = el.direct.checked ? "all" : "ex"; afterFilter(false); });
+    el.direct.addEventListener("change", () => { state.variant = el.direct.checked ? "all" : "ex"; afterFilter(false); if (state.ref) loadTrades(state.ref); });
     el.cmpBand.addEventListener("change", () => { state.sameBand = el.cmpBand.value === "same"; afterFilter(false); });
 
     // Picking a year shows its months and moves the base to that year's
@@ -1392,6 +1456,11 @@
       state.basis = "month";
       state.month = Number(b.dataset.mi);
       recompute({ resetChecks: true });
+    });
+
+    el.tradeRef.addEventListener("change", () => {
+      state.tradeRefIndex = Number(el.tradeRef.value);
+      renderTradeDistribution();
     });
 
     el.simList.addEventListener("change", (e) => {
