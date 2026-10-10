@@ -5,7 +5,7 @@ on:
     inputs:
       start_ym:
         description: "First contract month (YYYYMM)"
-        default: "201901"
+        default: "200601"
       max_calls:
         description: "Request cap for this run (dev quota is 10,000/day)"
         default: "9000"
@@ -44,7 +44,7 @@ jobs:
         id: fetch
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
-          START_YM: ${{ inputs.start_ym || '201901' }}
+          START_YM: ${{ inputs.start_ym || '200601' }}
           MAX_CALLS: ${{ inputs.max_calls || '9000' }}
         run: python collector/fetch.py
 
