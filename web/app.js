@@ -82,6 +82,7 @@
     entries: new Map(),     // entry key ("complexKey#band") -> similar entry
     checked: [],            // entry keys, in the order they were checked
     slotOf: new Map(),      // entry key -> palette slot (1..7), sticky while checked
+    slim: false, pendingKey: null, fullPromise: null,  // two-phase data load
     start: "complex",       // "complex" (start from a complex) or "price" (from a month + budget)
     price: { mi: null, amount: 80000, sort: "desc", results: [], loading: false },
   };
@@ -282,27 +283,44 @@
     }
   }
 
-  async function loadData() {
-    // index.html starts this fetch during HTML parsing so the download
-    // overlaps script loading; fall back to a direct fetch if absent.
-    let data = window.__dataPromise ? await window.__dataPromise : null;
-    if (!data) data = await loadJson(CFG.dataUrl);
-    if (!data) {
-      el.note.textContent = "아직 수집된 데이터가 없습니다";
-      el.empty.querySelector("p:last-child").textContent =
-        "GitHub Actions에서 collect-trades를 실행하면 데이터가 채워집니다.";
-      return false;
+  // Two-phase load: a slim name+coordinates index paints the map first;
+  // the full dataset then swaps in for stats, panels and price mode.
+  async function loadSlim() {
+    let rows = window.__mapPromise ? await window.__mapPromise : null;
+    if (!rows) rows = await loadJson(CFG.mapUrl);
+    if (!rows || !rows.length) return false;
+    const complexes = rows.map((r) => ({ key: r[0], nm: r[1], lat: r[2], lng: r[3], b: [] }));
+    state.data = { generated: "", complexes };
+    for (const c of complexes) {
+      c._norm = normalize(c.nm);
+      state.byKey.set(c.key, c);
     }
+    state.slim = true;
+    el.band.innerHTML = `<option value="">단지를 고르면 나옵니다</option>`;
+    el.note.textContent = `단지 ${complexes.length.toLocaleString("ko-KR")}개 · 상세 정보 받는 중`;
+    return true;
+  }
+
+  async function loadFull() {
+    const data = await loadJson(CFG.dataUrl);
+    if (!data) return false;
     state.data = data;
-    if (window.__aptMapPerf) window.__aptMapPerf.dataReadyMs =
-      Math.round(performance.now() - window.__aptMapPerf.startedAt);
+    state.byKey.clear();
     for (const c of data.complexes) {
       c._norm = normalize(c.nm);
       state.byKey.set(c.key, c);
     }
+    state.slim = false;
+    if (window.__aptMapPerf) window.__aptMapPerf.dataReadyMs =
+      Math.round(performance.now() - window.__aptMapPerf.startedAt);
     el.band.innerHTML = `<option value="">단지를 고르면 나옵니다</option>`;
     const updated = (data.generated || "").slice(0, 10);
     el.note.textContent = `${updated} 갱신, 단지 ${data.complexes.length.toLocaleString("ko-KR")}개`;
+    if (state.pendingKey) {
+      const pc = state.byKey.get(state.pendingKey);
+      state.pendingKey = null;
+      if (pc) selectComplex(pc);
+    }
     return true;
   }
 
@@ -316,7 +334,7 @@
     if (!q || !state.data) return closeSearch();
     const starts = [], contains = [];
     for (const c of state.data.complexes) {
-      if (!c.b.length) continue;
+      if (!state.slim && !c.b.length) continue;
       if (c._norm.startsWith(q)) starts.push(c);
       else if (c._norm.includes(q) || normalize(c.umd) === q) contains.push(c);
       if (starts.length >= 12) break;
@@ -350,6 +368,12 @@
 
   // ---------- selection ----------
   async function selectComplex(c, { pan = false, month = null, year = null, band = null } = {}) {
+    if (state.slim) {
+      // Full stats are still downloading; open this complex once they land.
+      state.pendingKey = c.key;
+      el.note.textContent = "단지 상세 정보를 불러오는 중입니다…";
+      return;
+    }
     if (pan) map.panTo(c);
     if (state.start !== "complex") setStart("complex", { run: false });
     if (band && c.b.includes(band)) state.band = band;
@@ -572,6 +596,7 @@
 
   let priceSeq = 0;
   async function runPrice() {
+    if (state.slim && state.fullPromise) await state.fullPromise;
     const my = ++priceSeq;
     const P = state.price;
     if (!yearsReady(P.mi)) {
@@ -1433,10 +1458,29 @@
   (async function start() {
     bind();
     const mapReady = map.init();
-    const ok = await loadData();
-    if (!ok) return;
+    const slimOk = await loadSlim();
+    if (slimOk) {
+      await mapReady;
+      map.refresh();
+    }
+    state.fullPromise = loadFull();
+    const ok = await state.fullPromise;
+    if (!ok) {
+      if (!slimOk) {
+        el.note.textContent = "아직 수집된 데이터가 없습니다";
+        el.empty.querySelector("p:last-child").textContent =
+          "GitHub Actions에서 collect-trades를 실행하면 데이터가 채워집니다.";
+      } else {
+        el.note.textContent = "상세 정보를 불러오지 못했습니다. 지도는 계속 쓸 수 있습니다";
+      }
+      return;
+    }
     readHash();
     await mapReady;
     map.refresh();
   })();
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
 })();
