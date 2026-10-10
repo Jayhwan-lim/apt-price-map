@@ -373,6 +373,10 @@
 
   // ---------- selection ----------
   async function selectComplex(c, { pan = false, month = null, year = null, band = null } = {}) {
+    // Search results can hold a slim-phase object (no band data); always
+    // re-resolve against the current dataset so a click that lands right
+    // after the full-data swap never renders an empty panel.
+    if (!state.slim) c = state.byKey.get(c.key) || c;
     if (state.slim) {
       // Full stats are still downloading; open this complex once they land.
       state.pendingKey = c.key;
