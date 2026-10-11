@@ -54,6 +54,28 @@ def metrics(selected, total, capacity):
             "median_manwon": statistics.median(prices) if prices else None}
 
 
+
+def distribution_gap(left, right):
+    """Compare selected prices from the same input cohort; no accuracy claim."""
+    a, b = sorted(r[3] for r in left), sorted(r[3] for r in right)
+    if not a or not b:
+        return {"median_gap_manwon": None, "cdf_max_gap": None,
+                "selection_count_gap": len(a) - len(b)}
+    # Maximum empirical CDF distance, including ties. This measures full
+    # price-distribution sensitivity without choosing arbitrary price bins.
+    ca = cb = 0
+    distance = 0.0
+    for price in sorted(set(a + b)):
+        while ca < len(a) and a[ca] <= price:
+            ca += 1
+        while cb < len(b) and b[cb] <= price:
+            cb += 1
+        distance = max(distance, abs(ca / len(a) - cb / len(b)))
+    return {"median_gap_manwon": statistics.median(a) - statistics.median(b),
+            "cdf_max_gap": round(distance, 4),
+            "selection_count_gap": len(a) - len(b)}
+
+
 def audit(rows, pools, band, types, include_direct=False):
     f_capacity, d_capacity = Counter(), Counter()
     for dong, floor, area, n in pools:
@@ -85,6 +107,8 @@ def audit(rows, pools, band, types, include_direct=False):
             "F_all": metrics(f, len(valid), f_capacity),
             "F_known": metrics(fk, len(known), f_capacity),
             "D_known": metrics(d, len(known), d_capacity),
+            "pool_sensitivity_same_cohort": distribution_gap(fk, d),
+            "input_cohort_sensitivity_same_pool": distribution_gap(f, fk),
             "interpretation": "model sensitivity only; no unit identity or accuracy claim"}
 
 
