@@ -382,9 +382,22 @@
   // ---------- selection ----------
   // Phone detail sheet (see style.css): the panel turns into a
   // full-screen sheet on phone-sized viewports when a complex is selected.
+  // A Fold in Chrome desktop-site mode reports a desktop user agent and a
+  // wide viewport, so width media alone misses it; the touch-capable
+  // desktop-UA signature on a small screen counts as a phone too.
   const sheetMq = window.matchMedia("(max-width: 860px), (pointer: coarse) and (max-width: 1100px)");
+  function phoneLike() {
+    if (sheetMq.matches) return true;
+    const ua = navigator.userAgent;
+    return (navigator.maxTouchPoints || 0) > 0 && /X11; Linux/.test(ua) && !/Android/.test(ua)
+      && Math.min(window.screen.width, window.screen.height) <= 1200;
+  }
+  function syncPhoneUi() {
+    document.documentElement.classList.toggle("phone-ui", phoneLike());
+    if (!phoneLike()) closeSheet();
+  }
   function openSheet() {
-    if (!sheetMq.matches || !state.ref) return;
+    if (!phoneLike() || !state.ref) return;
     const title = document.getElementById("sheet-title");
     if (title) title.textContent = state.ref.nm || "";
     document.body.classList.add("sheet-open");
@@ -397,7 +410,8 @@
   }
   const sheetBack = document.getElementById("sheet-back");
   if (sheetBack) sheetBack.addEventListener("click", closeSheet);
-  sheetMq.addEventListener("change", (e) => { if (!e.matches) closeSheet(); });
+  syncPhoneUi();
+  window.addEventListener("resize", syncPhoneUi);
 
   async function selectComplex(c, { pan = false, month = null, year = null, band = null } = {}) {
     // Search results can hold a slim-phase object (no band data); always
