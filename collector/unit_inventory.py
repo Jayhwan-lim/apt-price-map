@@ -24,6 +24,7 @@ def pages(session, key, entry, operation):
               "ji": entry["ji"], "platGbCd": entry.get("platGbCd", "0"),
               "numOfRows": 1000, "_type": "json"}
     page = 1
+    received = 0
     while True:
         params["pageNo"] = page
         for attempt in range(3):
@@ -38,14 +39,16 @@ def pages(session, key, entry, operation):
                 break
             except (requests.RequestException, ValueError, KeyError):
                 if attempt == 2:
-                    raise
+                    raise RuntimeError(f"Building HUB {operation} page {page} failed; "
+                                       "check permission, quota, and response schema") from None
                 time.sleep(2 ** attempt)
         items = body.get("items") or {}
         batch = items.get("item", []) if isinstance(items, dict) else []
         if isinstance(batch, dict):
             batch = [batch]
         yield from batch
-        if page * int(params["numOfRows"]) >= int(body.get("totalCount", 0)):
+        received += len(batch)
+        if not batch or received >= int(body.get("totalCount", 0)):
             break
         page += 1
 
@@ -63,10 +66,13 @@ def unit_key(row):
 
 def count_units(expos_rows, area_rows, entry):
     allowed = set(entry["building_names"])
+    housing_dongs = {unit_key({"dongNm": d})[0] for d in entry.get("housing_dongs", [])}
     counts, seen, rejected = Counter(), set(), Counter()
     private_areas = {}
     for row in area_rows:
         if row.get("bldNm", "").strip() not in allowed:
+            continue
+        if housing_dongs and unit_key(row)[0] not in housing_dongs:
             continue
         if str(row.get("exposPubuseGbCd", "")).strip() != "1" and \
                 row.get("exposPubuseGbCdNm", "").strip() != "전유":
@@ -81,8 +87,8 @@ def count_units(expos_rows, area_rows, entry):
         if row.get("bldNm", "").strip() not in allowed:
             rejected["other_building"] += 1
             continue
-        if row.get("mainPurpsCdNm", "").strip() != "아파트":
-            rejected["not_apartment"] += 1
+        if housing_dongs and unit_key(row)[0] not in housing_dongs:
+            rejected["other_dong"] += 1
             continue
         dong, ho = unit_key(row)
         try:
@@ -103,7 +109,9 @@ def count_units(expos_rows, area_rows, entry):
         counts[(dong, floor, round(area, 2))] += 1
     extra_areas = private_areas.keys() - seen
     if extra_areas:
-        raise ValueError(f"{entry['complex_key']}: {len(extra_areas)} area rows have no unit")
+        # The parcel can include commercial units. Completeness is checked
+        # against every apartment unit and the independently known total.
+        rejected["area_rows_without_apartment_unit"] = len(extra_areas)
     expected = int(entry["expected_units"])
     if sum(counts.values()) != expected:
         raise ValueError(f"{entry['complex_key']}: {sum(counts.values())} units, "
