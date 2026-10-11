@@ -366,3 +366,31 @@ button, input, select { font: inherit; color: inherit; }
 .ad-slot:not(:has(.ad-slot-body iframe)) { display: none; }
 .ad-slot-body iframe { max-width: 100%; }
 .ad-note { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+/* Phone detail sheet: on phones (and coarse-pointer foldables) the panel
+   becomes a full-screen sheet sliding in from the right when a complex is
+   selected, so the detail is not squeezed under the map, controls and ad. */
+.sheet-bar { display: none; }
+@media (max-width: 860px), (pointer: coarse) and (max-width: 1100px) {
+  body.sheet-open { overflow: hidden; }
+  body.sheet-open .panel {
+    position: fixed; inset: 0; z-index: 60;
+    animation: sheet-in 0.28s ease;
+  }
+  @keyframes sheet-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  body.sheet-open .sheet-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; border-bottom: 1px solid var(--line);
+    background: var(--surface); flex: none;
+  }
+  .sheet-bar button {
+    border: 1px solid var(--line-strong); background: var(--surface);
+    border-radius: var(--radius-s); padding: 7px 12px; cursor: pointer;
+    font-size: 14px; color: var(--ink);
+  }
+  .sheet-title { font-weight: 600; font-size: 15px; color: var(--ink); }
+  body.sheet-open .brand, body.sheet-open .start-tabs, body.sheet-open .search,
+  body.sheet-open .panel-foot, body.sheet-open #ad-section,
+  body.sheet-open #price-section, body.sheet-open #empty-state { display: none; }
+  body.sheet-open .panel-head { padding: 12px 16px 10px; }
+}
