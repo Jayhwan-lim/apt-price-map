@@ -104,7 +104,9 @@ def count_units(expos_rows, area_rows, entry):
         counts[(dong, floor, round(area, 2))] += 1
     extra_areas = private_areas.keys() - seen
     if extra_areas:
-        raise ValueError(f"{entry['complex_key']}: {len(extra_areas)} area rows have no unit")
+        # The parcel can include commercial units. Completeness is checked
+        # against every apartment unit and the independently known total.
+        rejected["area_rows_without_apartment_unit"] = len(extra_areas)
     expected = int(entry["expected_units"])
     if sum(counts.values()) != expected:
         raise ValueError(f"{entry['complex_key']}: {sum(counts.values())} units, "
