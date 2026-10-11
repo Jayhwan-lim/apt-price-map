@@ -12,12 +12,12 @@ import time
 from collections import Counter
 from pathlib import Path
 
-URL = "https://apis.data.go.kr/1613000/BldRgstHubService/getBrExposInfo"
+BASE_URL = "https://apis.data.go.kr/1613000/BldRgstHubService"
 FIELDS = ("complex_key", "sigunguCd", "bjdongCd", "bun", "ji",
           "building_names", "expected_units")
 
 
-def pages(session, key, entry):
+def pages(session, key, entry, operation):
     import requests
     params = {"serviceKey": key, "sigunguCd": entry["sigunguCd"],
               "bjdongCd": entry["bjdongCd"], "bun": entry["bun"],
@@ -28,7 +28,7 @@ def pages(session, key, entry):
         params["pageNo"] = page
         for attempt in range(3):
             try:
-                response = session.get(URL, params=params, timeout=40)
+                response = session.get(f"{BASE_URL}/{operation}", params=params, timeout=40)
                 response.raise_for_status()
                 data = response.json()["response"]
                 header = data["header"]
@@ -50,39 +50,66 @@ def pages(session, key, entry):
         page += 1
 
 
-def count_units(rows, entry):
+def unit_key(row):
+    """Building HUB uses inconsistent suffixes/spacing in some dong/ho names."""
+    dong = "".join(str(row.get("dongNm") or "").split())
+    ho = "".join(str(row.get("hoNm") or "").split())
+    if dong.endswith("동"):
+        dong = dong[:-1]
+    if ho.endswith("호"):
+        ho = ho[:-1]
+    return dong, ho
+
+
+def count_units(expos_rows, area_rows, entry):
     allowed = set(entry["building_names"])
     counts, seen, rejected = Counter(), set(), Counter()
-    for row in rows:
+    private_areas = {}
+    for row in area_rows:
+        if row.get("bldNm", "").strip() not in allowed:
+            continue
+        if str(row.get("exposPubuseGbCd", "")).strip() != "1" and \
+                row.get("exposPubuseGbCdNm", "").strip() != "전유":
+            continue
+        key = unit_key(row)
+        if not all(key):
+            raise ValueError("private-area row missing dong or ho")
+        if key in private_areas:
+            raise ValueError(f"multiple private-area rows for {key}")
+        private_areas[key] = row.get("area")
+    for row in expos_rows:
         if row.get("bldNm", "").strip() not in allowed:
             rejected["other_building"] += 1
             continue
         if row.get("mainPurpsCdNm", "").strip() != "아파트":
             rejected["not_apartment"] += 1
             continue
-        dong, ho = row.get("dongNm", "").strip(), row.get("hoNm", "").strip()
+        dong, ho = unit_key(row)
         try:
             floor = int(row.get("flrNo"))
-            area = float(row.get("area"))
+            area = float(private_areas.get((dong, ho)))
         except (ValueError, TypeError):
             rejected["invalid_floor_or_area"] += 1
             continue
         if not dong or not ho or floor < 1 or area <= 0:
             rejected["missing_unit_or_nonresidential_floor"] += 1
             continue
-        unit = (dong, floor, ho)
+        unit = (dong, ho)
         if unit in seen:
             # Duplicate units may be different register revisions. Do not
             # silently pick one or count twice.
             raise ValueError(f"duplicate unit in {entry['complex_key']}: {unit}")
         seen.add(unit)
         counts[(dong, floor, round(area, 2))] += 1
+    extra_areas = private_areas.keys() - seen
+    if extra_areas:
+        raise ValueError(f"{entry['complex_key']}: {len(extra_areas)} area rows have no unit")
     expected = int(entry["expected_units"])
     if sum(counts.values()) != expected:
         raise ValueError(f"{entry['complex_key']}: {sum(counts.values())} units, "
                          f"expected {expected}; rejected={dict(rejected)}")
     return {"complex_key": entry["complex_key"], "expected_units": expected,
-            "source": "Building HUB getBrExposInfo", "pools": [
+            "source": "Building HUB getBrExposInfo + getBrExposPubuseAreaInfo", "pools": [
                 [dong, floor, area, n] for (dong, floor, area), n in sorted(counts.items())],
             "rejected": dict(rejected)}
 
@@ -93,9 +120,9 @@ def main():
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    key = os.environ.get("DATA_GO_KR_KEY", "").strip()
+    key = os.environ.get("DATA_GO_KR_HUB_KEY", "").strip()
     if not key:
-        parser.error("DATA_GO_KR_KEY is required; apply for Building HUB access first")
+        parser.error("DATA_GO_KR_HUB_KEY is required")
     entries = json.loads(args.manifest.read_text(encoding="utf-8"))
     if not isinstance(entries, list) or not entries:
         parser.error("manifest must be a nonempty JSON array")
@@ -107,7 +134,9 @@ def main():
         if entry["complex_key"] in keys or not isinstance(entry["building_names"], list):
             raise ValueError("duplicate complex_key or invalid building_names")
         keys.add(entry["complex_key"])
-        result.append(count_units(pages(session, key, entry), entry))
+        expos = pages(session, key, entry, "getBrExposInfo")
+        areas = pages(session, key, entry, "getBrExposPubuseAreaInfo")
+        result.append(count_units(expos, areas, entry))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"validated {len(result)} complexes; saved counts only to {args.output}")
