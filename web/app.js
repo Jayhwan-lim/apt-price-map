@@ -1235,31 +1235,26 @@
     function bindMapSelection(node, c) {
       let press = null;
       let touchedAt = 0;
-      // CustomOverlay controls sit above the Kakao map. Keep a finger tap
-      // from becoming a map drag, but leave mouse clicks and keyboard activation.
+      // CustomOverlay controls sit above the Kakao map. A touch that turns
+      // into a drag must still reach the map, so pointerdown is only
+      // recorded, never intercepted. A touch that ends as a tap (minimal
+      // movement) is claimed here at pointerup instead.
       node.addEventListener("pointerdown", (e) => {
         if (e.pointerType === "mouse") return;
         press = { id: e.pointerId, x: e.clientX, y: e.clientY };
-        kakao.maps.event.preventMap();
-        e.stopPropagation();
       });
       node.addEventListener("pointerup", (e) => {
         if (e.pointerType === "mouse" || !press || e.pointerId !== press.id) return;
         const moved = Math.hypot(e.clientX - press.x, e.clientY - press.y);
         press = null;
+        if (moved > 12) return; // it was a map drag; the map already handled it
         kakao.maps.event.preventMap();
         e.stopPropagation();
-        if (moved > 12) return;
         touchedAt = Date.now();
         e.preventDefault();
         selectComplex(c);
       });
       node.addEventListener("pointercancel", () => { press = null; });
-      ["touchstart", "touchmove", "touchend"].forEach((type) =>
-        node.addEventListener(type, (e) => {
-          kakao.maps.event.preventMap();
-          e.stopPropagation();
-        }, { passive: true }));
       node.addEventListener("click", (e) => {
         kakao.maps.event.preventMap();
         e.stopPropagation();
