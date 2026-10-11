@@ -555,25 +555,36 @@
     // the same 시군구, each represented by its most-sampled band then.
     let rankHtml = "";
     if (c && hasPoint() && !state.slim) {
-      const rows = [];
-      for (const o of state.data.complexes) {
-        if (o.code !== c.code || o.gu !== c.gu) continue;
-        let best = null;
-        for (const b of o.b) {
-          const w = pointBase(o, b);
-          if (!w) continue;
-          if (!best || w.n > best.w.n) best = { c: o, band: b, w };
+      const buildRows = (baseOf) => {
+        const rows = [];
+        for (const o of state.data.complexes) {
+          if (o.code !== c.code || o.gu !== c.gu) continue;
+          let best = null;
+          for (const b of o.b) {
+            const w = baseOf(o, b);
+            if (!w) continue;
+            if (!best || w.n > best.w.n) best = { c: o, band: b, w };
+          }
+          if (!best) continue;
+          const now = nowPrice(best.c, best.band);
+          const growth = growthOf(best.w, now);
+          if (growth == null) continue;
+          rows.push({ ...best, now, growth, diff: 0, sample: now ? Math.min(best.w.n, now.n) : best.w.n, solid: !!now && !now.thin });
         }
-        if (!best) continue;
-        const now = nowPrice(best.c, best.band);
-        const growth = growthOf(best.w, now);
-        if (growth == null) continue;
-        rows.push({ ...best, now, growth, diff: 0, sample: now ? Math.min(best.w.n, now.n) : best.w.n, solid: !!now && !now.thin });
+        return sortEntries(rows, "desc");
+      };
+      let rankLabel = pointLabel();
+      let rows = buildRows(pointBase);
+      // A basis inside the current year can never yield growth (the current
+      // window ends before the basis year does), so fall back one year.
+      if (rows.length < 3 && baseYear() === ymOf(lastMi())[0]) {
+        const fy = baseYear() - 1;
+        const rows2 = buildRows((o, b) => yearBase(o, b, fy));
+        if (rows2.length >= 3) { rows = rows2; rankLabel = `${fy}년`; }
       }
-      sortEntries(rows, "desc");
       const top = rows.slice(0, 10);
       if (top.length >= 3) {
-        el.sideRankTitle.textContent = `${[c.sgg, c.gu].filter(Boolean).join(" ")} · ${pointLabel()} 이후 상승률`;
+        el.sideRankTitle.textContent = `${[c.sgg, c.gu].filter(Boolean).join(" ")} · ${rankLabel} 이후 상승률`;
         rankHtml = top.map((r, i) => `<li><button type="button" class="side-item${r.c === c ? " is-cur" : ""}" data-side-key="${escapeAttr(r.c.key)}" data-side-band="${escapeAttr(r.band)}">
           <span class="side-rank-no">${i + 1}</span>
           <span class="side-name">${escapeHtml(r.c.nm)} <span class="side-band">${escapeHtml(bandShort(r.band))}</span></span>
