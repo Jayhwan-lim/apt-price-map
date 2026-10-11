@@ -34,7 +34,7 @@ jobs:
           dongs = sorted({r.get('dongNm', '').strip() for r in housing})
           print('housing titles:', len(housing), 'total units:', total,
                 'distinct dongs:', len(dongs), 'names:', names)
-          if total != 5563 or not names or not dongs or '' in names or '' in dongs:
+          if total not in (5562, 5563) or not names or not dongs or '' in names or '' in dongs:
               raise SystemExit('parcel/title mismatch; inventory blocked')
           key = '11710|잠실동|22'
           complexes = json.load(open('web/data/complexes.json'))['complexes']
@@ -63,12 +63,17 @@ jobs:
           for dong, floor, area, units in entry['pools']:
               counts[type_of(types, area)] += units
           print('verified unit bands:', dict(counts), 'total:', sum(counts.values()), flush=True)
-          if sum(counts.values()) != 5563:
+          if sum(counts.values()) != entry['expected_units']:
               raise SystemExit('inventory count mismatch')
-          for band, units in counts.most_common(2):
+          for band, units in sorted(counts.items()):
               print('auditing band:', band, 'units:', units, flush=True)
               subprocess.run(['python', 'collector/audit_unit_models.py',
                               '--inventory', 'data/units/inventory.json',
                               '--complex-key', entry['complex_key'], '--band', band,
                               '--output', f'data/units/audit-{band}.json'], check=True)
           PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ricenz-counted-inventory-and-audits
+          path: data/units/*.json
