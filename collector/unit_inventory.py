@@ -38,7 +38,8 @@ def pages(session, key, entry, operation):
                 break
             except (requests.RequestException, ValueError, KeyError):
                 if attempt == 2:
-                    raise
+                    raise RuntimeError(f"Building HUB {operation} page {page} failed; "
+                                       "check permission, quota, and response schema") from None
                 time.sleep(2 ** attempt)
         items = body.get("items") or {}
         batch = items.get("item", []) if isinstance(items, dict) else []
