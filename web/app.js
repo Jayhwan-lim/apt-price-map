@@ -73,6 +73,7 @@
     pAmount: $("p-amount"), pChips: $("p-chips"), pSummary: $("p-summary"), pList: $("p-list"),
     sideSec: $("side-section"),
     sideRankBlock: $("side-rank-block"), sideRankTitle: $("side-rank-title"), sideRank: $("side-rank"),
+    sideNatBlock: $("side-nat-block"), sideNatTitle: $("side-nat-title"), sideNat: $("side-nat"),
     sideRecentBlock: $("side-recent-block"), sideRecent: $("side-recent"),
   };
 
@@ -538,14 +539,15 @@
     if (!sec) return;
     if (state.start !== "complex") { sec.hidden = true; return; }
     const c = state.ref;
-    // Region ranking: growth since the current basis point for complexes in
-    // the same 시군구, each represented by its most-sampled band then.
+    // Region + national rankings: growth since the current basis point,
+    // each complex represented by its most-sampled band then.
     let rankHtml = "";
+    let natHtml = "";
     if (c && hasPoint() && !state.slim) {
-      const buildRows = (baseOf) => {
+      const buildRows = (baseOf, inScope) => {
         const rows = [];
         for (const o of state.data.complexes) {
-          if (o.code !== c.code || o.gu !== c.gu) continue;
+          if (!inScope(o)) continue;
           let best = null;
           for (const b of o.b) {
             const w = baseOf(o, b);
@@ -560,27 +562,39 @@
         }
         return sortEntries(rows, "desc");
       };
+      const inRegion = (o) => o.code === c.code && o.gu === c.gu;
       let rankLabel = pointLabel();
-      let rows = buildRows(pointBase);
+      let regRows = buildRows(pointBase, inRegion);
+      let natRows = buildRows(pointBase, () => true);
       // A basis inside the current year can never yield growth (the current
       // window ends before the basis year does), so fall back one year.
-      if (rows.length < 3 && baseYear() === ymOf(lastMi())[0]) {
+      if (regRows.length < 3 && baseYear() === ymOf(lastMi())[0]) {
         const fy = baseYear() - 1;
-        const rows2 = buildRows((o, b) => yearBase(o, b, fy));
-        if (rows2.length >= 3) { rows = rows2; rankLabel = `${fy}년`; }
+        const baseOf = (o, b) => yearBase(o, b, fy);
+        const reg2 = buildRows(baseOf, inRegion);
+        const nat2 = buildRows(baseOf, () => true);
+        if (reg2.length >= 3 || nat2.length >= 3) { regRows = reg2; natRows = nat2; rankLabel = `${fy}년`; }
       }
-      const top = rows.slice(0, 10);
-      if (top.length >= 3) {
-        el.sideRankTitle.textContent = `${[c.sgg, c.gu].filter(Boolean).join(" ")} · ${rankLabel} 이후 상승률`;
-        rankHtml = top.map((r, i) => `<li><button type="button" class="side-item${r.c === c ? " is-cur" : ""}" data-side-key="${escapeAttr(r.c.key)}" data-side-band="${escapeAttr(r.band)}">
+      const rowHtml = (r, i) => `<li><button type="button" class="side-item${r.c === c ? " is-cur" : ""}" data-side-key="${escapeAttr(r.c.key)}" data-side-band="${escapeAttr(r.band)}">
           <span class="side-rank-no">${i + 1}</span>
           <span class="side-name">${escapeHtml(r.c.nm)} <span class="side-band">${escapeHtml(bandShort(r.band))}</span></span>
           <span class="chg ${chgClass(r.growth)}">${fmtPct(r.growth)}</span>
-        </button></li>`).join("");
+        </button></li>`;
+      const regTop = regRows.slice(0, 10);
+      if (regTop.length >= 3) {
+        el.sideRankTitle.textContent = `${[c.sgg, c.gu].filter(Boolean).join(" ")} · ${rankLabel} 이후 상승률`;
+        rankHtml = regTop.map(rowHtml).join("");
+      }
+      const natTop = natRows.slice(0, 10);
+      if (natTop.length >= 3) {
+        el.sideNatTitle.textContent = `전국 · ${rankLabel} 이후 상승률`;
+        natHtml = natTop.map(rowHtml).join("");
       }
     }
     el.sideRankBlock.hidden = !rankHtml;
     el.sideRank.innerHTML = rankHtml;
+    el.sideNatBlock.hidden = !natHtml;
+    el.sideNat.innerHTML = natHtml;
     // Recently viewed complexes, excluding the current one.
     const recents = loadRecents().filter((e) => !c || e.k !== c.key).slice(0, 8);
     el.sideRecentBlock.hidden = !recents.length;
@@ -588,7 +602,7 @@
       <span class="side-name">${escapeHtml(e.nm)}</span>
       <span class="side-where">${escapeHtml(e.w || "")}</span>
     </button></li>`).join("");
-    sec.hidden = el.sideRankBlock.hidden && el.sideRecentBlock.hidden;
+    sec.hidden = el.sideRankBlock.hidden && el.sideNatBlock.hidden && el.sideRecentBlock.hidden;
   }
   el.sideSec.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-side-key], button[data-side-band]");
@@ -1503,7 +1517,16 @@
       if (color) pin.style.setProperty("--c", color);
       pin.title = `${c.nm} (${where(c)})`;
       const tag = band && band !== state.band ? `<span class="b">${escapeHtml(bandShort(band))}</span>` : "";
-      pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
+      if (kind === "bg") {
+        // Background labels are compact one-liners (name + price) so far
+        // more of them fit without overlapping; long names drop the
+        // trailing "아파트" before CSS ellipsis applies.
+        const short = c.nm.length > 7 && c.nm.endsWith("아파트") ? c.nm.slice(0, -3) : c.nm;
+        pin.classList.add("bg");
+        pin.innerHTML = `<span class="n">${escapeHtml(short)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
+      } else {
+        pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
+      }
       bindMapSelection(pin, c);
       wrap.appendChild(pin);
       return new kakao.maps.CustomOverlay({
@@ -1556,17 +1579,20 @@
         // Skip labels that would sit on top of one already placed; busier
         // complexes win. Highlighted pins always show and block others.
         const proj = kmap.getProjection();
+        // Placed pins carry their height (highlight pins reach ~43px above
+        // their point, compact background labels ~28px), so collision uses
+        // the pair's average height instead of one fixed box.
         const placed = [];
         const pt = (c) => proj.pointFromCoords(new kakao.maps.LatLng(c.lat, c.lng));
-        const clashes = (p) => placed.some((q) => Math.abs(q.x - p.x) < 92 && Math.abs(q.y - p.y) < 36);
-        for (const [c] of want.values()) if (mappable(c)) placed.push(pt(c));
+        const clashes = (p, h) => placed.some((q) => Math.abs(q.x - p.x) < 88 && Math.abs(q.y - p.y) < (q.h + h) / 2 + 2);
+        for (const [c] of want.values()) if (mappable(c)) { const p = pt(c); placed.push({ x: p.x, y: p.y, h: 43 }); }
         let n = 0;
         for (const c of inView) {
           const hasBand = !!nearestType(c, state.band, true);
           const p = pt(c);
-          if (hasBand && n < LABEL_CAP && !clashes(p)) {
-            placed.push(p);
-            want.set(c.key, [c, "", null, nearestType(c, state.band, true)]);
+          if (hasBand && n < LABEL_CAP && !clashes(p, 28)) {
+            placed.push({ x: p.x, y: p.y, h: 28 });
+            want.set(c.key, [c, "bg", null, nearestType(c, state.band, true)]);
             n++;
           } else {
             want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null, state.band]);
