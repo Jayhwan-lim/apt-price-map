@@ -390,7 +390,7 @@ html.phone-ui body.sheet-open .sheet-bar {
 .sheet-title { font-weight: 600; font-size: 15px; color: var(--ink); }
 html.phone-ui body.sheet-open .brand, html.phone-ui body.sheet-open .start-tabs,
 html.phone-ui body.sheet-open .search, html.phone-ui body.sheet-open .panel-foot,
-html.phone-ui body.sheet-open #ad-section, html.phone-ui body.sheet-open #price-section,
+html.phone-ui body.sheet-open #ad-section,
 html.phone-ui body.sheet-open #empty-state { display: none; }
 html.phone-ui body.sheet-open .panel-head { padding: 12px 16px 10px; }
 
