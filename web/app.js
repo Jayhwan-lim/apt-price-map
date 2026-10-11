@@ -1232,6 +1232,36 @@
       return now ? now.avg : null;
     }
 
+    function bindMapSelection(node, c) {
+      let press = null;
+      let touchedAt = 0;
+      // CustomOverlay controls sit above the Kakao map. Keep a finger tap
+      // from becoming a map drag, but leave mouse clicks and keyboard activation.
+      node.addEventListener("pointerdown", (e) => {
+        if (e.pointerType === "mouse") return;
+        press = { id: e.pointerId, x: e.clientX, y: e.clientY };
+        e.stopPropagation();
+      });
+      node.addEventListener("pointerup", (e) => {
+        if (e.pointerType === "mouse" || !press || e.pointerId !== press.id) return;
+        const moved = Math.hypot(e.clientX - press.x, e.clientY - press.y);
+        press = null;
+        e.stopPropagation();
+        if (moved > 12) return;
+        touchedAt = Date.now();
+        e.preventDefault();
+        selectComplex(c);
+      });
+      node.addEventListener("pointercancel", () => { press = null; });
+      ["touchstart", "touchmove", "touchend"].forEach((type) =>
+        node.addEventListener(type, (e) => e.stopPropagation(), { passive: true }));
+      node.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (Date.now() - touchedAt < 700) return; // synthetic click after touch
+        selectComplex(c);
+      });
+    }
+
     function pinFor(c, kind, color, band = state.band) {
       const price = pinPrice(c, band);
       const wrap = document.createElement("div");
@@ -1243,7 +1273,7 @@
       pin.title = `${c.nm} (${where(c)})`;
       const tag = band && band !== state.band ? `<span class="b">${escapeHtml(bandShort(band))}</span>` : "";
       pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
-      pin.addEventListener("click", () => selectComplex(c));
+      bindMapSelection(pin, c);
       wrap.appendChild(pin);
       return new kakao.maps.CustomOverlay({
         position: new kakao.maps.LatLng(c.lat, c.lng),
@@ -1260,7 +1290,7 @@
       dot.className = `dot-pin${hasBand ? "" : " no-band"}`;
       dot.title = `${c.nm} (${where(c)})${hasBand ? "" : ", 비슷한 면적 거래 없음"}`;
       dot.setAttribute("aria-label", c.nm);
-      dot.addEventListener("click", () => selectComplex(c));
+      bindMapSelection(dot, c);
       return new kakao.maps.CustomOverlay({
         position: new kakao.maps.LatLng(c.lat, c.lng),
         content: dot, xAnchor: 0.5, yAnchor: 0.5, zIndex: 0,
@@ -1430,9 +1460,33 @@
       else if (e.key === "Enter") { pickSearch(searchIdx); e.preventDefault(); }
       else if (e.key === "Escape") closeSearch();
     });
-    el.results.addEventListener("mousedown", (e) => {
+    let searchPress = null;
+    el.results.addEventListener("pointerdown", (e) => {
       const li = e.target.closest("li[data-i]");
-      if (li) { pickSearch(Number(li.dataset.i)); e.preventDefault(); }
+      if (!li) return;
+      if (e.pointerType === "mouse") {
+        pickSearch(Number(li.dataset.i));
+      } else {
+        searchPress = { id: e.pointerId, li, x: e.clientX, y: e.clientY };
+      }
+      // Keep the search input focused until the tap finishes; otherwise its
+      // blur timer can close the list before a slow finger press is released.
+      e.preventDefault();
+    });
+    el.results.addEventListener("pointerup", (e) => {
+      if (!searchPress || e.pointerId !== searchPress.id) return;
+      const { li, x, y } = searchPress;
+      searchPress = null;
+      if (li.contains(e.target) && Math.hypot(e.clientX - x, e.clientY - y) <= 12)
+        pickSearch(Number(li.dataset.i));
+      e.preventDefault();
+    });
+    el.results.addEventListener("pointercancel", () => { searchPress = null; });
+    el.results.addEventListener("click", (e) => {
+      // Keyboard/screen reader generated click has no preceding pointerdown.
+      if (e.detail !== 0) return;
+      const li = e.target.closest("li[data-i]");
+      if (li) pickSearch(Number(li.dataset.i));
     });
     el.search.addEventListener("blur", () => setTimeout(closeSearch, 120));
 
