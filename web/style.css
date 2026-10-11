@@ -110,6 +110,7 @@ button, input, select { font: inherit; color: inherit; }
   max-height: 320px; overflow: auto;
 }
 .search-results li {
+  touch-action: pan-y;
   padding: 8px 10px; border-radius: 4px; cursor: pointer;
   display: flex; justify-content: space-between; gap: 12px;
 }
@@ -300,8 +301,9 @@ button, input, select { font: inherit; color: inherit; }
 .trades tr.cancelled td { color: var(--muted); text-decoration: line-through; }
 
 /* Map labels (Kakao CustomOverlay content) */
-.pin-wrap { padding-bottom: 6px; }
+.pin-wrap { padding-bottom: 6px; touch-action: manipulation; }
 .pin {
+  touch-action: manipulation;
   display: grid; gap: 0; padding: 3px 8px 4px; cursor: pointer;
   background: #fff; color: #14202b; white-space: nowrap;
   border: 1px solid #aab4bd; border-radius: 6px;
@@ -320,6 +322,7 @@ button, input, select { font: inherit; color: inherit; }
 .pin.ref { background: #2a78d6; border-color: #2a78d6; color: #fff; z-index: 3; }
 .pin.ref .n { color: rgba(255, 255, 255, 0.85); }
 .dot-pin {
+  touch-action: manipulation;
   width: 12px; height: 12px; padding: 0; border-radius: 50%; cursor: pointer;
   background: #fff; border: 2px solid #4d5b67; box-shadow: 0 1px 2px rgba(20, 32, 43, 0.3);
 }
@@ -331,6 +334,11 @@ button, input, select { font: inherit; color: inherit; }
   border: 2px solid #fff;
 }
 
+@media (pointer: coarse) {
+  .search-results li { min-height: 44px; align-items: center; }
+  .dot-pin { width: 24px; height: 24px; }
+  .pin { min-height: 32px; }
+}
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 42dvh auto; height: auto; }
   .map-wrap { grid-column: 1; grid-row: 1; height: 42dvh; }
