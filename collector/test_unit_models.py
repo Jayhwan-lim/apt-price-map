@@ -3,11 +3,28 @@ import sys
 import types
 from unittest.mock import patch
 
-from audit_unit_models import audit, distribution_gap
+from audit_unit_models import audit
+from simulate_unit_assignment import assign_once, simulate
 from unit_inventory import count_units, pages
 
 
 class InventoryTest(unittest.TestCase):
+    def test_anonymous_assignment_keeps_latest_and_respects_reported_dong(self):
+        slots = {3: [("101", 0), ("102", 0)]}
+        trades = [["20250101", 35.12, 3, 50000, 0, 0, "101동"],
+                  ["20150101", 35.12, 3, 20000, 0, 0, "101동"],
+                  ["20130101", 35.12, 3, 30000, 0, 0, "102동"]]
+        assigned = assign_once(trades, slots, 1, 1)
+        self.assertEqual(sorted(r[3] for r in assigned), [30000, 50000])
+        out = simulate(trades, [["101동", 3, 35.12, 1],
+                                ["102동", 3, 35.12, 1]], "35",
+                       {"35": [35.0, 35.5, 35.12, 2]}, repetitions=3)
+        self.assertEqual(out["newest_per_floor_baseline"]["median_manwon"], 35000)
+        with self.assertRaises(ValueError):
+            simulate(trades + [["20260101", 35.12, 3, 90000, 0, 0, "999동"]],
+                     [["101동", 3, 35.12, 1], ["102동", 3, 35.12, 1]],
+                     "35", {"35": [35.0, 35.5, 35.12, 2]}, repetitions=3)
+
     def test_api_page_cap_does_not_truncate_inventory(self):
         class Response:
             def __init__(self, page):
@@ -45,15 +62,6 @@ class InventoryTest(unittest.TestCase):
                            "dongNm": "상가", "hoNm": "101", "area": "40"}
         result = count_units(rows, areas + [commercial_area], entry)
         self.assertEqual(result["expected_units"], 2)
-
-    def test_distribution_gap_uses_full_price_cdf_and_same_cohort(self):
-        left = [[None, None, None, 100], [None, None, None, 200]]
-        right = [[None, None, None, 100], [None, None, None, 300]]
-        gap = distribution_gap(left, right)
-        self.assertEqual(gap["median_gap_manwon"], -50)
-        self.assertEqual(gap["cdf_max_gap"], 0.5)
-        self.assertEqual(gap["selection_count_gap"], 0)
-        self.assertIsNone(distribution_gap([], right)["cdf_max_gap"])
 
     def test_actual_capacity_can_retain_old_trade(self):
         # Two actual units, one observed dong-floor slot. Latest-N F must
