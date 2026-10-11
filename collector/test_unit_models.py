@@ -3,7 +3,7 @@ import sys
 import types
 from unittest.mock import patch
 
-from audit_unit_models import audit
+from audit_unit_models import audit, distribution_gap
 from unit_inventory import count_units, pages
 
 
@@ -45,6 +45,15 @@ class InventoryTest(unittest.TestCase):
                            "dongNm": "상가", "hoNm": "101", "area": "40"}
         result = count_units(rows, areas + [commercial_area], entry)
         self.assertEqual(result["expected_units"], 2)
+
+    def test_distribution_gap_uses_full_price_cdf_and_same_cohort(self):
+        left = [[None, None, None, 100], [None, None, None, 200]]
+        right = [[None, None, None, 100], [None, None, None, 300]]
+        gap = distribution_gap(left, right)
+        self.assertEqual(gap["median_gap_manwon"], -50)
+        self.assertEqual(gap["cdf_max_gap"], 0.5)
+        self.assertEqual(gap["selection_count_gap"], 0)
+        self.assertIsNone(distribution_gap([], right)["cdf_max_gap"])
 
     def test_actual_capacity_can_retain_old_trade(self):
         # Two actual units, one observed dong-floor slot. Latest-N F must
