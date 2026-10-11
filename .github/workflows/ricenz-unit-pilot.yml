@@ -17,6 +17,29 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install requests
+      - name: Diagnose HUB status without logging credentials
+        run: |
+          python - <<'PY'
+          import os, requests, xml.etree.ElementTree as ET
+          params = dict(serviceKey=os.environ['DATA_GO_KR_HUB_KEY'], sigunguCd='11710',
+                        bjdongCd='10100', bun='0022', ji='0000', platGbCd='0',
+                        numOfRows=1, pageNo=1, _type='json')
+          try:
+              r = requests.get('https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo',
+                               params=params, timeout=40)
+              print('HTTP status:', r.status_code, 'content-type:', r.headers.get('content-type'))
+              try:
+                  data = r.json()['response']
+                  print('API result code:', data.get('header', {}).get('resultCode'))
+              except (ValueError, KeyError):
+                  try:
+                      root = ET.fromstring(r.text)
+                      print('API result code:', root.findtext('.//returnReasonCode') or root.findtext('.//resultCode'))
+                  except ET.ParseError:
+                      print('Response is neither expected JSON nor XML')
+          except requests.RequestException:
+              print('Transport request failed; credentials and request URL suppressed')
+          PY
       - name: Validate parcel titles and create private manifest
         run: |
           python - <<'PY'
