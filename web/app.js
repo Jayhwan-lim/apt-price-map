@@ -241,10 +241,10 @@
   function baseText(b, withDiff = null) {
     const diff = withDiff == null ? "" : `기준 대비 ${fmtPct(withDiff)}, `;
     if (b.kind === "avg") {
-      return `${fmtRange(b.lo, b.hi)} ${b.hi - b.lo + 1}개월 평균 ${fmtPrice(b.avg)} (${diff}${b.n}건)`;
+      return `${fmtRange(b.lo, b.hi)} ${b.hi - b.lo + 1}개월 평균 ${fmtPrice(b.avg)}<br>(${diff}${b.n}건)`;
     }
-    if (b.kind === "year") return `${b.year}년 연 중앙값 ${fmtPrice(b.avg)} (${diff}${b.n}건)`;
-    return `<span class="badge-thin">표본 부족 — ${b.year}년 연 중앙값 기준</span> ${fmtPrice(b.avg)} (${diff}${b.n}건)`;
+    if (b.kind === "year") return `${b.year}년 연 중앙값 ${fmtPrice(b.avg)}<br>(${diff}${b.n}건)`;
+    return `<span class="badge-thin">표본 부족 — ${b.year}년 연 중앙값 기준</span> ${fmtPrice(b.avg)}<br>(${diff}${b.n}건)`;
   }
 
   // Current price, precomputed per band: latest 3/6/12 months with >= 5 trades.
