@@ -444,6 +444,7 @@
       const t = document.getElementById("detail-col-title");
       if (t) t.textContent = state.ref.nm || "";
       document.body.classList.add("detail-open");
+      setTimeout(() => { try { if (map && typeof map.relayout === "function") map.relayout(); } catch (e) { /* map not ready */ } }, 900);
     }
   }
   function retractDetail() {
