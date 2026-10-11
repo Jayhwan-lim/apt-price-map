@@ -43,6 +43,7 @@ python collector/audit_unit_models.py \
 - `F_known`: 동 정보가 있는 거래만 대상으로 같은 F 풀 배정. `D_known`과 동일한 입력 집합으로 풀의 효과를 비교.
 - `D_known`: 동·층·면적 밴드별 세대수만큼 동 정보가 있는 최신 거래 선택.
 - `dong_missing`, `dong_unmatched`, `unfilled_slots`, `pre_2023_selected`를 같이 점검한다. 미매칭 동은 임의 추측으로 연결하지 않는다.
+- `pool_sensitivity_same_cohort`는 F_known과 D_known의 중앙값 차이(만원), 선택 건수 차이, 경험적 누적분포의 최대 차이(0~1)를 보고한다. `input_cohort_sensitivity_same_pool`은 F_all과 F_known을 같은 층 풀에서 비교하여 동 누락에 따른 입력 차이를 별도로 기록한다. 두 비교 모두 정확도 측정값은 아니다.
 
 이 방법은 **선택 규칙의 민감도**를 측정한다. F와 D 모두 같은 세대의 재거래를 식별하지 못한다. 선택 거래의 가격 중앙값을 실제 소유주의 매수가 중앙값으로 표시하면 안 된다. `F_all`과 `D_known`의 차이에는 동 정보 누락에 따른 입력 표본 차이도 섞여 있다. 면적 밴드의 실제 호 구성과 건축물대장 자료의 기준시점 차이를 확인한 뒤 분석 결과를 해석한다.
 
