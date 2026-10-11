@@ -394,6 +394,7 @@
   }
   let detailInCol = false;
   let detailColClosed = false;
+  let sheetClosed = false;
   function syncPhoneUi() {
     document.documentElement.classList.toggle("phone-ui", phoneLike());
     if (state.ref) presentDetail();
@@ -436,7 +437,7 @@
     if (phoneLike()) {
       placeDetailNodes(false);
       document.body.classList.remove("detail-open");
-      openSheet();
+      if (sheetClosed) closeSheet(); else openSheet();
     } else {
       closeSheet();
       if (detailColClosed) { placeDetailNodes(false); document.body.classList.remove("detail-open"); return; }
@@ -453,7 +454,7 @@
     document.body.classList.remove("detail-open");
   }
   const sheetBack = document.getElementById("sheet-back");
-  if (sheetBack) sheetBack.addEventListener("click", closeSheet);
+  if (sheetBack) sheetBack.addEventListener("click", () => { sheetClosed = true; closeSheet(); });
   const colClose = document.getElementById("detail-col-close");
   if (colClose) colClose.addEventListener("click", () => { detailColClosed = true; retractDetail(); });
   syncPhoneUi();
@@ -510,6 +511,7 @@
     recompute({ resetChecks: true });
     loadTrades(c);
     detailColClosed = false;
+    sheetClosed = false;
     presentDetail();
   }
 
