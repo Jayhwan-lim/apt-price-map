@@ -427,3 +427,11 @@ body.detail-open .detail-col {
   .map-wrap { grid-row: 1; }
   body.detail-open .detail-col { grid-row: 1; }
 }
+
+.owner-market { margin-top: 12px; font-size: 13px; }
+.owner-market small, .owner-row small { display: block; font-size: 11px; color: var(--muted); }
+.owner-row { grid-template-columns: 90px minmax(0, 1fr) 82px; }
+.owner-current { outline: 1px solid var(--ref); outline-offset: 3px; border-radius: 3px; }
+.owner-method { margin-top: 12px; font-size: 12px; color: var(--muted); }
+.owner-method summary { cursor: pointer; padding: 8px 0; }
+.owner-method p { margin: 8px 0; }

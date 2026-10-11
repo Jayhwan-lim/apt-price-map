@@ -22,12 +22,12 @@ def pages(session, key, entry, operation):
     params = {"serviceKey": key, "sigunguCd": entry["sigunguCd"],
               "bjdongCd": entry["bjdongCd"], "bun": entry["bun"],
               "ji": entry["ji"], "platGbCd": entry.get("platGbCd", "0"),
-              "numOfRows": 1000, "_type": "json"}
+              "numOfRows": 100, "_type": "json"}
     page = 1
     received = 0
     while True:
         params["pageNo"] = page
-        for attempt in range(3):
+        for attempt in range(8):
             try:
                 response = session.get(f"{BASE_URL}/{operation}", params=params, timeout=40)
                 response.raise_for_status()
@@ -38,10 +38,10 @@ def pages(session, key, entry, operation):
                 body = data["body"]
                 break
             except (requests.RequestException, ValueError, KeyError):
-                if attempt == 2:
+                if attempt == 7:
                     raise RuntimeError(f"Building HUB {operation} page {page} failed; "
                                        "check permission, quota, and response schema") from None
-                time.sleep(2 ** attempt)
+                time.sleep(min(30, 2 ** attempt))
         items = body.get("items") or {}
         batch = items.get("item", []) if isinstance(items, dict) else []
         if isinstance(batch, dict):
