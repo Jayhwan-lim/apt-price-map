@@ -392,26 +392,74 @@
     return (navigator.maxTouchPoints || 0) > 0 && /X11; Linux/.test(ua) && !/Android/.test(ua)
       && Math.min(window.screen.width, window.screen.height) <= 1200;
   }
+  let detailInCol = false;
+  let detailColClosed = false;
   function syncPhoneUi() {
     document.documentElement.classList.toggle("phone-ui", phoneLike());
-    if (!phoneLike()) closeSheet();
+    if (state.ref) presentDetail();
+    else if (!phoneLike()) closeSheet();
   }
   function openSheet() {
     if (!phoneLike() || !state.ref) return;
     const title = document.getElementById("sheet-title");
     if (title) title.textContent = state.ref.nm || "";
+    const was = document.body.classList.contains("sheet-open");
     document.body.classList.add("sheet-open");
-    setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
+    if (!was) setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
   }
   function closeSheet() {
     if (!document.body.classList.contains("sheet-open")) return;
     document.body.classList.remove("sheet-open");
     setTimeout(() => window.dispatchEvent(new Event("resize")), 60);
   }
+  // Wide layouts (desktop / tablet landscape): instead of the sheet, the
+  // detail sections move into a second column of the same width next to
+  // the panel, Hogangnono-style. The nodes themselves move; nothing is
+  // duplicated, so the chart and tables keep working untouched.
+  function placeDetailNodes(inCol) {
+    if (detailInCol === inCol) return;
+    const nodes = [el.refSec, el.chartSec, el.tradeDistSec, el.simSec, el.tradesSec];
+    if (inCol) {
+      const host = document.getElementById("detail-col-body");
+      if (!host) return;
+      for (const n of nodes) host.appendChild(n);
+    } else {
+      const anchor = document.getElementById("detail-home");
+      if (!anchor || !anchor.parentNode) return;
+      for (const n of nodes) anchor.parentNode.insertBefore(n, anchor);
+    }
+    detailInCol = inCol;
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 280);
+  }
+  function presentDetail() {
+    if (!state.ref) return;
+    if (phoneLike()) {
+      placeDetailNodes(false);
+      document.body.classList.remove("detail-open");
+      openSheet();
+    } else {
+      closeSheet();
+      if (detailColClosed) { placeDetailNodes(false); document.body.classList.remove("detail-open"); return; }
+      placeDetailNodes(true);
+      const t = document.getElementById("detail-col-title");
+      if (t) t.textContent = state.ref.nm || "";
+      document.body.classList.add("detail-open");
+    }
+  }
+  function retractDetail() {
+    closeSheet();
+    placeDetailNodes(false);
+    document.body.classList.remove("detail-open");
+  }
   const sheetBack = document.getElementById("sheet-back");
   if (sheetBack) sheetBack.addEventListener("click", closeSheet);
+  const colClose = document.getElementById("detail-col-close");
+  if (colClose) colClose.addEventListener("click", () => { detailColClosed = true; retractDetail(); });
   syncPhoneUi();
-  window.addEventListener("resize", syncPhoneUi);
+  window.addEventListener("resize", () => {
+    syncPhoneUi();
+    try { if (map && typeof map.relayout === "function") map.relayout(); } catch (e) { /* map not ready */ }
+  });
 
   async function selectComplex(c, { pan = false, month = null, year = null, band = null } = {}) {
     // Search results can hold a slim-phase object (no band data); always
@@ -460,7 +508,8 @@
     }
     recompute({ resetChecks: true });
     loadTrades(c);
-    openSheet();
+    detailColClosed = false;
+    presentDetail();
   }
 
   // Area type select for the selected complex: every type with its trade count.
@@ -636,7 +685,7 @@
     sgg.disabled = price;
     if (price && state.scope === "sgg") { state.scope = "all"; el.scope.value = "all"; }
     if (price) {
-      closeSheet();
+      retractDetail();
       state.ref = null;
       state.checked = [];
       state.slotOf.clear();
@@ -1405,7 +1454,11 @@
       kmap.panTo(new kakao.maps.LatLng(c.lat, c.lng));
     }
 
-    return { init, refresh, panTo };
+    function relayout() {
+      if (kmap) kmap.relayout();
+    }
+
+    return { init, refresh, panTo, relayout };
   })();
 
   // ---------- URL state ----------
