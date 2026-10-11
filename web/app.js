@@ -71,7 +71,7 @@
     searchBox: $("search-box"), bandLabel: $("band-label"), cmpBandLabel: $("cmpband-label"),
     priceSec: $("price-section"), pYears: $("p-year-row"), pMonths: $("p-month-row"),
     pAmount: $("p-amount"), pChips: $("p-chips"), pSummary: $("p-summary"), pList: $("p-list"),
-    sideSec: $("side-section"), sideBandsBlock: $("side-bands-block"), sideBands: $("side-bands"),
+    sideSec: $("side-section"),
     sideRankBlock: $("side-rank-block"), sideRankTitle: $("side-rank-title"), sideRank: $("side-rank"),
     sideRecentBlock: $("side-recent-block"), sideRecent: $("side-recent"),
   };
@@ -538,19 +538,6 @@
     if (!sec) return;
     if (state.start !== "complex") { sec.hidden = true; return; }
     const c = state.ref;
-    // Other bands of the selected complex.
-    let bandsHtml = "";
-    if (c && c.b.length > 1) {
-      bandsHtml = c.b.filter((b) => b !== state.band).map((b) => {
-        const now = nowPrice(c, b);
-        return `<li><button type="button" class="side-item" data-side-band="${escapeAttr(b)}">
-          <span class="side-name">${escapeHtml(bandShort(b))}</span>
-          <span class="side-val">${now ? `현재 ${fmtPrice(now.avg)}` : "최근 거래 부족"}</span>
-        </button></li>`;
-      }).join("");
-    }
-    el.sideBandsBlock.hidden = !bandsHtml;
-    el.sideBands.innerHTML = bandsHtml;
     // Region ranking: growth since the current basis point for complexes in
     // the same 시군구, each represented by its most-sampled band then.
     let rankHtml = "";
@@ -601,7 +588,7 @@
       <span class="side-name">${escapeHtml(e.nm)}</span>
       <span class="side-where">${escapeHtml(e.w || "")}</span>
     </button></li>`).join("");
-    sec.hidden = el.sideBandsBlock.hidden && el.sideRankBlock.hidden && el.sideRecentBlock.hidden;
+    sec.hidden = el.sideRankBlock.hidden && el.sideRecentBlock.hidden;
   }
   el.sideSec.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-side-key], button[data-side-band]");
@@ -609,10 +596,6 @@
     if (btn.dataset.sideKey) {
       const target = state.byKey.get(btn.dataset.sideKey);
       if (target) selectComplex(target, { band: btn.dataset.sideBand || null, pan: true });
-    } else if (btn.dataset.sideBand && state.ref && state.ref.b.includes(btn.dataset.sideBand)) {
-      el.band.value = btn.dataset.sideBand;
-      state.band = btn.dataset.sideBand;
-      afterFilter(true);
     }
   });
 
