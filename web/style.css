@@ -418,3 +418,12 @@ body.detail-open .detail-col {
   body.detail-open .app { grid-template-columns: 1fr; }
   body.detail-open .map-wrap { grid-column: 1; }
 }
+
+/* Pin every layout column to a single full-height row. Without an
+   explicit row, grid auto-placement drops the detail column into an
+   implicit second row under the panel. */
+@media (min-width: 861px) {
+  .app { grid-template-rows: minmax(0, 1fr); }
+  .map-wrap { grid-row: 1; }
+  body.detail-open .detail-col { grid-row: 1; }
+}
