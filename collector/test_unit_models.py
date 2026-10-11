@@ -19,6 +19,10 @@ class InventoryTest(unittest.TestCase):
             count_units(rows + rows[:1], areas, entry)
         with self.assertRaises(ValueError):
             count_units(rows, areas[:1], entry)
+        commercial_area = {"bldNm": "Park", "exposPubuseGbCdNm": "전유",
+                           "dongNm": "상가", "hoNm": "101", "area": "40"}
+        result = count_units(rows, areas + [commercial_area], entry)
+        self.assertEqual(result["rejected"]["area_rows_without_apartment_unit"], 1)
 
     def test_actual_capacity_can_retain_old_trade(self):
         # Two actual units, one observed dong-floor slot. Latest-N F must
