@@ -1,0 +1,37 @@
+name: Verify live touch assets
+
+on:
+  push:
+    branches: [verify/tablet-touch-live-20261011]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check production HTML and JavaScript release
+        run: |
+          python - <<'PY'
+          import time, urllib.request
+          base = 'https://geuttaeneolma.com/'
+          for attempt in range(8):
+              try:
+                  request = urllib.request.Request(base, headers={'Cache-Control': 'no-cache'})
+                  html = urllib.request.urlopen(request, timeout=12).read().decode()
+                  js = urllib.request.urlopen(base + 'app.js?v=20261011b', timeout=12).read().decode()
+                  sw = urllib.request.urlopen(base + 'sw.js', timeout=12).read().decode()
+                  print('attempt', attempt + 1, 'HTML b:', 'app.js?v=20261011b' in html,
+                        'touch helper:', 'function bindMapSelection' in js,
+                        'search pointer:', 'searchPress' in js,
+                        'SW b:', 'geuttaen-20261011b' in sw, flush=True)
+                  if all(('app.js?v=20261011b' in html,
+                          'function bindMapSelection' in js,
+                          'searchPress' in js,
+                          'geuttaen-20261011b' in sw)):
+                      break
+              except Exception as exc:
+                  print('attempt', attempt + 1, type(exc).__name__, flush=True)
+              time.sleep(15)
+          else:
+              raise SystemExit('production has not served this release')
+          PY
