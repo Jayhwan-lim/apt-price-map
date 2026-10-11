@@ -31,11 +31,13 @@ jobs:
           housing = [r for r in rows if int(r.get('hhldCnt') or 0) > 0]
           total = sum(int(r['hhldCnt']) for r in housing)
           names = sorted({r.get('bldNm', '').strip() for r in housing})
+          dongs = sorted({r.get('dongNm', '').strip() for r in housing})
           print('residential building titles:', len(housing), 'units:', total,
-                'building names:', names)
-          if len(housing) != 66 or total != 6864 or not names or '' in names:
+                'building names:', names, 'unique dongs:', len(dongs))
+          if len(housing) != 66 or len(dongs) != 66 or total != 6864 or not names or '' in names:
               raise SystemExit('parcel/title mismatch; no inventory generated')
           entry.update(complex_key='11710|신천동|17', building_names=names,
+                       housing_dongs=dongs,
                        expected_units=6864)
           Path('data/unit_manifest.json').write_text(json.dumps([entry], ensure_ascii=False))
           PY

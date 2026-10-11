@@ -24,6 +24,7 @@ def pages(session, key, entry, operation):
               "ji": entry["ji"], "platGbCd": entry.get("platGbCd", "0"),
               "numOfRows": 1000, "_type": "json"}
     page = 1
+    received = 0
     while True:
         params["pageNo"] = page
         for attempt in range(3):
@@ -46,7 +47,8 @@ def pages(session, key, entry, operation):
         if isinstance(batch, dict):
             batch = [batch]
         yield from batch
-        if page * int(params["numOfRows"]) >= int(body.get("totalCount", 0)):
+        received += len(batch)
+        if not batch or received >= int(body.get("totalCount", 0)):
             break
         page += 1
 
@@ -64,10 +66,13 @@ def unit_key(row):
 
 def count_units(expos_rows, area_rows, entry):
     allowed = set(entry["building_names"])
+    housing_dongs = {unit_key({"dongNm": d})[0] for d in entry.get("housing_dongs", [])}
     counts, seen, rejected = Counter(), set(), Counter()
     private_areas = {}
     for row in area_rows:
         if row.get("bldNm", "").strip() not in allowed:
+            continue
+        if housing_dongs and unit_key(row)[0] not in housing_dongs:
             continue
         if str(row.get("exposPubuseGbCd", "")).strip() != "1" and \
                 row.get("exposPubuseGbCdNm", "").strip() != "전유":
@@ -82,8 +87,8 @@ def count_units(expos_rows, area_rows, entry):
         if row.get("bldNm", "").strip() not in allowed:
             rejected["other_building"] += 1
             continue
-        if row.get("mainPurpsCdNm", "").strip() != "아파트":
-            rejected["not_apartment"] += 1
+        if housing_dongs and unit_key(row)[0] not in housing_dongs:
+            rejected["other_dong"] += 1
             continue
         dong, ho = unit_key(row)
         try:
