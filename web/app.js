@@ -1240,12 +1240,14 @@
       node.addEventListener("pointerdown", (e) => {
         if (e.pointerType === "mouse") return;
         press = { id: e.pointerId, x: e.clientX, y: e.clientY };
+        kakao.maps.event.preventMap();
         e.stopPropagation();
       });
       node.addEventListener("pointerup", (e) => {
         if (e.pointerType === "mouse" || !press || e.pointerId !== press.id) return;
         const moved = Math.hypot(e.clientX - press.x, e.clientY - press.y);
         press = null;
+        kakao.maps.event.preventMap();
         e.stopPropagation();
         if (moved > 12) return;
         touchedAt = Date.now();
@@ -1254,8 +1256,12 @@
       });
       node.addEventListener("pointercancel", () => { press = null; });
       ["touchstart", "touchmove", "touchend"].forEach((type) =>
-        node.addEventListener(type, (e) => e.stopPropagation(), { passive: true }));
+        node.addEventListener(type, (e) => {
+          kakao.maps.event.preventMap();
+          e.stopPropagation();
+        }, { passive: true }));
       node.addEventListener("click", (e) => {
+        kakao.maps.event.preventMap();
         e.stopPropagation();
         if (Date.now() - touchedAt < 700) return; // synthetic click after touch
         selectComplex(c);
