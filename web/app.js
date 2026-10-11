@@ -395,15 +395,27 @@
   let detailInCol = false;
   let detailColClosed = false;
   let sheetClosed = false;
+  let priceInCol = false;
+  let priceColClosed = false;
+  let priceSheetClosed = false;
   function syncPhoneUi() {
     document.documentElement.classList.toggle("phone-ui", phoneLike());
-    if (state.ref) presentDetail();
+    if (state.start === "price") presentPrice();
+    else if (state.ref) presentDetail();
     else if (!phoneLike()) closeSheet();
   }
   function openSheet() {
     if (!phoneLike() || !state.ref) return;
     const title = document.getElementById("sheet-title");
     if (title) title.textContent = state.ref.nm || "";
+    const was = document.body.classList.contains("sheet-open");
+    document.body.classList.add("sheet-open");
+    if (!was) setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
+  }
+  function openPriceSheet() {
+    if (!phoneLike()) return;
+    const title = document.getElementById("sheet-title");
+    if (title) title.textContent = "가격으로 찾기";
     const was = document.body.classList.contains("sheet-open");
     document.body.classList.add("sheet-open");
     if (!was) setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
@@ -453,10 +465,49 @@
     placeDetailNodes(false);
     document.body.classList.remove("detail-open");
   }
+  // Price mode gets the same right-side treatment as a complex selection:
+  // its section moves into the detail column on wide layouts and into the
+  // sheet on phones.
+  function placePrice(inCol) {
+    if (priceInCol === inCol) return;
+    if (inCol) {
+      const host = document.getElementById("detail-col-body");
+      if (!host) return;
+      host.appendChild(el.priceSec);
+    } else {
+      const anchor = document.getElementById("price-home");
+      if (!anchor || !anchor.parentNode) return;
+      anchor.parentNode.insertBefore(el.priceSec, anchor);
+    }
+    priceInCol = inCol;
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 280);
+  }
+  function presentPrice() {
+    if (state.start !== "price") return;
+    if (phoneLike()) {
+      placePrice(false);
+      document.body.classList.remove("detail-open");
+      if (priceSheetClosed) closeSheet(); else openPriceSheet();
+    } else {
+      closeSheet();
+      if (priceColClosed) { placePrice(false); document.body.classList.remove("detail-open"); return; }
+      placePrice(true);
+      const t = document.getElementById("detail-col-title");
+      if (t) t.textContent = "가격으로 찾기";
+      document.body.classList.add("detail-open");
+      setTimeout(() => { try { if (map && typeof map.relayout === "function") map.relayout(); } catch (e) { /* map not ready */ } }, 900);
+    }
+  }
   const sheetBack = document.getElementById("sheet-back");
-  if (sheetBack) sheetBack.addEventListener("click", () => { sheetClosed = true; closeSheet(); });
+  if (sheetBack) sheetBack.addEventListener("click", () => {
+    if (state.start === "price") priceSheetClosed = true; else sheetClosed = true;
+    closeSheet();
+  });
   const colClose = document.getElementById("detail-col-close");
-  if (colClose) colClose.addEventListener("click", () => { detailColClosed = true; retractDetail(); });
+  if (colClose) colClose.addEventListener("click", () => {
+    if (state.start === "price") { priceColClosed = true; placePrice(false); document.body.classList.remove("detail-open"); }
+    else { detailColClosed = true; retractDetail(); }
+  });
   syncPhoneUi();
   window.addEventListener("resize", () => {
     syncPhoneUi();
@@ -690,6 +741,8 @@
     if (price && state.scope === "sgg") { state.scope = "all"; el.scope.value = "all"; }
     if (price) {
       retractDetail();
+      priceColClosed = false;
+      priceSheetClosed = false;
       state.ref = null;
       state.checked = [];
       state.slotOf.clear();
@@ -697,9 +750,11 @@
       el.priceSec.hidden = false;
       if (state.price.mi == null) state.price.mi = Math.max(0, lastMi() - 60);
       if (run) runPrice();
+      presentPrice();
     } else {
       state.similar = [];
       el.priceSec.hidden = true;
+      placePrice(false);
       if (run) render();
     }
   }
@@ -1649,7 +1704,10 @@
     // Price mode
     document.querySelector(".start-tabs").addEventListener("click", (e) => {
       const t = e.target.closest(".start-tab");
-      if (t && t.dataset.start !== state.start) setStart(t.dataset.start);
+      if (t && t.dataset.start !== state.start) {
+        setStart(t.dataset.start);
+        if (t.dataset.start === "complex" && !state.ref) { document.body.classList.remove("detail-open"); closeSheet(); }
+      }
     });
     el.pYears.addEventListener("click", (e) => {
       const b = e.target.closest(".year-btn");
