@@ -1645,6 +1645,25 @@
     map.refresh();
   })();
 
+  // Tablet Chrome in desktop-site mode sends a desktop user agent, and
+  // the Kakao SDK then never binds touch gestures: the map looks frozen
+  // even though taps still work. The SDK input mode cannot be switched
+  // from here, so warn instead; mobile mode restores touch immediately.
+  try {
+    const touchCapable = (navigator.maxTouchPoints || 0) > 0;
+    const desktopUa = /X11; Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent);
+    if (touchCapable && desktopUa && !sessionStorage.getItem("tmn-dismissed")) {
+      const note = document.getElementById("touch-mode-note");
+      if (note) {
+        note.hidden = false;
+        document.getElementById("touch-mode-close").addEventListener("click", () => {
+          note.hidden = true;
+          sessionStorage.setItem("tmn-dismissed", "1");
+        });
+      }
+    }
+  } catch (err) { /* the notice is best-effort */ }
+
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
