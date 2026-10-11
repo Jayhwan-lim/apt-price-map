@@ -393,3 +393,28 @@ html.phone-ui body.sheet-open .search, html.phone-ui body.sheet-open .panel-foot
 html.phone-ui body.sheet-open #ad-section, html.phone-ui body.sheet-open #price-section,
 html.phone-ui body.sheet-open #empty-state { display: none; }
 html.phone-ui body.sheet-open .panel-head { padding: 12px 16px 10px; }
+
+/* Wide layouts: detail column next to the panel (same 440px width). */
+.app { transition: grid-template-columns 0.25s ease; }
+.detail-col { display: none; }
+body.detail-open .app { grid-template-columns: 440px 440px minmax(0, 1fr); }
+body.detail-open .map-wrap { grid-column: 3; }
+body.detail-open .detail-col {
+  display: flex; flex-direction: column; grid-column: 2; min-height: 0;
+  background: var(--surface); border-right: 1px solid var(--line);
+  overflow: hidden; animation: col-in 0.25s ease;
+}
+@keyframes col-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+.detail-col-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--line); flex: none;
+}
+.detail-col-title { font-weight: 600; font-size: 15px; color: var(--ink); }
+.detail-col-bar button { border: 0; background: none; cursor: pointer; font-size: 15px; color: var(--muted); padding: 2px 6px; }
+.detail-col-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 20px 24px; }
+.detail-col-body > section, .detail-col-body > details { padding-top: 18px; }
+@media (max-width: 860px) {
+  body.detail-open .detail-col { display: none !important; }
+  body.detail-open .app { grid-template-columns: 1fr; }
+  body.detail-open .map-wrap { grid-column: 1; }
+}
