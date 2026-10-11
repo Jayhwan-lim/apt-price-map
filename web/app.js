@@ -527,10 +527,11 @@
   // Default base year: the latest complete year with enough trades (so there
   // is a "since then"), else the latest year with any.
   function defaultYear(c) {
-    const cur = ymOf(lastMi())[0];
+    // Default to the latest year with a solid trade count, including the
+    // current (partial) year: 2026 data is what users compare against.
     const ys = state.data.years.filter((y) => stat(c, y));
-    const full = ys.filter((y) => y < cur && stat(c, y)[0] >= FALLBACK_MIN_N);
-    return full.length ? full[full.length - 1] : ys.length ? ys[ys.length - 1] : null;
+    const solid = ys.filter((y) => stat(c, y)[0] >= FALLBACK_MIN_N);
+    return solid.length ? solid[solid.length - 1] : ys.length ? ys[ys.length - 1] : null;
   }
 
   let recomputeSeq = 0;
