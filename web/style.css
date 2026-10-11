@@ -324,7 +324,10 @@ button, input, select { font: inherit; color: inherit; }
   content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%);
   border: 5px solid transparent; border-top-color: inherit; border-bottom: 0;
 }
-.pin .n { font-size: 11px; color: #4d5b67; max-width: 9em; overflow: hidden; text-overflow: ellipsis; }
+.pin .n { font-size: 11px; color: #4d5b67; max-width: 11em; overflow: hidden; text-overflow: ellipsis; }
+.pin.bg { display: flex; align-items: baseline; gap: 5px; padding: 2px 7px 3px; }
+.pin.bg .n { font-size: 11px; font-weight: 600; color: #14202b; max-width: 7.5em; }
+.pin.bg .v { font-size: 11.5px; }
 .pin .v { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .pin .b { font-size: 10.5px; font-weight: 500; color: #4d5b67; margin-right: 4px; }
 .pin.sim { border: 1.5px dashed #6c7a86; }
