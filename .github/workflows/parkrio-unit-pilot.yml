@@ -45,5 +45,19 @@ jobs:
         run: python collector/unit_inventory.py --manifest data/unit_manifest.json --output data/units/inventory.json
       - name: Audit selected area bands
         run: |
+          python - <<'PY'
+          import json, sys
+          from collections import Counter
+          sys.path.insert(0, 'collector')
+          from audit_unit_models import type_of
+          inventory = json.load(open('data/units/inventory.json'))[0]
+          complex_data = json.load(open('web/data/complexes.json'))
+          c = next(c for c in complex_data['complexes'] if c['key'] == inventory['complex_key'])
+          types = json.load(open(f"web/data/region/{c['code']}.json"))['c'][str(c['id'])]['ty']
+          counts = Counter()
+          for _dong, _floor, area, n in inventory['pools']:
+              counts[type_of(types, area)] += n
+          print('verified total:', sum(counts.values()), 'area bands:', dict(counts))
+          PY
           python collector/audit_unit_models.py --inventory data/units/inventory.json --complex-key '11710|신천동|17' --band 35 --output data/units/audit-35.json
-          python collector/audit_unit_models.py --inventory data/units/inventory.json --complex-key '11710|신천동|17' --band 85 --output data/units/audit-85.json
+          python collector/audit_unit_models.py --inventory data/units/inventory.json --complex-key '11710|신천동|17' --band 84 --output data/units/audit-84.json
