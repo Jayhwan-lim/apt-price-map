@@ -4,7 +4,7 @@
 
 ## 1. 건축HUB 전유부 접근
 
-공공데이터포털의 [건축HUB 건축물대장정보 서비스](https://www.data.go.kr/data/15134735/openapi.do) 활용신청 후 `DATA_GO_KR_KEY`(디코딩 키)를 환경변수로 설정한다. 기존 RTMS 서비스 키와 별개로 이 서비스의 접근 권한이 필요하다. 키를 저장소에 커밋하지 않는다.
+공공데이터포털의 [건축HUB 건축물대장정보 서비스](https://www.data.go.kr/data/15134735/openapi.do) 활용신청 후 `DATA_GO_KR_HUB_KEY`(디코딩 키)를 환경변수로 설정한다. 이 서비스의 접근 권한은 승인되었고 저장소에는 같은 이름의 GitHub Secret이 등록되어 있다. 키를 저장소에 커밋하지 않는다.
 
 검증할 단지를 `data/unit_manifest.json`에 **명시적으로** 적는다. 예시는 형식만 보여준다. 주소·건물명·세대수는 건축물대장/단지 자료와 실제 대조하여 기입해야 한다.
 
@@ -18,7 +18,7 @@
     "ji": "4자리",
     "platGbCd": "0",
     "building_names": ["전유부 응답의 정확한 bldNm"],
-    "expected_units": 344
+    "expected_units": 6864
   }
 ]
 ```
@@ -27,7 +27,7 @@
 python collector/unit_inventory.py --manifest data/unit_manifest.json --output data/units/inventory.json
 ```
 
-단지명이 같은 필지의 다른 단지와 섞이거나 호수 중복·층/면적 누락·총 세대수 불일치가 있으면 생성이 중단된다. `expected_units`는 임시 동·층 슬롯 수가 아니라 외부에서 독립적으로 확인한 호별 세대수다. 결과 파일에는 **동·층·면적별 세대 수**만 남기며 호수는 기록하지 않는다. 인벤토리와 매핑 파일은 gitignored, 검증된 집계 결과도 자동 공개하지 않는다.
+`getBrExposInfo`에는 면적이 없으므로 `getBrExposPubuseAreaInfo`의 **전유 면적 행**을 동·호로 조인한다. 공용면적 행은 세대 면적에 더하지 않는다. 동일 호의 전유 면적 중복, 조인 실패, 호수 중복·층/면적 누락·총 세대수 불일치가 있으면 생성이 중단된다. `expected_units`는 임시 동·층 슬롯 수가 아니라 외부에서 독립적으로 확인한 호별 세대수다. 파크리오 전체 단지 기준 6,864세대로 대조한다. 결과 파일에는 **동·층·면적별 세대 수**만 남기며 호수는 기록하지 않는다. 인벤토리와 매핑 파일은 gitignored, 검증된 집계 결과도 자동 공개하지 않는다.
 
 ## 2. 같은 세대수를 사용한 F/D 비교
 
