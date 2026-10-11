@@ -368,6 +368,19 @@ button, input, select { font: inherit; color: inherit; }
 .ad-slot-body iframe { max-width: 100%; }
 .ad-note { margin-top: 6px; font-size: 11px; color: var(--muted); }
 
+/* Left-column side section: other bands / region ranking / recents. */
+.side-sec { padding: 2px 20px 10px; }
+.side-block { margin-top: 18px; }
+.side-block h3 { font-size: 14px; margin: 0 0 6px; }
+.side-list { list-style: none; margin: 0; padding: 0; }
+.side-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 8px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: 13px; color: inherit; text-align: left; cursor: pointer; }
+.side-item:hover { background: var(--surface); }
+.side-item.is-cur { background: var(--surface); font-weight: 700; }
+.side-item .side-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side-item .side-band, .side-item .side-where { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.side-item .side-val { color: var(--muted); white-space: nowrap; }
+.side-rank-no { flex: none; width: 18px; text-align: right; color: var(--muted); font-weight: 700; }
+
 /* Phone detail sheet: on phones (and coarse-pointer foldables) the panel
    becomes a full-screen sheet sliding in from the right when a complex is
    selected, so the detail is not squeezed under the map, controls and ad. */
