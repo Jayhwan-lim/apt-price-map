@@ -7,14 +7,18 @@ from unit_inventory import count_units
 class InventoryTest(unittest.TestCase):
     def test_count_unique_households_and_reject_mismatch(self):
         rows = [{"bldNm": "Park", "mainPurpsCdNm": "아파트", "dongNm": "101동",
-                 "hoNm": str(i), "flrNo": "3", "area": "35.12"} for i in (301, 302)]
+                 "hoNm": str(i), "flrNo": "3"} for i in (301, 302)]
+        areas = [{"bldNm": "Park", "exposPubuseGbCdNm": "전유",
+                  "dongNm": "101", "hoNm": f"{i}호", "area": "35.12"} for i in (301, 302)]
         entry = {"complex_key": "park", "building_names": ["Park"], "expected_units": 2}
-        result = count_units(rows, entry)
-        self.assertEqual(result["pools"], [["101동", 3, 35.12, 2]])
+        result = count_units(rows, areas, entry)
+        self.assertEqual(result["pools"], [["101", 3, 35.12, 2]])
         with self.assertRaises(ValueError):
-            count_units(rows, {**entry, "expected_units": 3})
+            count_units(rows, areas, {**entry, "expected_units": 3})
         with self.assertRaises(ValueError):
-            count_units(rows + rows[:1], entry)
+            count_units(rows + rows[:1], areas, entry)
+        with self.assertRaises(ValueError):
+            count_units(rows, areas[:1], entry)
 
     def test_actual_capacity_can_retain_old_trade(self):
         # Two actual units, one observed dong-floor slot. Latest-N F must
