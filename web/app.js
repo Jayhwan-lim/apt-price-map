@@ -380,6 +380,25 @@
   }
 
   // ---------- selection ----------
+  // Phone detail sheet (see style.css): the panel turns into a
+  // full-screen sheet on phone-sized viewports when a complex is selected.
+  const sheetMq = window.matchMedia("(max-width: 860px), (pointer: coarse) and (max-width: 1100px)");
+  function openSheet() {
+    if (!sheetMq.matches || !state.ref) return;
+    const title = document.getElementById("sheet-title");
+    if (title) title.textContent = state.ref.nm || "";
+    document.body.classList.add("sheet-open");
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
+  }
+  function closeSheet() {
+    if (!document.body.classList.contains("sheet-open")) return;
+    document.body.classList.remove("sheet-open");
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 60);
+  }
+  const sheetBack = document.getElementById("sheet-back");
+  if (sheetBack) sheetBack.addEventListener("click", closeSheet);
+  sheetMq.addEventListener("change", (e) => { if (!e.matches) closeSheet(); });
+
   async function selectComplex(c, { pan = false, month = null, year = null, band = null } = {}) {
     // Search results can hold a slim-phase object (no band data); always
     // re-resolve against the current dataset so a click that lands right
@@ -427,6 +446,7 @@
     }
     recompute({ resetChecks: true });
     loadTrades(c);
+    openSheet();
   }
 
   // Area type select for the selected complex: every type with its trade count.
@@ -602,6 +622,7 @@
     sgg.disabled = price;
     if (price && state.scope === "sgg") { state.scope = "all"; el.scope.value = "all"; }
     if (price) {
+      closeSheet();
       state.ref = null;
       state.checked = [];
       state.slotOf.clear();
