@@ -11,6 +11,10 @@ def build():
     owners=json.loads((web/'owner-distributions.json').read_text())
     verified=owners['complexes'] if owners.get('generated')==data['generated'] else {}
     inventory={e["complex_key"]:e for e in json.loads((ROOT/"data/owner_inventory.json").read_text())}
+    try:
+        land=json.loads((ROOT/'data/land_facts.json').read_text())
+    except Exception:
+        land={}
     regions={}
     out={}
     for c in data['complexes']:
@@ -31,6 +35,9 @@ def build():
                 for j,counts in enumerate((ex,all_)):
                     totals[j]+=sum(n for mi,n in counts.items() if data['mcount']-12<=mi<data['mcount'])
             facts['trades12']=totals
+        lf=land.get(c['key'])
+        if lf:
+            facts['land']=lf['land']; facts['far']=lf['far']; facts['coverage']=lf['coverage']
         out[c['key']]=facts
     target=web/'map-metrics.json'
     tmp=target.with_suffix('.tmp')
