@@ -20,7 +20,7 @@ jobs:
           for attempt in range(24):
               try:
                   html=get('?verify=owner20261012b')
-                  assert '20261012b' in html and 'ownerSec' in html, 'release not live yet'
+                  assert '20261012b' in html and 'owner-distribution-section' in html, 'release not live yet'
                   data=json.loads(get('data/owner-distributions.json?verify=owner20261012b'))
                   assert data['model']=='dong-capacity-missing-uniform-v1'
                   bands=data['complexes']['11710|잠실동|22']['bands']
