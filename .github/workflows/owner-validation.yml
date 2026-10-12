@@ -1,9 +1,10 @@
 name: owner-distribution-validation
 on:
   push:
-    branches: [feature/owner-final-20261012]
+    branches: [main]
+    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml', 'docs/owner-peer-snapshots.json']
   pull_request:
-    paths: ['collector/owner_distribution.py', 'collector/test_owner_distribution.py', 'web/**', 'data/owner_inventory.json']
+    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml', 'docs/owner-peer-snapshots.json']
 permissions:
   contents: read
 jobs:
@@ -21,6 +22,10 @@ jobs:
         run: |
           python collector/owner_distribution.py
           git diff --exit-code -- web/data/owner-distributions.json
+      - name: Verify reproducible comparison records
+        run: |
+          python collector/compare_owner_models.py
+          git diff --exit-code -- docs/owner-comparison-latest.json docs/owner-comparison-latest.md
       - name: Browser verification
         run: |
           npm install --prefix "$RUNNER_TEMP/owner-browser" playwright

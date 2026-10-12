@@ -1,0 +1,28 @@
+name: Owner expansion count audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/owner-review-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - run: python collector/owner_expansion_audit.py
+        env:
+          DATA_GO_KR_HUB_KEY: ${{ secrets.DATA_GO_KR_HUB_KEY }}
+      - name: Preserve count-only candidates
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/owner_inventory_candidates.json
+          git commit -m 'Record count-only expansion inventories for review' || exit 0
+          git pull --rebase origin feature/owner-review-20261012
+          git push origin HEAD:feature/owner-review-20261012

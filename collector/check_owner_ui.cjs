@@ -48,7 +48,16 @@ const assert = require('node:assert/strict');
       console.log('STATE',await page.evaluate(()=>({band:__aptMap.state.band,variant:__aptMap.state.variant,body:document.getElementById('owner-distribution-body').innerHTML,hidden:document.getElementById('owner-distribution-section').hidden,classes:document.body.className})));
       await page.screenshot({path:'/tmp/owner-ui/failure.png',fullPage:true});throw error;
     });
-    console.log('Actual inventory UI:',await page.locator('#owner-distribution-body').innerText());
+    const shipped = JSON.parse(fs.readFileSync('web/data/owner-distributions.json'));
+    for (const [key, entry] of Object.entries(shipped.complexes)) {
+      for (const [band, variants] of Object.entries(entry.bands)) {
+        await page.evaluate(({key,band})=>{const a=window.__aptMap;return a.selectComplex(a.state.byKey.get(key),{band});},{key,band});
+        const expected = variants.ex.assigned.toLocaleString('en-US');
+        await page.waitForFunction(expected=>document.getElementById('owner-distribution-body').textContent.includes('추정 배정 약 '+expected+'세대'),expected);
+      }
+    }
+    console.log('All published complex/area bands rendered:',Object.keys(shipped.complexes).length);
+
     await page.locator('#owner-distribution-section').screenshot({path:'/tmp/owner-ui/actual-ricenz.png'});
   }
   await browser.close();
