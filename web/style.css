@@ -452,3 +452,6 @@ body.detail-open .detail-col {
 .owner-method { margin-top: 12px; font-size: 12px; color: var(--muted); }
 .owner-method summary { cursor: pointer; padding: 8px 0; }
 .owner-method p { margin: 8px 0; }
+.owner-row .trade-distribution-fill { min-width: 0; }
+html.phone-ui body.sheet-open .panel { height: 100dvh; min-height: 0; overflow: hidden; }
+html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }

@@ -1343,7 +1343,7 @@
     const max = Math.max(1, ...d.bins.map((b) => b[2]));
     el.ownerBody.innerHTML =
       `<div class="trade-distribution-summary"><span>확인 세대수 <strong>${num(d.total)}세대</strong></span><span>추정 배정 약 <strong>${num(d.assigned)}세대</strong> · 미배정 약 ${num(d.unknown)}세대</span></div>` +
-      (market ? `<p class="owner-market">최근 실거래 중앙값 <strong>${fmtPrice(market.price)}</strong><br><small>${escapeHtml(market.from)}~${escapeHtml(market.to)} · ${market.months}개월 ${market.n}건 · 테두리가 있는 막대는 이 가격이 속한 구간입니다.</small></p>` : '<p class="owner-market">최근 12개월 거래가 3건 미만으로 비교 가격을 표시하지 않습니다.</p>') +
+      (market ? `<p class="owner-market">최근 실거래 중앙값 <strong>${(market.price / 10000).toFixed(2)}억</strong><br><small>${escapeHtml(market.from)}~${escapeHtml(market.to)} · ${market.months}개월 ${market.n}건 · 테두리가 있는 막대는 이 가격이 속한 구간입니다.</small></p>` : '<p class="owner-market">최근 12개월 거래가 3건 미만으로 비교 가격을 표시하지 않습니다.</p>') +
       '<div class="trade-distribution-bars">' + d.bins.map(([lo, hi, n]) => {
         const current = market && market.price >= lo && market.price < hi;
         return `<div class="trade-distribution-row owner-row${current ? " owner-current" : ""}"${current ? ' aria-label="현재 비교 가격이 속한 구간"' : ""}>
