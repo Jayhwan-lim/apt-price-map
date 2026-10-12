@@ -49,10 +49,14 @@ for band in inv["publish_bands"]:
 for r in summary:
     print("RESULT",json.dumps({"band":r["band"],"peer":r["peer"],"L1":r["bin_count_L1"],"diff":r["bin_difference"],
         "scenarios":{k:{x:v[x] for x in ["assigned","unknown","transactions","market","expectedAssigned"]} for k,v in r["scenarios"].items()}},ensure_ascii=False),flush=True)
-html=get("https://ulma.site/")
-scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',html)
-print("SCRIPTS",scripts,flush=True)
-for path in scripts:
-    if path.startswith("/assets/"):
-        js=get("https://ulma.site"+path)
-        print("PUBLIC_ROUTES",re.findall(r'.{0,100}/api/.{0,150}',js)[:20],flush=True)
+
+from audit_unit_models import audit
+for band in inv["publish_bands"]:
+    a=audit(rows,inv["pools"],band,types)
+    print("SENSITIVITY",json.dumps(a,ensure_ascii=False),flush=True)
+    d=estimate(rows,inv["pools"],band,types,snap["marketAsof"],True)
+    print("COMBINED",band,json.dumps(d["market"],ensure_ascii=False),flush=True)
+index=get("https://ulma.site/data/index.js")
+for name in ["파크리오","잠실엘스"]:
+    m=re.search(name,index)
+    print("INDEX_MATCH",name,index[max(0,m.start()-300):m.start()+300] if m else "not found",flush=True)
