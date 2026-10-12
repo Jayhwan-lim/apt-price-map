@@ -9,10 +9,10 @@
     turnover:['거래회전율','최근 데이터 12개월의 단지 전체 매매 신고 건수 ÷ 확인 세대수 × 100. 재거래도 각각 집계하며 직거래 설정을 반영합니다.'],
     units:['세대수','건축물대장과 면적별 외부 대조를 통과한 단지 전체 세대수. 미확인 단지는 정보 없음.'],
     occupancy:['입주시기','입주일 원자료 미연결. 실거래 자료의 건축연도를 구분해 표시합니다.'],
-    land:['대지지분','선택 면적의 등기·대장상 전유세대 대지권 지분 자료가 필요합니다. 단지 대지면적을 세대수로 나누어 대신 표시하지 않습니다.'],
-    landFar:['대지지분/용적률','전유세대 대지지분과 단지 용적률을 함께 표시하는 항목입니다. 원자료 미연결.'],
-    far:['용적률','건축물대장상 단지 용적률 자료 미연결.'],
-    coverage:['건폐율','건축물대장상 단지 건폐율 자료 미연결.']
+    land:['대지지분','건축물대장 대지면적을 전유면적 비율로 나눈 세대별 산정치(평·㎡). 건축물대장 검증 단지만 표시합니다.'],
+    landFar:['대지지분/용적률','세대별 대지지분과 건축물대장 용적률을 함께 표시합니다. 검증 단지만 표시합니다.'],
+    far:['용적률','건축물대장 총괄표제부의 단지 용적률. 검증 단지만 표시합니다.'],
+    coverage:['건폐율','건축물대장 총괄표제부의 단지 건폐율. 검증 단지만 표시합니다.']
   };
   function value(metric,c,band,now,facts,variant){
     const price=now && now.avg;
@@ -23,6 +23,12 @@
     if(metric==='pyeong')return price>0 && area>0?'평당 '+Math.round(price/area*3.305785).toLocaleString('ko-KR')+'만원':'평당가 정보 없음';
     if(metric==='units')return facts?.units>0?facts.units.toLocaleString('ko-KR')+'세대':'세대수 정보 없음';
     if(metric==='turnover')return facts?.units>0 && facts.trades12?'연 '+(facts.trades12[variant==='all'?1:0]/facts.units*100).toFixed(1)+'%':'회전율 정보 없음';
+    const land=facts?.land?.[band];
+    const one=x=>(Math.round(x*10)/10).toString();
+    if(metric==='land')return land?one(land[1])+'평 ('+one(land[0])+'㎡)':'정보 없음';
+    if(metric==='landFar')return land && facts?.far?one(land[1])+'평 · 용적률 '+facts.far.toFixed(1)+'%':'정보 없음';
+    if(metric==='far')return facts?.far?'용적률 '+facts.far.toFixed(1)+'%':'정보 없음';
+    if(metric==='coverage')return facts?.coverage?'건폐율 '+facts.coverage.toFixed(1)+'%':'정보 없음';
     if(metric==='occupancy')return c.by?'건축 '+c.by+'년 · 입주 미확인':'입주시기 정보 없음';
     return '정보 없음';
   }
