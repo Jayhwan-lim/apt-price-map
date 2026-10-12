@@ -1,10 +1,11 @@
-name: Ricenz verified unit pilot
-
+name: Ricenz counted inventory audit
 on:
   push:
     branches: [research/ricenz-inventory-pilot-20261011]
+    paths: ['.github/workflows/ricenz-unit-pilot.yml', 'collector/unit_inventory.py']
   workflow_dispatch:
-
+permissions:
+  contents: read
 jobs:
   pilot:
     runs-on: ubuntu-latest
@@ -17,84 +18,72 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install requests
-      - name: Diagnose HUB status without logging credentials
+      - name: Fetch and audit counted inventory without publishing
         run: |
           python - <<'PY'
-          import os, requests, xml.etree.ElementTree as ET
-          params = dict(serviceKey=os.environ['DATA_GO_KR_HUB_KEY'], sigunguCd='11710',
-                        bjdongCd='10100', bun='0022', ji='0000', platGbCd='0',
-                        numOfRows=100, pageNo=1, _type='json')
-          for op in ('getBrTitleInfo', 'getBrExposInfo', 'getBrExposPubuseAreaInfo'):
-              try:
-                  r = requests.get('https://apis.data.go.kr/1613000/BldRgstHubService/' + op,
-                                   params=params, timeout=40)
-                  print(op, 'HTTP:', r.status_code, 'type:', r.headers.get('content-type'), flush=True)
-                  try:
-                      data = r.json()['response']
-                      print(op, 'API code:', data.get('header', {}).get('resultCode'), flush=True)
-                  except (ValueError, KeyError):
-                      try:
-                          root = ET.fromstring(r.text)
-                          print(op, 'XML code:', root.findtext('.//returnReasonCode') or root.findtext('.//resultCode'), flush=True)
-                      except ET.ParseError:
-                          print(op, 'unexpected response format', flush=True)
-              except requests.RequestException:
-                  print(op, 'transport failed; URL suppressed', flush=True)
-          PY
-      - name: Validate parcel titles and create private manifest
-        run: |
-          python - <<'PY'
-          import json, os, requests, sys
+          import concurrent.futures, json, os, requests, sys, threading, time
+          from collections import Counter
           from pathlib import Path
           sys.path.insert(0, 'collector')
-          from unit_inventory import pages
-          entry = {'sigunguCd': '11710', 'bjdongCd': '10100',
-                   'bun': '0022', 'ji': '0000', 'platGbCd': '0'}
-          rows = list(pages(requests.Session(), os.environ['DATA_GO_KR_HUB_KEY'],
-                            entry, 'getBrTitleInfo'))
-          housing = [r for r in rows if int(r.get('hhldCnt') or 0) > 0]
-          total = sum(int(r['hhldCnt']) for r in housing)
-          names = sorted({r.get('bldNm', '').strip() for r in housing})
-          dongs = sorted({r.get('dongNm', '').strip() for r in housing})
-          print('housing titles:', len(housing), 'total units:', total,
-                'distinct dongs:', len(dongs), 'names:', names)
-          if total not in (5562, 5563) or not names or not dongs or '' in names or '' in dongs:
-              raise SystemExit('parcel/title mismatch; inventory blocked')
-          key = '11710|잠실동|22'
-          complexes = json.load(open('web/data/complexes.json'))['complexes']
-          matches = [c for c in complexes if c['key'] == key]
-          if len(matches) != 1:
-              raise SystemExit('trade complex key mismatch; inventory blocked')
-          entry.update(complex_key=key, building_names=names,
-                       housing_dongs=dongs, expected_units=total)
-          Path('data/unit_manifest.json').write_text(
-              json.dumps([entry], ensure_ascii=False), encoding='utf-8')
-          PY
-      - name: Join private area and units
-        run: python collector/unit_inventory.py --manifest data/unit_manifest.json --output data/units/inventory.json
-      - name: Compare sensitivity for two largest area bands
-        run: |
-          python - <<'PY'
-          import json, subprocess, sys
-          from collections import Counter
-          sys.path.insert(0, 'collector')
-          from audit_unit_models import type_of
-          entry = json.load(open('data/units/inventory.json'))[0]
-          c = next(c for c in json.load(open('web/data/complexes.json'))['complexes']
-                   if c['key'] == entry['complex_key'])
-          types = json.load(open(f"web/data/region/{c['code']}.json"))['c'][str(c['id'])]['ty']
-          counts = Counter()
-          for dong, floor, area, units in entry['pools']:
-              counts[type_of(types, area)] += units
-          print('verified unit bands:', dict(counts), 'total:', sum(counts.values()), flush=True)
-          if sum(counts.values()) != entry['expected_units']:
-              raise SystemExit('inventory count mismatch')
-          for band, units in sorted(counts.items()):
-              print('auditing band:', band, 'units:', units, flush=True)
-              subprocess.run(['python', 'collector/audit_unit_models.py',
-                              '--inventory', 'data/units/inventory.json',
-                              '--complex-key', entry['complex_key'], '--band', band,
-                              '--output', f'data/units/audit-{band}.json'], check=True)
+          from unit_inventory import count_units, unit_key
+          key = os.environ['DATA_GO_KR_HUB_KEY']
+          entry = dict(sigunguCd='11710', bjdongCd='10100', bun='0022', ji='0000', platGbCd='0')
+          local = threading.local()
+          def page(op, n):
+              if not hasattr(local, 'session'): local.session = requests.Session()
+              params = dict(entry, serviceKey=key, numOfRows=100, pageNo=n, _type='json')
+              for attempt in range(8):
+                  try:
+                      r = local.session.get('https://apis.data.go.kr/1613000/BldRgstHubService/' + op, params=params, timeout=40)
+                      r.raise_for_status()
+                      d = r.json()['response']
+                      if str(d['header']['resultCode']) not in ('00', '000'): raise ValueError('API result failure')
+                      body = d['body']
+                      items = body.get('items') or {}
+                      rows = items.get('item', []) if isinstance(items, dict) else []
+                      if isinstance(rows, dict): rows = [rows]
+                      return rows, int(body['totalCount'])
+                  except (requests.RequestException, KeyError, ValueError):
+                      if attempt == 7: raise RuntimeError(f'{op} page {n} failed; request details suppressed') from None
+                      time.sleep(min(30, 2 ** attempt))
+          def fetch(op):
+              first, total = page(op, 1)
+              if not first: return []
+              size = len(first)
+              result = list(first)
+              pages = (total + size - 1) // size
+              with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+                  for i, (rows, check_total) in enumerate(pool.map(lambda n: page(op, n), range(2, pages + 1)), 2):
+                      if check_total != total: raise ValueError('inventory changed during pagination')
+                      result.extend(rows)
+                      if i % 50 == 0: print(op, 'pages:', i, '/', pages, flush=True)
+              if len(result) != total: raise ValueError('incomplete page sequence')
+              print(op, 'rows:', len(result), flush=True)
+              return result
+          titles = [r for r in fetch('getBrTitleInfo') if int(r.get('hhldCnt') or 0) > 0]
+          names = sorted({r.get('bldNm', '').strip() for r in titles})
+          dongs = sorted({r.get('dongNm', '').strip() for r in titles})
+          title_total = sum(int(r['hhldCnt']) for r in titles)
+          assert names == ['리센츠'] and len(dongs) == 65
+          expos = fetch('getBrExposInfo')
+          areas = fetch('getBrExposPubuseAreaInfo')
+          allowed_dongs = {unit_key(dict(dongNm=d))[0] for d in dongs}
+          housing = [r for r in expos if r.get('bldNm', '').strip() in names and unit_key(r)[0] in allowed_dongs]
+          # Audit-only count must NOT substitute for independent title validation.
+          candidate_n = len({unit_key(r) for r in housing})
+          manifest = dict(entry, complex_key='11710|잠실동|22', building_names=names,
+                          housing_dongs=dongs, expected_units=candidate_n)
+          candidate = count_units(housing, areas, manifest)
+          candidate.update(title_units=title_total, audit_only=True, inventory_date='2026-10-12')
+          purpose = Counter((str(r.get('mainPurpsCd') or ''), str(r.get('mainPurpsCdNm') or '')) for r in housing)
+          area_counts = Counter()
+          for dong, floor, area, n in candidate['pools']: area_counts[area] += n
+          candidate['purpose_summary'] = [[*k, n] for k, n in purpose.items()]
+          print('TITLE VS UNIT LIST:', title_total, candidate_n)
+          print('AREA COUNTS:', dict(sorted(area_counts.items())))
+          print('PURPOSE COUNTS:', candidate['purpose_summary'])
+          Path('data/units').mkdir(parents=True, exist_ok=True)
+          Path('data/units/ricenz-candidate.json').write_text(json.dumps([candidate], ensure_ascii=False), encoding='utf-8')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
