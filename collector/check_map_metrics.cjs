@@ -17,6 +17,7 @@ const assert=require('node:assert/strict');
    if(metric==='units')assert.equal(text,'6,864세대');
    if(['asking','gap','rentRatio'].includes(metric))assert.equal(text,'정보 없음');
    if(metric==='land')assert.equal(text,'5평 (16.5㎡)');
+   if(metric==='pyeong')assert.ok(text.startsWith('평당 ') && text.endsWith('만원'), text);
    if(metric==='far')assert.equal(text,'용적률 283.6%');
   }
   await page.selectOption('#map-metric-select','sale');
