@@ -1352,6 +1352,7 @@
           <span class="trade-distribution-count">약 ${num(n)}세대<small>${d.assigned ? (n / d.assigned * 100).toFixed(1) : "0.0"}%</small></span></div>`;
       }).join("") + '</div>' +
       `<p class="trade-distribution-note">${date(d.period[0])}~${date(d.period[1])} 신고 거래 ${num(d.transactions)}건 사용 · 해제 제외 · 직거래 ${state.variant === "all" ? "포함" : "제외"}<br>동 정보 없는 거래 ${num(d.dongMissing)}건 · 세대수 확인 ${escapeHtml(entry.inventoryDate)} · 거래 갱신 ${escapeHtml(payload.generated.slice(0, 10))}</p>` +
+      (entry.inventoryNote ? `<p class="trade-distribution-note">${escapeHtml(entry.inventoryNote)}</p>` : '') +
       '<p class="trade-distribution-note">미배정은 모형이 가격을 배정하지 못한 수이며 실제 미거래 세대 수가 아닙니다. 비율은 추정 배정 수 기준입니다. 반복 매매를 실제로 식별할 수 없어 배정 가정에 따라 결과가 달라집니다.</p>';
   }
 

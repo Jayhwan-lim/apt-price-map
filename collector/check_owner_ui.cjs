@@ -9,7 +9,7 @@ const assert = require('node:assert/strict');
   const fixture = {generated:data.generated, complexes:{'11710|잠실동|22':{inventoryDate:'2026-10-12',bands:{'27':{ex:sample,all:{...sample,assigned:2,unknown:0,bins:[[100000,120000,2]]}}}}}};
   fs.mkdirSync('/tmp/owner-ui', {recursive:true});
   for (const width of [1440,768,390]) {
-    const context = await browser.newContext({viewport:{width,height:1000},hasTouch:width<1000});
+    const context = await browser.newContext({viewport:{width,height:1000},hasTouch:width<1000,serviceWorkers:"block"});
     const page = await context.newPage();
     const errors=[]; page.on('pageerror', e=>errors.push(e.message));
     // Map fallback is deliberate: test the statistical UI independently of

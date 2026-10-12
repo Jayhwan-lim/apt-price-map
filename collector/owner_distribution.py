@@ -9,6 +9,7 @@ import hashlib
 import json
 import math
 import statistics
+import calendar
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -32,15 +33,18 @@ def round_counts(values, total):
 
 
 def recent_median(rows, asof):
-    year, month = int(asof[:4]), int(asof[5:7])
-    end = year * 12 + month - 1
+    end_date = datetime.fromisoformat(asof[:10]).date()
+    end = end_date.year * 12 + end_date.month - 1
     for width in (1, 3, 6, 12):
-        start = end - width + 1
-        selected = [r for r in rows if start <= int(r[0][:4]) * 12 + int(r[0][4:6]) - 1 <= end]
+        start = end - width
+        year, month = start // 12, start % 12 + 1
+        day = min(end_date.day, calendar.monthrange(year, month)[1])
+        start_date = end_date.replace(year=year, month=month, day=day)
+        selected = [r for r in rows if start_date.strftime('%Y%m%d') <= r[0] <= end_date.strftime('%Y%m%d')]
         if len(selected) >= 3:
             return {"price": statistics.median(r[3] for r in selected),
                     "n": len(selected), "months": width,
-                    "from": f"{start // 12:04}-{start % 12 + 1:02}", "to": asof[:7]}
+                    "from": start_date.isoformat(), "to": end_date.isoformat()}
     return None
 
 
@@ -120,6 +124,8 @@ def build(web=None, inventory_path=None):
     out["generated"] = data["generated"]
     index = {c["key"]: c for c in data["complexes"]}
     for entry in json.loads(inventory_path.read_text()):
+        if entry.get("audit_only", True):
+            raise ValueError("audit-only inventory cannot be published")
         c = index.get(entry["complex_key"])
         if c is None or sum(p[3] for p in entry["pools"]) != entry["expected_units"]:
             raise ValueError("inventory no longer matches complex")
@@ -128,10 +134,13 @@ def build(web=None, inventory_path=None):
         if payload["fields"] != ["date", "area", "floor", "amount", "direct", "cancelled", "dong"]:
             raise ValueError("unexpected transaction schema")
         rows = payload["complexes"].get(str(c["id"]), [])
-        result = {"inventoryDate": entry["inventory_date"], "bands": {}}
+        result = {"inventoryDate": entry["inventory_date"], "inventoryNote": entry.get("inventory_note", ""), "bands": {}}
         # Only individually reviewed area bands may be published.
         for band in entry["publish_bands"]:
             try:
+                count = sum(p[3] for p in entry['pools'] if type_of(types, p[2]) == band)
+                if count != entry['area_verification']['counts'].get(band):
+                    raise ValueError('area inventory changed since cross-check')
                 result["bands"][band] = {v: estimate(rows, entry["pools"], band, types,
                                                         data["generated"], v == "all") for v in ("ex", "all")}
             except ValueError as error:
