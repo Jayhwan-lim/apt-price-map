@@ -46,6 +46,8 @@ for name,bjd,bun,total,ck in [("파크리오","10200","0017",6864,"11710|신천�
     areas=all_rows(e,"getBrExposPubuseAreaInfo")
     usage=Counter((str(r.get("mainPurpsCd","")),str(r.get("mainPurpsCdNm","")),str(r.get("etcPurps","")))
                   for r in areas if str(r.get("exposPubuseGbCd"))=="1")
+    if any(k[0] != "02001" for k in usage):
+        raise ValueError("non-apartment or unknown private usage; manual exclusion review required")
     counted=count_units(expos,areas,e)
     c=next(c for c in data["complexes"] if c["key"]==ck)
     types=json.load(open("web/data/region/11710.json"))["c"][str(c["id"])]["ty"]

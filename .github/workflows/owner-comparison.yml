@@ -1,0 +1,29 @@
+name: Weekly owner comparison
+on:
+  schedule:
+    - cron: '20 4 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: owner-comparison-report
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python collector/compare_owner_models.py --refresh
+      - name: Commit comparison records only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/owner-peer-snapshots.json docs/owner-comparison-latest.json docs/owner-comparison-latest.md
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Update public owner-model comparison records'
+          git pull --rebase origin main
+          git push origin HEAD:main

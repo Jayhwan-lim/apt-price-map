@@ -1,8 +1,6 @@
 name: Owner expansion count audit
 on:
-  push:
-    branches: [feature/owner-review-20261012]
-    paths: ['collector/owner_expansion_audit.py', '.github/workflows/owner-expansion-audit.yml']
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:

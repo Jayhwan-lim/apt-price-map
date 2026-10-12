@@ -1,8 +1,5 @@
 name: Owner comparison research
 on:
-  push:
-    branches: [feature/owner-review-20261012]
-    paths: ['collector/owner_research.py', '.github/workflows/owner-research.yml']
   workflow_dispatch:
 permissions:
   contents: read
