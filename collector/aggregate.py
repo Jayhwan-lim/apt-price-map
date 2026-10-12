@@ -501,6 +501,8 @@ def main():
 
     from owner_distribution import build_optional as build_owner_distribution
     build_owner_distribution()
+    from map_metrics import build as build_map_metrics
+    build_map_metrics()
 
     with open(INDEX_FILE, "w", encoding="utf-8", newline="") as fh:
         w = csv.writer(fh)

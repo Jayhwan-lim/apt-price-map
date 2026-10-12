@@ -455,3 +455,15 @@ body.detail-open .detail-col {
 .owner-row .trade-distribution-fill { min-width: 0; }
 html.phone-ui body.sheet-open .panel { height: 100dvh; min-height: 0; overflow: hidden; }
 html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+
+/* Two-line map cards: name above the user-selected metric. */
+.pin, .pin.bg { display:flex; flex-direction:column; align-items:stretch; gap:0; width:130px; padding:0; overflow:visible; }
+.pin .n, .pin.bg .n { display:block; max-width:none; padding:4px 6px; font-size:11px; line-height:16px; white-space:nowrap; }
+.pin .v, .pin.bg .v { display:block; padding:4px 5px; background:#e9f2fc; color:#174a78; font-size:11px; line-height:16px; white-space:nowrap; border-radius:0 0 5px 5px; }
+.pin.ref .v { background:#19549b; color:white; }
+.map-metric-control { position:absolute; top:12px; left:12px; z-index:40; max-width:calc(100% - 70px); padding:8px 10px; border:1px solid #ccd6df; border-radius:10px; background:white; box-shadow:0 2px 8px #0002; font-size:12px; }
+.map-metric-control label { font-weight:600; margin-right:5px; }
+.map-metric-control select { max-width:170px; min-height:36px; font:inherit; }
+.map-metric-control details { margin-top:4px; max-width:270px; }
+.map-metric-control summary { cursor:pointer; color:#536477; }
+.map-metric-control p { line-height:1.5; margin:5px 0 0; }
