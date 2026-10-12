@@ -1,9 +1,10 @@
 name: owner-distribution-validation
 on:
   push:
-    branches: [feature/owner-final-20261012]
+    branches: [main]
+    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml']
   pull_request:
-    paths: ['collector/owner_distribution.py', 'collector/test_owner_distribution.py', 'web/**', 'data/owner_inventory.json']
+    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml']
 permissions:
   contents: read
 jobs:

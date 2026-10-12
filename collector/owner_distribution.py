@@ -10,6 +10,9 @@ import json
 import math
 import statistics
 import calendar
+import logging
+import os
+import tempfile
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -123,31 +126,62 @@ def build(web=None, inventory_path=None):
     data = json.loads((web / "complexes.json").read_text())
     out["generated"] = data["generated"]
     index = {c["key"]: c for c in data["complexes"]}
-    for entry in json.loads(inventory_path.read_text()):
-        if entry.get("audit_only", True):
-            raise ValueError("audit-only inventory cannot be published")
-        c = index.get(entry["complex_key"])
-        if c is None or sum(p[3] for p in entry["pools"]) != entry["expected_units"]:
-            raise ValueError("inventory no longer matches complex")
-        types = json.loads((web / f"region/{c['code']}.json").read_text())["c"][str(c["id"])]["ty"]
-        payload = json.loads((web / f"trades/{c['code']}.json").read_text())
-        if payload["fields"] != ["date", "area", "floor", "amount", "direct", "cancelled", "dong"]:
-            raise ValueError("unexpected transaction schema")
-        rows = payload["complexes"].get(str(c["id"]), [])
-        result = {"inventoryDate": entry["inventory_date"], "inventoryNote": entry.get("inventory_note", ""), "bands": {}}
-        # Only individually reviewed area bands may be published.
-        for band in entry["publish_bands"]:
-            try:
-                count = sum(p[3] for p in entry['pools'] if type_of(types, p[2]) == band)
-                if count != entry['area_verification']['counts'].get(band):
-                    raise ValueError('area inventory changed since cross-check')
+    entries = json.loads(inventory_path.read_text())
+    if not isinstance(entries, list):
+        raise ValueError("inventory must be a list")
+    keys = [entry["complex_key"] for entry in entries]
+    if len(keys) != len(set(keys)):
+        raise ValueError("duplicate inventory complex keys")
+    for entry in entries:
+        try:
+            if entry.get("audit_only", True):
+                raise ValueError("audit-only inventory cannot be published")
+            c = index.get(entry["complex_key"])
+            if c is None or sum(p[3] for p in entry["pools"]) != entry["expected_units"]:
+                raise ValueError("inventory no longer matches complex")
+            types = json.loads((web / f"region/{c['code']}.json").read_text())["c"][str(c["id"])]["ty"]
+            payload = json.loads((web / f"trades/{c['code']}.json").read_text())
+            if payload["fields"] != ["date", "area", "floor", "amount", "direct", "cancelled", "dong"]:
+                raise ValueError("unexpected transaction schema")
+            rows = payload["complexes"].get(str(c["id"]), [])
+            result = {"inventoryDate": entry["inventory_date"], "inventoryNote": entry.get("inventory_note", ""), "bands": {}}
+            for band in entry["publish_bands"]:
+                count = sum(p[3] for p in entry["pools"] if type_of(types, p[2]) == band)
+                if count != entry["area_verification"]["counts"].get(band):
+                    raise ValueError("area inventory changed since cross-check")
                 result["bands"][band] = {v: estimate(rows, entry["pools"], band, types,
-                                                        data["generated"], v == "all") for v in ("ex", "all")}
-            except ValueError as error:
-                print(f"owner estimate unavailable: {c['key']} {band}: {error}")
-        out["complexes"][entry["complex_key"]] = result
-    (web / "owner-distributions.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
+                    data["generated"], v == "all") for v in ("ex", "all")}
+            out["complexes"][entry["complex_key"]] = result
+        except Exception:
+            # Never reuse an invalid complex in the new snapshot. Other complexes
+            # and the main trade aggregation remain independent.
+            logging.exception("owner distribution blocked for complex %s", entry["complex_key"])
+    target = web / "owner-distributions.json"
+    # Serialize and write a sibling temporary file before replacing the live file.
+    serialized = json.dumps(out, ensure_ascii=False, separators=(",", ":"))
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=web,
+                                         prefix=".owner-", suffix=".tmp", delete=False) as fh:
+            temporary = Path(fh.name)
+            fh.write(serialized)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(temporary, target)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     print("owner distribution complexes:", len(out["complexes"]))
+    return out
+
+
+def build_optional(web=None, inventory_path=None):
+    """Optional derived product: a global failure must not abort trade collection."""
+    try:
+        return build(web, inventory_path)
+    except Exception:
+        logging.exception("owner distribution build failed; previous snapshot preserved")
+        return None
 
 
 if __name__ == "__main__":
