@@ -79,7 +79,7 @@
   };
 
   const state = {
-    ready: false, data: null, byKey: new Map(), bands: new Map(),
+    mapMetric: "sale", mapFacts: null, mapFactsPromise: null, ready: false, data: null, byKey: new Map(), bands: new Map(),
     band: "84", variant: "ex", tol: 0.05, scope: "all", mode: "price", gran: "month",
     sameBand: false,        // false: compare against every area band of other complexes
     // Base point: basis "year" (that year's median, viewYear) or "month"
@@ -1390,6 +1390,33 @@
     loadOwnerDistribution(c, request);
   }
 
+  function mapMetricText(c, band) {
+    const facts = state.mapFacts?.generated === state.data?.generated ? state.mapFacts.complexes[c.key] : null;
+    return MapMetrics.value(state.mapMetric, c, band, nowPrice(c, band), facts, state.variant);
+  }
+  async function loadMapFacts() {
+    if (!state.mapFactsPromise) state.mapFactsPromise = fetch("data/map-metrics.json")
+      .then(r => { if (!r.ok) throw new Error("map facts unavailable"); return r.json(); })
+      .then(data => { state.mapFacts = data; map.refresh(); })
+      .catch(() => { state.mapFactsPromise = null; });
+    return state.mapFactsPromise;
+  }
+  function bindMapMetrics() {
+    const select = document.getElementById("map-metric-select");
+    for (const [key, [label]] of Object.entries(MapMetrics.definitions)) {
+      const o = document.createElement("option"); o.value=key; o.textContent=label; select.appendChild(o);
+    }
+    try { const saved=localStorage.getItem("map-metric"); if (MapMetrics.definitions[saved]) state.mapMetric=saved; } catch (_) {}
+    function changed() {
+      state.mapMetric=select.value;
+      document.getElementById("map-metric-note").textContent=MapMetrics.definitions[select.value][1];
+      try { localStorage.setItem("map-metric",select.value); } catch (_) {}
+      map.refresh();
+      if (["pyeong","units","turnover"].includes(select.value)) loadMapFacts();
+    }
+    select.value=state.mapMetric; select.addEventListener("change",changed); changed();
+  }
+
   // ---------- map ----------
   const map = (() => {
     let kmap = null, clusterer = null;
@@ -1504,15 +1531,6 @@
 
     // Pin price: with a base month, that year's median for the band;
     // before any selection, the current price.
-    function pinPrice(c, band) {
-      if (state.ref && hasPoint()) {
-        const s = stat(c, baseYear(), band);
-        return s ? s[1] : null;
-      }
-      const now = nowPrice(c, band);
-      return now ? now.avg : null;
-    }
-
     function bindMapSelection(node, c) {
       let press = null;
       let touchedAt = 0;
@@ -1545,25 +1563,16 @@
     }
 
     function pinFor(c, kind, color, band = state.band) {
-      const price = pinPrice(c, band);
+      const text = mapMetricText(c, band);
       const wrap = document.createElement("div");
       wrap.className = "pin-wrap";
       const pin = document.createElement("button");
       pin.type = "button";
       pin.className = `pin ${kind}`;
       if (color) pin.style.setProperty("--c", color);
-      pin.title = `${c.nm} (${where(c)})`;
-      const tag = band && band !== state.band ? `<span class="b">${escapeHtml(bandShort(band))}</span>` : "";
-      if (kind === "bg") {
-        // Background labels are compact one-liners (name + price) so far
-        // more of them fit without overlapping; long names drop the
-        // trailing "아파트" before CSS ellipsis applies.
-        const short = c.nm.length > 7 && c.nm.endsWith("아파트") ? c.nm.slice(0, -3) : c.nm;
-        pin.classList.add("bg");
-        pin.innerHTML = `<span class="n">${escapeHtml(short)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
-      } else {
-        pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${tag}${price != null ? fmtPrice(price) : "–"}</span>`;
-      }
+      pin.title = `${c.nm} (${where(c)}) · ${MapMetrics.definitions[state.mapMetric][0]}: ${text}`;
+      pin.setAttribute("aria-label",pin.title);
+      pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${escapeHtml(text)}</span>`;
       bindMapSelection(pin, c);
       wrap.appendChild(pin);
       return new kakao.maps.CustomOverlay({
@@ -1621,15 +1630,15 @@
         // the pair's average height instead of one fixed box.
         const placed = [];
         const pt = (c) => proj.pointFromCoords(new kakao.maps.LatLng(c.lat, c.lng));
-        const clashes = (p, h) => placed.some((q) => Math.abs(q.x - p.x) < 88 && Math.abs(q.y - p.y) < (q.h + h) / 2 + 2);
-        for (const [c] of want.values()) if (mappable(c)) { const p = pt(c); placed.push({ x: p.x, y: p.y, h: 43 }); }
+        const clashes = (p, h) => placed.some((q) => Math.abs(q.x - p.x) < 136 && Math.abs(q.y - p.y) < (q.h + h) / 2 + 2);
+        for (const [c] of want.values()) if (mappable(c)) { const p = pt(c); placed.push({ x: p.x, y: p.y, h: 48 }); }
         let n = 0;
         for (const c of inView) {
-          const hasBand = !!nearestType(c, state.band, true);
+          const hasBand = ["units","occupancy","turnover","land","landFar","far","coverage"].includes(state.mapMetric) || !!nearestType(c, state.band, true);
           const p = pt(c);
-          if (hasBand && n < LABEL_CAP && !clashes(p, 28)) {
-            placed.push({ x: p.x, y: p.y, h: 28 });
-            want.set(c.key, [c, "bg", null, nearestType(c, state.band, true)]);
+          if (hasBand && n < LABEL_CAP && !clashes(p, 48)) {
+            placed.push({ x: p.x, y: p.y, h: 48 });
+            want.set(c.key, [c, "bg", null, nearestType(c, state.band, true) || state.band]);
             n++;
           } else {
             want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null, state.band]);
@@ -1651,7 +1660,7 @@
       el.legend.hidden = !state.ref;
       if (state.ref && hasPoint()) {
         document.getElementById("legend-year").textContent =
-          `핀 가격: ${baseYear()}년 ${bandShort(state.band)} 안팎 평형의 연간 중위가 (평형이 다르면 핀에 표시)`;
+          `지도 표시: ${MapMetrics.definitions[state.mapMetric][0]} · 비교 그래프의 기준시점과 별개`;
       }
     }
 
@@ -1667,7 +1676,7 @@
       if (kmap) kmap.relayout();
     }
 
-    return { init, refresh, panTo, relayout };
+    return { init, refresh, panTo, relayout, pinFor };
   })();
 
   // ---------- URL state ----------
@@ -1750,6 +1759,7 @@
 
   // ---------- events ----------
   function bind() {
+    bindMapMetrics();
     el.search.addEventListener("input", runSearch);
     el.search.addEventListener("keydown", (e) => {
       if (el.results.hidden) return;
@@ -1900,7 +1910,7 @@
   const escapeAttr = escapeHtml;
 
   // Expose helpers for tests.
-  window.__aptMap = { state, findSimilar, matchCandidates, stat, months, windowAvg, basePrice, nowPrice, fmtPrice, selectComplex, setStart };
+  window.__aptMap = { makeMapPin: map.pinFor, mapMetricText, state, findSimilar, matchCandidates, stat, months, windowAvg, basePrice, nowPrice, fmtPrice, selectComplex, setStart };
 
   (async function start() {
     bind();

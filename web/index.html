@@ -16,7 +16,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#14202b">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <script src="config.js?v=20261012b"></script>
+  <script src="config.js?v=20261013a"></script>
   <script>
     // Start the Kakao SDK before the map index so its first tile requests
     // aren't queued behind twelve data downloads.
@@ -44,12 +44,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261012b">
+  <link rel="stylesheet" href="style.css?v=20261013a">
 </head>
 <body>
   <div class="app">
     <section class="map-wrap" aria-label="지도">
       <div id="map" class="map"></div>
+      <div class="map-metric-control">
+        <label for="map-metric-select">단지 표시</label>
+        <select id="map-metric-select" aria-describedby="map-metric-note"></select>
+        <details><summary>표시 기준</summary><p id="map-metric-note"></p></details>
+      </div>
       <div id="map-fallback" class="map-fallback" hidden>
         <p class="fallback-title">지도를 불러오지 못했습니다</p>
         <p>Kakao Developers 앱의 플랫폼 → Web에 이 사이트 주소가 등록돼 있는지, 카카오맵 사용 설정이 켜져 있는지 확인하세요. 단지 검색과 비교 그래프는 그대로 쓸 수 있습니다.</p>
@@ -240,7 +245,8 @@
         </section>
       </div>
       <footer class="panel-foot">자료: 국토교통부 아파트 매매 실거래가(공공데이터포털). 해제 신고된 거래는 통계에서 뺐습니다.</footer>
-      <script src="app.js?v=20261012b"></script>
+      <script src="map-metrics.js?v=20261013a"></script>
+      <script src="app.js?v=20261013a"></script>
       <section class="ad-slot" id="ad-section" aria-label="광고">
           <!-- The ad section appears only after the partner widget creates an iframe. -->
           <div class="ad-slot-body" id="coupang-slot"><script src="https://ads-partners.coupang.com/g.js"></script><script>new PartnersCoupang.G({"id":1037758,"template":"carousel","trackingCode":"AF8973032","width":"400","height":"100","tsource":""});</script></div>
