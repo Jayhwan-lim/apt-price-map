@@ -65,6 +65,7 @@
     chartSec: $("chart-section"), canvas: $("chart"), chartTitle: $("chart-title"), chartNote: $("chart-note"),
     simSec: $("similar-section"), simTitle: $("similar-title"), simList: $("similar-list"),
     tradesSec: $("trades-section"), tradesBody: $("trades-body"),
+    ownerSec: $("owner-distribution-section"), ownerBody: $("owner-distribution-body"),
     tradeDistSec: $("trade-distribution-section"), tradeRef: $("trade-reference"),
     tradeSummary: $("trade-distribution-summary"), tradeBars: $("trade-distribution-bars"),
     fallback: $("map-fallback"), legend: $("map-legend"),
@@ -78,7 +79,7 @@
   };
 
   const state = {
-    data: null, byKey: new Map(), bands: new Map(),
+    ready: false, data: null, byKey: new Map(), bands: new Map(),
     band: "84", variant: "ex", tol: 0.05, scope: "all", mode: "price", gran: "month",
     sameBand: false,        // false: compare against every area band of other complexes
     // Base point: basis "year" (that year's median, viewYear) or "month"
@@ -435,7 +436,7 @@
   // duplicated, so the chart and tables keep working untouched.
   function placeDetailNodes(inCol) {
     if (detailInCol === inCol) return;
-    const nodes = [el.refSec, el.chartSec, el.tradeDistSec, el.simSec, el.tradesSec];
+    const nodes = [el.refSec, el.chartSec, el.ownerSec, el.tradeDistSec, el.simSec, el.tradesSec];
     if (inCol) {
       const host = document.getElementById("detail-col-body");
       if (!host) return;
@@ -631,6 +632,7 @@
     state.ref = c;
     state.tradeRows = [];
     el.tradeRef.innerHTML = "";
+    el.ownerBody.textContent = "세대수 기반 추정 자료를 불러오는 중…";
     el.tradeSummary.textContent = "실거래 내역을 불러오는 중…";
     el.tradeBars.innerHTML = "";
     state.loading = true;
@@ -811,7 +813,7 @@
     el.priceSec.hidden = true;
     el.empty.hidden = has;
     el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = !has;
-    el.tradesSec.hidden = el.tradeDistSec.hidden = !has;
+    el.tradesSec.hidden = el.tradeDistSec.hidden = el.ownerSec.hidden = !has;
     if (has) {
       renderRef();
       renderSimilar();
@@ -847,7 +849,7 @@
       state.ref = null;
       state.checked = [];
       state.slotOf.clear();
-      el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = el.tradeDistSec.hidden = true;
+      el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = el.tradeDistSec.hidden = el.ownerSec.hidden = true;
       el.priceSec.hidden = false;
       if (state.price.mi == null) state.price.mi = Math.max(0, lastMi() - 60);
       if (run) runPrice();
@@ -1321,12 +1323,45 @@
     }).join("");
   }
 
+  // Small precomputed payload; no household allocation on the browser thread.
+  let ownerPayloadPromise = null;
+  async function loadOwnerDistribution(c, request) {
+    if (!ownerPayloadPromise) ownerPayloadPromise = loadJson("data/owner-distributions.json");
+    const payload = await ownerPayloadPromise;
+    if (state.ref !== c || request !== tradesRequest) return;
+    if (!payload) ownerPayloadPromise = null; // retry after a network failure
+    const entry = payload && payload.complexes[c.key];
+    const band = entry && entry.bands[state.band];
+    const d = band && band[state.variant];
+    if (!d || payload.generated !== state.data.generated) {
+      el.ownerBody.innerHTML = '<p class="trade-distribution-hint">이 단지·면적의 세대수와 거래 연결을 확인 중입니다. 아래에서 실제 신고 거래 건수 분포를 확인할 수 있습니다.</p>';
+      return;
+    }
+    const num = (n) => n.toLocaleString("ko-KR");
+    const date = (s) => s ? `${s.slice(0, 4)}.${s.slice(4, 6)}` : "–";
+    const market = d.market;
+    const max = Math.max(1, ...d.bins.map((b) => b[2]));
+    el.ownerBody.innerHTML =
+      `<div class="trade-distribution-summary"><span>확인 세대수 <strong>${num(d.total)}세대</strong></span><span>추정 배정 약 <strong>${num(d.assigned)}세대</strong> · 미배정 약 ${num(d.unknown)}세대</span></div>` +
+      (market ? `<p class="owner-market">최근 실거래 중앙값 <strong>${fmtPrice(market.price)}</strong><br><small>${escapeHtml(market.from)}~${escapeHtml(market.to)} · ${market.months}개월 ${market.n}건 · 테두리가 있는 막대는 이 가격이 속한 구간입니다.</small></p>` : '<p class="owner-market">최근 12개월 거래가 3건 미만으로 비교 가격을 표시하지 않습니다.</p>') +
+      '<div class="trade-distribution-bars">' + d.bins.map(([lo, hi, n]) => {
+        const current = market && market.price >= lo && market.price < hi;
+        return `<div class="trade-distribution-row owner-row${current ? " owner-current" : ""}"${current ? ' aria-label="현재 비교 가격이 속한 구간"' : ""}>
+          <span class="trade-distribution-range">${fmtPrice(lo)}–${fmtPrice(hi)}</span>
+          <span class="trade-distribution-track"><i class="trade-distribution-fill" style="width:${n / max * 100}%"></i></span>
+          <span class="trade-distribution-count">약 ${num(n)}세대<small>${d.assigned ? (n / d.assigned * 100).toFixed(1) : "0.0"}%</small></span></div>`;
+      }).join("") + '</div>' +
+      `<p class="trade-distribution-note">${date(d.period[0])}~${date(d.period[1])} 신고 거래 ${num(d.transactions)}건 사용 · 해제 제외 · 직거래 ${state.variant === "all" ? "포함" : "제외"}<br>동 정보 없는 거래 ${num(d.dongMissing)}건 · 세대수 확인 ${escapeHtml(entry.inventoryDate)} · 거래 갱신 ${escapeHtml(payload.generated.slice(0, 10))}</p>` +
+      '<p class="trade-distribution-note">미배정은 모형이 가격을 배정하지 못한 수이며 실제 미거래 세대 수가 아닙니다. 비율은 추정 배정 수 기준입니다. 반복 매매를 실제로 식별할 수 없어 배정 가정에 따라 결과가 달라집니다.</p>';
+  }
+
   // ---------- trades ----------
   const tradesCache = new Map();
   let tradesRequest = 0;
   async function loadTrades(c) {
     const request = ++tradesRequest;
     el.tradesBody.innerHTML = `<tr><td colspan="5">불러오는 중…</td></tr>`;
+    el.ownerBody.textContent = "세대수 기반 추정 자료를 불러오는 중…";
     el.tradeSummary.textContent = "실거래 내역을 불러오는 중…";
     el.tradeBars.innerHTML = "";
     let payload = tradesCache.get(c.code);
@@ -1351,6 +1386,7 @@
       `<option value="${i}">${r[0].slice(0, 4)}.${r[0].slice(4, 6)}.${r[0].slice(6, 8)} · ${r[2]}층 · ${fmtPrice(r[3])}</option>`).join("");
     el.tradeRef.disabled = !state.tradeRows.length;
     renderTradeDistribution();
+    loadOwnerDistribution(c, request);
   }
 
   // ---------- map ----------
@@ -1906,6 +1942,7 @@
     readHash();
     await mapReady;
     map.refresh();
+    state.ready = true;
   })();
 
   // Tablet Chrome in desktop-site mode sends a desktop user agent, and
