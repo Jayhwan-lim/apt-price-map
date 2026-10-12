@@ -499,6 +499,9 @@ def main():
         (WEB_DATA / "trades" / f"{stable}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
+    from owner_distribution import build as build_owner_distribution
+    build_owner_distribution()
+
     with open(INDEX_FILE, "w", encoding="utf-8", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["key", "address", "name", "sgg_text"])

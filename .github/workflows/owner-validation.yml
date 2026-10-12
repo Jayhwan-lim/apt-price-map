@@ -1,0 +1,33 @@
+name: owner-distribution-validation
+on:
+  push:
+    branches: [feature/owner-final-20261012]
+  pull_request:
+    paths: ['collector/owner_distribution.py', 'collector/test_owner_distribution.py', 'web/**', 'data/owner_inventory.json']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s collector -p 'test_*.py'
+      - run: node --check web/app.js
+      - name: Verify reproducible estimates when inventory exists
+        run: |
+          python collector/owner_distribution.py
+          git diff --exit-code -- web/data/owner-distributions.json
+      - name: Browser verification
+        run: |
+          npm install --prefix "$RUNNER_TEMP/owner-browser" playwright
+          python -m http.server 8765 --directory web > /tmp/owner-http.log 2>&1 &
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/owner-browser/node_modules/playwright" node collector/check_owner_ui.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owner-ui-screenshots
+          path: /tmp/owner-ui/*.png
