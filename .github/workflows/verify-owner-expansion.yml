@@ -1,0 +1,34 @@
+name: Verify owner expansion production
+on:
+  push:
+    branches: [verify/owner-expansion-20261012]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify actual public data
+        run: |
+          python - <<'PY'
+          import json,time,urllib.request
+          def get(path):
+              req=urllib.request.Request('https://geuttaeneolma.com/'+path,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+              return urllib.request.urlopen(req,timeout=30).read().decode()
+          for i in range(24):
+              try:
+                  d=json.loads(get('data/owner-distributions.json?verify=pr46'))
+                  counts={'11710|잠실동|22':5,'11710|신천동|17':5,'11710|잠실동|19':3}
+                  assert {k:len(v['bands']) for k,v in d['complexes'].items()}==counts
+                  assert d['complexes']['11710|신천동|17']['bands']['35']['ex']['assigned']==236
+                  assert d['complexes']['11710|잠실동|19']['bands']['59']['ex']['assigned']==671
+                  assert d['generated']==json.loads(get('data/complexes.json?verify=pr46'))['generated']
+                  assert 'owner-distribution-section' in get('?verify=pr46')
+                  print('PRODUCTION VERIFIED: three complexes, 13 bands, matching source timestamp',flush=True)
+                  break
+              except Exception as e:
+                  print('Waiting:',type(e).__name__,flush=True)
+                  if i==23: raise
+                  time.sleep(10)
+          PY
