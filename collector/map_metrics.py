@@ -37,7 +37,7 @@ def build():
             facts['trades12']=totals
         lf=land.get(c['key'])
         if lf:
-            facts['land']=lf['land']; facts['far']=lf['far']; facts['coverage']=lf['coverage']
+            facts['land']=lf['land']; facts['far']=lf['far']; facts['coverage']=lf['coverage']; facts['supply']=lf['supply']
         out[c['key']]=facts
     target=web/'map-metrics.json'
     tmp=target.with_suffix('.tmp')

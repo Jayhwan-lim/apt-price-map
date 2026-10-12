@@ -1412,7 +1412,7 @@
       document.getElementById("map-metric-note").textContent=MapMetrics.definitions[select.value][1];
       try { localStorage.setItem("map-metric",select.value); } catch (_) {}
       map.refresh();
-      if (["pyeong","units","turnover"].includes(select.value)) loadMapFacts();
+      if (["pyeong","units","turnover","land","landFar","far","coverage"].includes(select.value)) loadMapFacts();
     }
     select.value=state.mapMetric; select.addEventListener("change",changed); changed();
   }
