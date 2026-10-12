@@ -1,0 +1,39 @@
+name: Verify owner production
+on:
+  push:
+    branches: [verify/owner-production-20261012]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify live release and payload
+        run: |
+          python - <<'PY'
+          import urllib.request,json,time
+          base='https://geuttaeneolma.com/'
+          def get(path):
+              req=urllib.request.Request(base+path,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+              return urllib.request.urlopen(req,timeout=30).read().decode()
+          for attempt in range(24):
+              try:
+                  html=get('?verify=owner20261012b')
+                  assert '20261012b' in html and 'ownerSec' in html, 'release not live yet'
+                  data=json.loads(get('data/owner-distributions.json?verify=owner20261012b'))
+                  assert data['model']=='dong-capacity-missing-uniform-v1'
+                  bands=data['complexes']['11710|잠실동|22']['bands']
+                  assert len(bands)==5
+                  b=bands['27']['ex']
+                  assert (b['total'],b['assigned'],b['unknown'])==(868,567,301)
+                  assert b['market']['price']==158500
+                  assert 'owner' in get('app.js?v=20261012b')
+                  assert len(get('owner-method.html'))>1000
+                  print('PRODUCTION VERIFIED: 20261012b; Ricenz five bands; 27sqm 868/567/301; median 15.85',flush=True)
+                  break
+              except Exception as e:
+                  print('Waiting for deployment:',type(e).__name__,str(e)[:120],flush=True)
+                  if attempt==23: raise
+                  time.sleep(10)
+          PY
