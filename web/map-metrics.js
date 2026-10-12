@@ -20,7 +20,7 @@
     const area=facts?.areas?.[band];
     const size=area?area+'㎡':band+'㎡형';
     if(metric==='sale')return price>0?size+' · '+money(price):'실거래 정보 없음';
-    if(metric==='pyeong')return price>0 && area>0?'전용평당 '+Math.round(price/area*3.305785).toLocaleString('ko-KR')+'만원':'평당가 정보 없음';
+    if(metric==='pyeong')return price>0 && area>0?'평당 '+Math.round(price/area*3.305785).toLocaleString('ko-KR')+'만원':'평당가 정보 없음';
     if(metric==='units')return facts?.units>0?facts.units.toLocaleString('ko-KR')+'세대':'세대수 정보 없음';
     if(metric==='turnover')return facts?.units>0 && facts.trades12?'연 '+(facts.trades12[variant==='all'?1:0]/facts.units*100).toFixed(1)+'%':'회전율 정보 없음';
     if(metric==='occupancy')return c.by?'건축 '+c.by+'년 · 입주 미확인':'입주시기 정보 없음';
