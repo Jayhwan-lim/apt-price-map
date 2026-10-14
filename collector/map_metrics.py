@@ -26,6 +26,7 @@ def build():
         entry=verified.get(c['key'])
         if entry and sum(v['ex']['total'] for v in entry['bands'].values()) == inventory[c['key']]['expected_units']:
             facts['units']=sum(v['ex']['total'] for v in entry['bands'].values())
+            facts['mainBand']=max(entry['bands'].items(), key=lambda kv: kv[1]['ex']['total'])[0]
             totals=[0,0]
             for series in rec.get('m',{}).values():
                 ex={series['e'][i]:series['e'][i+1] for i in range(0,len(series['e']),3)}

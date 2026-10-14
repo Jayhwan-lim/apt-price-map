@@ -10,6 +10,7 @@ const assert=require('node:assert/strict');
   assert.equal(await page.locator('#map-metric-select option').count(),11);
   await page.selectOption('#map-metric-select','units');
   await page.waitForFunction(()=>window.__aptMap.state.mapFacts);
+  assert.equal(await page.evaluate(()=>__aptMap.state.mapFacts.complexes['11710|신천동|17'].mainBand),'84');
   for(const metric of ['sale','pyeong','gap','rentRatio','turnover','units','occupancy','land','landFar','far','coverage']){
    await page.selectOption('#map-metric-select',metric);
    const text=await page.evaluate(()=>__aptMap.mapMetricText(__aptMap.state.byKey.get('11710|신천동|17'),'35'));
