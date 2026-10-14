@@ -1634,11 +1634,12 @@
         for (const [c] of want.values()) if (mappable(c)) { const p = pt(c); placed.push({ x: p.x, y: p.y, h: 48 }); }
         let n = 0;
         for (const c of inView) {
-          const hasBand = ["units","occupancy","turnover","land","landFar","far","coverage"].includes(state.mapMetric) || !!nearestType(c, state.band, true);
+          const mf = state.mapFacts?.generated === state.data?.generated ? state.mapFacts.complexes[c.key] : null;
+          const hasBand = ["units","occupancy","turnover","land","landFar","far","coverage"].includes(state.mapMetric) || !!nearestType(c, state.band, true) || !!mf?.mainBand;
           const p = pt(c);
           if (hasBand && n < LABEL_CAP && !clashes(p, 48)) {
             placed.push({ x: p.x, y: p.y, h: 48 });
-            want.set(c.key, [c, "bg", null, nearestType(c, state.band, true) || state.band]);
+            want.set(c.key, [c, "bg", null, mf?.mainBand || nearestType(c, state.band, true) || state.band]);
             n++;
           } else {
             want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null, state.band]);
