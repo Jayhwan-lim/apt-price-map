@@ -679,14 +679,16 @@
     el.band.value = state.band;
   }
 
-  // Default base year: the latest complete year with enough trades (so there
-  // is a "since then"), else the latest year with any.
+  // Default base year: the latest data year whenever this band has any
+  // trades in it (users compare against the current year); else the latest
+  // year with a solid trade count, else the latest year with any.
   function defaultYear(c) {
-    // Default to the latest year with a solid trade count, including the
-    // current (partial) year: 2026 data is what users compare against.
     const ys = state.data.years.filter((y) => stat(c, y));
+    if (!ys.length) return null;
+    const latest = state.data.years[state.data.years.length - 1];
+    if (ys[ys.length - 1] === latest) return latest;
     const solid = ys.filter((y) => stat(c, y)[0] >= FALLBACK_MIN_N);
-    return solid.length ? solid[solid.length - 1] : ys.length ? ys[ys.length - 1] : null;
+    return solid.length ? solid[solid.length - 1] : ys[ys.length - 1];
   }
 
   let recomputeSeq = 0;
@@ -710,6 +712,15 @@
     }
     state.loading = false;
     state.refBase = hasPoint() ? pointBase(c, state.band) : null;
+    if (!state.refBase && state.basis === "year" && state.viewYear === state.data.years[state.data.years.length - 1]) {
+      // The current-year default can rest on a single trade: anchor on that
+      // year's median anyway, flagged as a thin sample in the summary.
+      const s = stat(c, state.viewYear);
+      if (s && s[0] >= 1) {
+        const lo = Math.max(0, miOf(state.viewYear, 1)), hi = Math.min(lastMi(), miOf(state.viewYear, 12));
+        state.refBase = { avg: s[1], n: s[0], kind: "median", year: state.viewYear, lo, hi, end: hi };
+      }
+    }
     const found = state.refBase ? findSimilar(c, state.refBase) : [];
     state.similarTotal = found.length;
     state.similar = found.slice(0, SIM_LIMIT);
