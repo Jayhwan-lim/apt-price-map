@@ -2,20 +2,77 @@ plugins {
     id 'com.android.application'
 }
 
+// Trusted Web Activity for https://geuttaeneolma.com/. The app opens the live
+// site in the user's browser engine (Chrome or another TWA-capable browser)
+// without browser UI, so the service worker, storage and updates are shared
+// with the website. Domain ownership is proven by /.well-known/assetlinks.json.
+def twa = [
+    host        : 'geuttaeneolma.com',
+    launchPath  : '/',
+    name        : '그땐 얼마?',
+    themeColor  : '#14202B', // status bar, matches the web manifest theme_color
+    navColor    : '#FBFCFD', // navigation bar, matches background_color
+    background  : '#FBFCFD', // splash background
+]
+
+// Release signing comes from environment variables so the keystore never
+// lives in the repository. CI writes the keystore from a GitHub secret.
+def keystorePath = System.getenv('ANDROID_KEYSTORE_PATH')
+def hasReleaseKey = keystorePath && file(keystorePath).exists()
+
 android {
     namespace 'com.geuttaeneolma.app'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId 'com.geuttaeneolma.app'
         minSdk 26
-        targetSdk 35
+        targetSdk 36
+        // Play requires a higher versionCode for every upload.
         versionCode 1
         versionName '1.0.0'
+
+        resValue 'string', 'appName', twa.name
+        resValue 'string', 'launcherName', twa.name
+        resValue 'string', 'hostName', twa.host
+        resValue 'string', 'launchUrl', "https://${twa.host}${twa.launchPath}"
+        resValue 'string', 'providerAuthority', 'com.geuttaeneolma.app.fileprovider'
+        resValue 'string', 'fallbackType', 'customtabs'
+        resValue 'color', 'colorPrimary', twa.themeColor
+        resValue 'color', 'navigationColor', twa.navColor
+        resValue 'color', 'backgroundColor', twa.background
+        resValue 'integer', 'splashScreenFadeOutDuration', '300'
+    }
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile file(keystorePath)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS') ?: 'upload'
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD') ?: System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            if (hasReleaseKey) signingConfig signingConfigs.release
+        }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
+    buildFeatures {
+        resValues true
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
 }

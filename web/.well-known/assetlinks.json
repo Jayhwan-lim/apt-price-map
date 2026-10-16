@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.geuttaeneolma.app",
+      "sha256_cert_fingerprints": [
+        "28:8F:5E:46:19:26:D5:82:92:71:B8:BB:02:DD:BE:F0:FD:54:2C:4B:B4:80:8E:08:BB:6C:83:D8:4B:ED:34:47"
+      ]
+    }
+  }
+]

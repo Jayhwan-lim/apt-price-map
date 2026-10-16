@@ -4,3 +4,9 @@ __pycache__/
 .env
 data/units/
 data/unit_manifest.json
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+*.jks
+*.keystore

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Digital Asset Links statement: this app may handle all URLs of the
+         site. The site's /.well-known/assetlinks.json must list this app's
+         signing certificate for the TWA to run without browser UI. -->
+    <string name="assetStatements" translatable="false">
+        [{
+            \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+            \"target\": {\"namespace\": \"web\", \"site\": \"https://geuttaeneolma.com\"}
+        }]
+    </string>
+</resources>
