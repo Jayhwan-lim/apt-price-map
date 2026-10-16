@@ -260,6 +260,18 @@
   }
   const nowText = (now) => `${fmtRange(now.lo, now.hi)} 평균, ${now.n}건${now.thin ? ` <span class="badge-thin">표본 부족</span>` : ""}`;
   const growthOf = (base, now) => (base && now && now.hi > base.end ? (now.avg - base.avg) / base.avg : null);
+  // Within-year drift: when the basis period itself ends inside the latest
+  // data year, the strict guard can never hold (the current window ends
+  // before the basis year does). Show the move from the basis statistic to
+  // the current window anyway, flagged intra-year so it is never read as a
+  // long-horizon change. Rankings keep the strict rule (see buildRows).
+  const growthShown = (base, now) => {
+    const growth = growthOf(base, now);
+    if (growth != null) return { growth, intra: false };
+    if (base && now && ymOf(base.end)[0] === ymOf(lastMi())[0])
+      return { growth: (now.avg - base.avg) / base.avg, intra: true };
+    return { growth: null, intra: false };
+  };
 
   function isOutlier(c, band, mi, avg) {
     const s = stat(c, ymOf(mi)[0], band);
@@ -755,10 +767,10 @@
         if (Math.abs(diff) > state.tol) continue;
         if (w.kind === "avg" && isOutlier(c, band, w.mi, w.avg)) continue;
         const now = nowPrice(c, band);
-        const growth = growthOf(w, now);
+        const { growth, intra } = growthShown(w, now);
         const sample = now ? Math.min(w.n, now.n) : w.n;
         const solid = !!now && !now.thin;
-        out.push({ c, band, key: `${c.key}#${band}`, w, diff, now, growth, sample, solid });
+        out.push({ c, band, key: `${c.key}#${band}`, w, diff, now, growth, intra, sample, solid });
       }
     }
     return out;
@@ -796,7 +808,7 @@
   function refGrowth() {
     const base = state.refBase;
     const now = state.ref ? nowPrice(state.ref) : null;
-    return { base, now, growth: growthOf(base, now) };
+    return { base, now, ...growthShown(base, now) };
   }
 
   function check(key, on) {
@@ -943,7 +955,7 @@
       (all.length > shown.length ? `<li class="sim-empty">상위 ${shown.length}곳만 표시합니다 (전체 ${all.length.toLocaleString("ko-KR")}곳). 정렬을 바꾸면 반대쪽 끝부터 보입니다.</li>` : "");
   }
 
-  function priceRow({ c, band, key, w, diff, now, growth }, rank, year) {
+  function priceRow({ c, band, key, w, diff, now, growth, intra }, rank, year) {
     const sampleNote = growth != null && now && Math.min(w.n, now.n) < SMALL_N
       ? `<div class="sample">표본 ${w.n}·${now.n}건</div>` : "";
     const ppm = perM2(c, band, year);
@@ -953,7 +965,7 @@
       <span class="band-tag other" title="전용 ${escapeAttr(bandTag(band))}">${escapeHtml(bandTag(band))}${ppm ? ` · ${ppm}` : ""}</span>
       <div class="sim-nums">
         <div class="now">${now ? `현재 ${fmtPrice(now.avg)}` : "최근 거래 부족"}</div>
-        <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준 대비 ${fmtPct(growth)}`}</div>
+        <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준 대비 ${fmtPct(growth)}${intra ? ` <span class="badge-thin">연내</span>` : ""}`}</div>
         ${sampleNote}
       </div>
       <div class="sim-meta">${escapeHtml(where(c))}${c.by ? `, ${c.by}년` : ""}<br>기준: ${baseText(w, diff)}${now ? `<br>현재: ${nowText(now)}` : ""}</div>
@@ -1018,7 +1030,7 @@
       el.refPrice.innerHTML = `<span class="empty-note">비교 데이터를 불러오는 중…</span>`;
       return;
     }
-    const { base, now, growth } = refGrowth();
+    const { base, now, growth, intra } = refGrowth();
     if (!base) {
       el.refPrice.innerHTML = state.basis === "year"
         ? `<span class="empty-note">${state.viewYear}년 거래가 ${FALLBACK_MIN_N}건 미만이라 연 중앙값 기준가를 낼 수 없습니다. 다른 연도나 월을 골라 보세요.</span>`
@@ -1036,7 +1048,7 @@
       ${base.kind === "avg" && isOutlier(c, state.band, state.month, base.avg)
         ? `<span class="warn">기준가가 ${baseYear()}년 중위가와 25% 넘게 차이 납니다. 특수거래가 섞였을 수 있으니 다른 달도 확인해 보세요.</span>` : ""}
       <span class="growth"><span class="pct chg ${chgClass(growth)}">${growth == null ? "–" : fmtPct(growth)}</span><br>
-        <span class="lbl">기준가 대비</span></span>`;
+        <span class="lbl">${intra ? "기준가 대비 · 연내 변동" : "기준가 대비"}</span></span>`;
   }
 
   // Where a comparison complex stands now against the selected one: they
@@ -1050,7 +1062,7 @@
     return `<div class="vs">${escapeHtml(name)} 대비 현재가 <b class="chg ${chgClass(r)}">${fmtPct(r)} ${word}</b></div>`;
   }
 
-  function simRow({ c, band, key, w, diff, now, growth }, isRef, refNow = null) {
+  function simRow({ c, band, key, w, diff, now, growth, intra }, isRef, refNow = null) {
     const pal = palette();
     const on = isRef || state.slotOf.has(key);
     const color = isRef ? pal[0] : on ? pal[state.slotOf.get(key)] : "transparent";
@@ -1069,7 +1081,7 @@
       <span class="band-tag${band === state.band ? "" : " other"}" title="전용 ${escapeAttr(bandTag(band))}">${escapeHtml(bandTag(band))}${ppm ? ` · ${ppm}` : ""}</span>
       <div class="sim-nums">
         <div class="now">${now ? `현재 ${fmtPrice(now.avg)}` : "최근 거래 부족"}</div>
-        <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준 대비 ${fmtPct(growth)}`}</div>
+        <div class="chg ${chgClass(growth)}">${growth == null ? "–" : `기준 대비 ${fmtPct(growth)}${intra ? ` <span class="badge-thin">연내</span>` : ""}`}</div>
         ${sampleNote}
       </div>
       <div class="sim-meta">${escapeHtml(where(c))}${c.by ? `, ${c.by}년` : ""}<br>기준: ${baseText(w, isRef ? null : diff)}${now ? `<br>현재: ${nowText(now)}` : ""}</div>
@@ -1089,8 +1101,8 @@
       ? `${pointLabel()} 기준가와 비슷했던(${tolTxt}) ${state.sameBand ? "같은 평형 " : ""}단지 ${total.toLocaleString("ko-KR")}개` +
         (total > n ? ` 중 상위 ${n}개` : "")
       : "비슷한 가격대 단지";
-    const { base, now, growth } = hasPoint() ? refGrowth() : {};
-    const refRow = base ? simRow({ c: state.ref, band: state.band, key: "", w: base, diff: 0, now, growth }, true) : "";
+    const { base, now, growth, intra } = hasPoint() ? refGrowth() : {};
+    const refRow = base ? simRow({ c: state.ref, band: state.band, key: "", w: base, diff: 0, now, growth, intra }, true) : "";
     if (!n) {
       el.simList.innerHTML = refRow +
         `<li class="sim-empty">${base ? "조건에 맞는 단지가 없습니다. 가격 범위를 넓히거나 비교 지역을 바꿔 보세요." : "기준가를 낼 수 없는 시점입니다. 거래가 많은 다른 연도나 달을 골라 보세요."}</li>`;
