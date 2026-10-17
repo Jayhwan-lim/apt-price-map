@@ -9,6 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:label="@string/appName"
         android:supportsRtl="true"
+        android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
         android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
         <meta-data
@@ -56,6 +57,23 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="@string/hostName" />
+            </intent-filter>
+        </activity>
+
+        <!-- Required: LauncherActivity enables or disables this component on
+             every launch (site-settings shortcut), and PackageManager throws
+             if it is not declared, crashing the app at startup. -->
+        <activity
+            android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
+            android:enabled="true"
+            android:excludeFromRecents="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
+                android:value="@string/launchUrl" />
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
