@@ -15,6 +15,14 @@ def build():
         land=json.loads((ROOT/'data/land_facts.json').read_text())
     except Exception:
         land={}
+    building={}
+    bdir=ROOT/'data/building_facts'
+    if bdir.exists():
+        for part in sorted(bdir.glob('part-*.json')):
+            try:
+                building.update(json.loads(part.read_text()))
+            except Exception:
+                pass
     regions={}
     out={}
     for c in data['complexes']:
@@ -36,6 +44,14 @@ def build():
                 for j,counts in enumerate((ex,all_)):
                     totals[j]+=sum(n for mi,n in counts.items() if data['mcount']-12<=mi<data['mcount'])
             facts['trades12']=totals
+        bf=building.get(c['key'])
+        if bf:
+            if 'units' not in facts and bf.get('u'):
+                facts['units']=bf['u']
+            if bf.get('v'):
+                facts['far']=bf['v']
+            if bf.get('b'):
+                facts['coverage']=bf['b']
         lf=land.get(c['key'])
         if lf:
             facts['land']=lf['land']; facts['far']=lf['far']; facts['coverage']=lf['coverage']; facts['supply']=lf['supply']
