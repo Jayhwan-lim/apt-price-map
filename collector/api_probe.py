@@ -1,96 +1,63 @@
-"""Manual probe of data.go.kr services: page sizes, schemas, common-area rows.
+"""Manual probe of Building HUB 전유공용면적 rows for given lots.
 
-Prints result codes, counts and field names (never the service key or unit
-numbers) so collectors can be written against the real schema.
+LOTS env: comma list of sgg-bjd-bun-ji. Prints row-type counters and per
+exclusive-area common-area sums (never unit numbers).
 
-Environment: DATA_GO_KR_KEY, optional DATA_GO_KR_HUB_KEY.
+Environment: DATA_GO_KR_KEY, optional DATA_GO_KR_HUB_KEY, LOTS.
 """
 
-import json
 import os
 from collections import Counter, defaultdict
 
 import requests
 
-KEY = os.environ.get("DATA_GO_KR_KEY", "").strip()
-HUB_KEY = os.environ.get("DATA_GO_KR_HUB_KEY", "").strip() or KEY
+KEY = os.environ.get("DATA_GO_KR_HUB_KEY", "").strip() or os.environ.get("DATA_GO_KR_KEY", "").strip()
 HUB = "https://apis.data.go.kr/1613000/BldRgstHubService"
-RICENZ = {"sigunguCd": "11710", "bjdongCd": "10100", "platGbCd": "0", "bun": "0022", "ji": "0000"}
 
 
-def get(url, params, key):
-    r = requests.get(url, params={"serviceKey": key, **params}, timeout=60)
-    return r
-
-
-def items_of(data):
-    body = (data or {}).get("response", {}).get("body", {}) or {}
-    items = body.get("items") or {}
-    batch = items.get("item", []) if isinstance(items, dict) else items
-    if isinstance(batch, dict):
-        batch = [batch]
-    return body, batch or []
+def items(r):
+    body = r.json()["response"].get("body") or {}
+    it = (body.get("items") or {})
+    batch = it.get("item", []) if isinstance(it, dict) else []
+    return body, [batch] if isinstance(batch, dict) else batch
 
 
 def main():
-    if not KEY:
-        raise SystemExit("DATA_GO_KR_KEY is not set")
-    url = f"{HUB}/getBrExposPubuseAreaInfo"
-    for label, extra in (("json numOfRows=100", {"numOfRows": "100", "_type": "json"}),
-                         ("json numOfRows=1000", {"numOfRows": "1000", "_type": "json"}),
-                         ("xml numOfRows=100", {"numOfRows": "100"})):
-        r = get(url, {**RICENZ, "pageNo": "1", **extra}, HUB_KEY)
-        if "json" in label:
-            body, batch = items_of(r.json())
-            print(f"{label}: HTTP {r.status_code} totalCount={body.get('totalCount')} "
-                  f"numOfRows={body.get('numOfRows')} items={len(batch)} type(items)={type(body.get('items')).__name__}")
-            if isinstance(body.get("items"), dict):
-                print("   items keys:", list(body["items"].keys()),
-                      "item type:", type(body["items"].get("item")).__name__)
-        else:
-            print(f"{label}: HTTP {r.status_code} <item> count = {r.text.count('<item>')}")
-
-    # Common-area purposes for the first 3,000 rows (about 370 units).
-    rows = []
-    for page in range(1, 31):
-        r = get(url, {**RICENZ, "pageNo": str(page), "numOfRows": "100", "_type": "json"}, HUB_KEY)
-        rows += items_of(r.json())[1]
-    print("rows fetched:", len(rows))
-    print("gb x purpose x etc x floor:",
-          Counter((x.get("exposPubuseGbCdNm"), x.get("mainPurpsCdNm"), x.get("etcPurps"), x.get("flrGbCdNm"))
-                  for x in rows).most_common(25))
-    units = defaultdict(lambda: {"exp": 0.0, "pub": Counter()})
-    for x in rows:
-        k = (x.get("dongNm"), x.get("hoNm"))
-        a = float(x.get("area") or 0)
-        if str(x.get("exposPubuseGbCd")) == "1":
-            units[k]["exp"] += a
-        else:
-            units[k]["pub"][(x.get("mainPurpsCdNm"), x.get("etcPurps"), x.get("flrGbCdNm"))] += a
-    by_area = defaultdict(list)
-    for u in units.values():
-        by_area[round(u["exp"], 2)].append(u)
-    for area, us in sorted(by_area.items()):
-        tot = Counter()
-        for u in us:
-            tot.update(u["pub"])
-        n = len(us)
-        print(f"전유 {area}: units={n} avg common by purpose:",
-              {"/".join(str(p) for p in k): round(v / n, 2) for k, v in tot.most_common(8)})
-
-    # K-apt V5 basic info: raw body shape.
-    r = get("https://apis.data.go.kr/1613000/AptListService4/getSigunguAptList4",
-            {"sigunguCode": "11710", "numOfRows": "200", "pageNo": "1"}, KEY)
-    body, batch = items_of(r.json())
-    hit = next((b for b in batch if "리센츠" in (b.get("kaptName") or "")), batch[0] if batch else None)
-    print("K-apt list sample:", json.dumps(hit, ensure_ascii=False))
-    if hit:
-        for op in ("getAphusBassInfoV5", "getAphusDtlInfoV5"):
-            r = get(f"https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/{op}", {"kaptCode": hit["kaptCode"]}, KEY)
-            try:
-                print(f"K-apt {op}:", json.dumps(r.json(), ensure_ascii=False)[:2500])
-            except ValueError:
-                print(f"K-apt {op}: HTTP {r.status_code} {r.text[:300]}")
+    for lot in os.environ.get("LOTS", "").split(","):
+        sgg, bjd, bun, ji = lot.split("-")
+        p = {"serviceKey": KEY, "sigunguCd": sgg, "bjdongCd": bjd, "platGbCd": "0", "bun": bun, "ji": ji,
+             "numOfRows": "100", "_type": "json"}
+        rows = []
+        total = None
+        for page in (1, 2, 3, 10, 20):
+            body, batch = items(requests.get(f"{HUB}/getBrExposPubuseAreaInfo", params={**p, "pageNo": str(page)},
+                                             timeout=60))
+            total = body.get("totalCount")
+            rows += batch
+        print(f"\n== {lot}: totalCount={total} rows read={len(rows)}")
+        print("gb x purpose x etc x floor:",
+              Counter((r.get("exposPubuseGbCdNm"), r.get("mainPurpsCdNm"), r.get("etcPurps"), r.get("flrGbCdNm"))
+                      for r in rows).most_common(12))
+        print("bldNm:", Counter(r.get("bldNm") for r in rows).most_common(4))
+        units = defaultdict(lambda: [0.0, Counter()])
+        for r in rows:
+            k = (r.get("dongNm"), r.get("hoNm"))
+            a = float(r.get("area") or 0)
+            if str(r.get("exposPubuseGbCd")) == "1":
+                units[k][0] += a
+            else:
+                units[k][1][(r.get("mainPurpsCdNm"), r.get("etcPurps"))] += a
+        by = defaultdict(list)
+        for e, pub in units.values():
+            by[round(e, 2)].append(pub)
+        for a, pubs in sorted(by.items())[:8]:
+            tot = Counter()
+            for x in pubs:
+                tot.update(x)
+            print(f"  전유 {a}: units={len(pubs)}", {f"{k[0]}/{k[1]}": round(v / len(pubs), 2) for k, v in tot.most_common(5)})
+        # Title purposes for the same lot
+        body, batch = items(requests.get(f"{HUB}/getBrRecapTitleInfo", params={**p, "pageNo": "1"}, timeout=60))
+        print("recap:", [(b.get("bldNm"), b.get("hhldCnt"), b.get("platArea"), b.get("vlRat"), b.get("useAprDay")) for b in batch])
 
 
 if __name__ == "__main__":

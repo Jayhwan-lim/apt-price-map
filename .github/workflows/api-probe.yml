@@ -3,6 +3,10 @@ name: api-probe
 # Manual check of data.go.kr service access and response schemas.
 on:
   workflow_dispatch:
+    inputs:
+      lots:
+        description: "Comma list of sgg-bjd-bun-ji"
+        default: "11710-10100-0022-0000"
 
 permissions:
   contents: read
@@ -21,3 +25,4 @@ jobs:
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           DATA_GO_KR_HUB_KEY: ${{ secrets.DATA_GO_KR_HUB_KEY }}
+          LOTS: ${{ inputs.lots }}
