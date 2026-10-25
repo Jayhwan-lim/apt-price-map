@@ -9,7 +9,7 @@ be reported up to 30 days after the contract (and cancellations arrive later).
 Environment:
     DATA_GO_KR_KEY   service key (Decoding version)            [required]
     START_YM         first contract month, default 200601
-    MAX_CALLS        per-run request cap, default 9000 (dev quota is 10,000/day)
+    MAX_CALLS        per-run request cap, default 30000 (operating account since 2026-10-26)
     REFRESH_MONTHS   recent months always re-fetched, default 3
     MAX_MINUTES      stop cleanly after this many minutes, default 240, so the
                      workflow still has time to aggregate and commit
@@ -203,7 +203,7 @@ def main():
     if not key:
         sys.exit("DATA_GO_KR_KEY is not set")
     start_ym = os.environ.get("START_YM", "200601")
-    max_calls = int(os.environ.get("MAX_CALLS", "9000"))
+    max_calls = int(os.environ.get("MAX_CALLS", "30000"))
     refresh_n = int(os.environ.get("REFRESH_MONTHS", "3"))
     deadline = time.monotonic() + 60 * float(os.environ.get("MAX_MINUTES", "240"))
 

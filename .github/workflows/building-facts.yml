@@ -16,8 +16,9 @@ on:
         description: "Max 전유공용면적 pages sampled per lot"
         default: "30"
   schedule:
-    # 02:41 KST every day
-    - cron: "41 17 * * *"
+    # 05:11 KST every day, after collect-trades (04:13) has refreshed the
+    # complex list the facts are matched to.
+    - cron: "11 20 * * *"
 
 permissions:
   contents: write
