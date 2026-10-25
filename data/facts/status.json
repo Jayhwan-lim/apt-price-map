@@ -1,1 +1,1 @@
-{"calls":600,"generated":"2026-10-26T01:40:56+09:00","lots":17101,"phases":{"supply":{"done":52,"failed":0,"queued":17094,"stopped":"call cap 600 reached"}},"stopped":"call cap 600 reached"}
+{"calls":7123,"generated":"2026-10-26T01:52:20+09:00","lots":17101,"phases":{"hub":{"done":33,"failed":0,"queued":17101,"stopped":"HTTP 429"},"kapt_basic":{"done":20,"failed":0,"queued":2553,"stopped":"HTTP 429"},"kapt_list":{"done":20,"failed":0,"queued":72,"stopped":"HTTP 429"},"supply":{"done":1429,"failed":0,"queued":17094,"stopped":"HTTP 429"}},"stopped":null}
