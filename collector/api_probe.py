@@ -1,13 +1,14 @@
-"""One-off probe of the data.go.kr services this project may use.
+"""Manual probe of data.go.kr services: page sizes, schemas, common-area rows.
 
-Prints result codes, total counts and field names (never the service key or
-unit numbers) so collectors can be written against the real schema.
+Prints result codes, counts and field names (never the service key or unit
+numbers) so collectors can be written against the real schema.
 
 Environment: DATA_GO_KR_KEY, optional DATA_GO_KR_HUB_KEY.
 """
 
+import json
 import os
-from collections import Counter
+from collections import Counter, defaultdict
 
 import requests
 
@@ -17,16 +18,9 @@ HUB = "https://apis.data.go.kr/1613000/BldRgstHubService"
 RICENZ = {"sigunguCd": "11710", "bjdongCd": "10100", "platGbCd": "0", "bun": "0022", "ji": "0000"}
 
 
-def call(url, params, key):
-    try:
-        r = requests.get(url, params={"serviceKey": key, **params}, timeout=40)
-    except requests.RequestException as e:
-        return None, f"request failed: {type(e).__name__}"
-    text = r.text.replace(key, "<key>")
-    try:
-        return r.json(), f"HTTP {r.status_code}"
-    except ValueError:
-        return None, f"HTTP {r.status_code} non-JSON: {text[:300]}"
+def get(url, params, key):
+    r = requests.get(url, params={"serviceKey": key, **params}, timeout=60)
+    return r
 
 
 def items_of(data):
@@ -38,55 +32,65 @@ def items_of(data):
     return body, batch or []
 
 
-def report(name, url, params, key, show=()):
-    data, status = call(url, params, key)
-    header = (data or {}).get("response", {}).get("header", {})
-    body, batch = items_of(data)
-    print(f"\n== {name}: {status} header={header} totalCount={body.get('totalCount')} items={len(batch)}")
-    if batch:
-        print("fields:", sorted(batch[0].keys()))
-        for k in show:
-            print(f"  {k} = {batch[0].get(k)!r}")
-    elif data is None:
-        print(status)
-    return batch
-
-
 def main():
     if not KEY:
         raise SystemExit("DATA_GO_KR_KEY is not set")
-    report("HUB recap title", f"{HUB}/getBrRecapTitleInfo", {**RICENZ, "numOfRows": 10, "_type": "json"}, HUB_KEY,
-           ("bldNm", "platArea", "archArea", "bcRat", "totArea", "vlRat", "hhldCnt", "useAprDay", "mainBldCnt"))
-    rows = report("HUB title", f"{HUB}/getBrTitleInfo", {**RICENZ, "numOfRows": 100, "_type": "json"}, HUB_KEY,
-                  ("bldNm", "dongNm", "mainPurpsCdNm", "hhldCnt", "platArea", "vlRat", "bcRat", "useAprDay"))
-    print("title purposes:", Counter(r.get("mainPurpsCdNm") for r in rows).most_common(8))
-    print("title hhldCnt sum:", sum(int(r.get("hhldCnt") or 0) for r in rows))
-    rows = report("HUB expos pubuse area", f"{HUB}/getBrExposPubuseAreaInfo",
-                  {**RICENZ, "numOfRows": 100, "_type": "json"}, HUB_KEY,
-                  ("exposPubuseGbCd", "exposPubuseGbCdNm", "mainPurpsCdNm", "etcPurps", "flrGbCdNm", "area"))
-    print("expos/pubuse x purpose x floor-type:",
-          Counter((r.get("exposPubuseGbCdNm"), r.get("mainPurpsCdNm"), r.get("etcPurps"), r.get("flrGbCdNm"))
-                  for r in rows).most_common(15))
-    # Same parcel, one dong only, to see whether dongNm narrows the scan.
-    report("HUB expos pubuse area (dongNm=201)", f"{HUB}/getBrExposPubuseAreaInfo",
-           {**RICENZ, "dongNm": "201", "numOfRows": 10, "_type": "json"}, HUB_KEY)
-    report("HUB expos (unit list)", f"{HUB}/getBrExposInfo", {**RICENZ, "numOfRows": 10, "_type": "json"}, HUB_KEY)
+    url = f"{HUB}/getBrExposPubuseAreaInfo"
+    for label, extra in (("json numOfRows=100", {"numOfRows": "100", "_type": "json"}),
+                         ("json numOfRows=1000", {"numOfRows": "1000", "_type": "json"}),
+                         ("xml numOfRows=100", {"numOfRows": "100"})):
+        r = get(url, {**RICENZ, "pageNo": "1", **extra}, HUB_KEY)
+        if "json" in label:
+            body, batch = items_of(r.json())
+            print(f"{label}: HTTP {r.status_code} totalCount={body.get('totalCount')} "
+                  f"numOfRows={body.get('numOfRows')} items={len(batch)} type(items)={type(body.get('items')).__name__}")
+            if isinstance(body.get("items"), dict):
+                print("   items keys:", list(body["items"].keys()),
+                      "item type:", type(body["items"].get("item")).__name__)
+        else:
+            print(f"{label}: HTTP {r.status_code} <item> count = {r.text.count('<item>')}")
 
-    report("RTMS apt rent", "https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent",
-           {"LAWD_CD": "11710", "DEAL_YMD": "202509", "numOfRows": 10, "pageNo": 1}, KEY,
-           ("aptNm", "aptSeq", "jibun", "excluUseAr", "deposit", "monthlyRent", "contractType"))
+    # Common-area purposes for the first 3,000 rows (about 370 units).
+    rows = []
+    for page in range(1, 31):
+        r = get(url, {**RICENZ, "pageNo": str(page), "numOfRows": "100", "_type": "json"}, HUB_KEY)
+        rows += items_of(r.json())[1]
+    print("rows fetched:", len(rows))
+    print("gb x purpose x etc x floor:",
+          Counter((x.get("exposPubuseGbCdNm"), x.get("mainPurpsCdNm"), x.get("etcPurps"), x.get("flrGbCdNm"))
+                  for x in rows).most_common(25))
+    units = defaultdict(lambda: {"exp": 0.0, "pub": Counter()})
+    for x in rows:
+        k = (x.get("dongNm"), x.get("hoNm"))
+        a = float(x.get("area") or 0)
+        if str(x.get("exposPubuseGbCd")) == "1":
+            units[k]["exp"] += a
+        else:
+            units[k]["pub"][(x.get("mainPurpsCdNm"), x.get("etcPurps"), x.get("flrGbCdNm"))] += a
+    by_area = defaultdict(list)
+    for u in units.values():
+        by_area[round(u["exp"], 2)].append(u)
+    for area, us in sorted(by_area.items()):
+        tot = Counter()
+        for u in us:
+            tot.update(u["pub"])
+        n = len(us)
+        print(f"전유 {area}: units={n} avg common by purpose:",
+              {"/".join(str(p) for p in k): round(v / n, 2) for k, v in tot.most_common(8)})
 
-    for svc, op in (("AptListService3", "getSigunguAptList3"), ("AptListService4", "getSigunguAptList4")):
-        batch = report(f"K-apt list {svc}", f"https://apis.data.go.kr/1613000/{svc}/{op}",
-                       {"sigunguCode": "11710", "numOfRows": 5, "pageNo": 1}, KEY)
-        if batch:
-            code = batch[0].get("kaptCode")
-            for bsvc, bop in (("AptBasisInfoServiceV4", "getAphusBassInfoV4"),
-                              ("AptBasisInfoServiceV5", "getAphusBassInfoV5")):
-                report(f"K-apt basic {bsvc}", f"https://apis.data.go.kr/1613000/{bsvc}/{bop}",
-                       {"kaptCode": code}, KEY,
-                       ("kaptName", "kaptdaCnt", "kaptUsedate", "privArea", "kaptMarea", "kaptTarea"))
-            break
+    # K-apt V5 basic info: raw body shape.
+    r = get("https://apis.data.go.kr/1613000/AptListService4/getSigunguAptList4",
+            {"sigunguCode": "11710", "numOfRows": "200", "pageNo": "1"}, KEY)
+    body, batch = items_of(r.json())
+    hit = next((b for b in batch if "리센츠" in (b.get("kaptName") or "")), batch[0] if batch else None)
+    print("K-apt list sample:", json.dumps(hit, ensure_ascii=False))
+    if hit:
+        for op in ("getAphusBassInfoV5", "getAphusDtlInfoV5"):
+            r = get(f"https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/{op}", {"kaptCode": hit["kaptCode"]}, KEY)
+            try:
+                print(f"K-apt {op}:", json.dumps(r.json(), ensure_ascii=False)[:2500])
+            except ValueError:
+                print(f"K-apt {op}: HTTP {r.status_code} {r.text[:300]}")
 
 
 if __name__ == "__main__":
