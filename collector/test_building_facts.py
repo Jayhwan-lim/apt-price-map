@@ -87,5 +87,21 @@ class MatchingTest(unittest.TestCase):
         self.assertEqual(supply_for(table, ty), {"84": (84.99, 109.4), "59": (59.99, 82.22)})
 
 
+class CommonRuleTest(unittest.TestCase):
+    def test_register_variants(self):
+        from building_facts import residential_common as rc
+        row = lambda purpose, etc, floor="지상": {"mainPurpsCdNm": purpose, "etcPurps": etc, "flrGbCdNm": floor}
+        self.assertTrue(rc(row("아파트", "계단실,승강기")))
+        self.assertTrue(rc(row("아파트", "벽체")))
+        self.assertTrue(rc(row("부대시설", "계단,E.V,복도", " ")))
+        self.assertTrue(rc(row("부대시설", "계단,엘리베이터")))
+        self.assertTrue(rc(row(" ", " ", " ")))
+        self.assertFalse(rc(row("부대시설", "지하주차장", "지하")))
+        self.assertFalse(rc(row("아파트", "노인정,관리사무소,전기실")))
+        self.assertFalse(rc(row("부대시설", "주민공동시설,방재센터")))
+        self.assertFalse(rc(row("부대시설", "대피소", "지하")))
+        self.assertFalse(rc(row("부대시설", "경비실,재활용품창고")))
+
+
 if __name__ == "__main__":
     unittest.main()

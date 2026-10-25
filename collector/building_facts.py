@@ -52,6 +52,26 @@ KST = timezone(timedelta(hours=9))
 TODAY = datetime.now(KST).strftime("%Y%m%d")
 
 RESIDENTIAL = {"아파트", "공동주택", "연립주택", "다세대주택"}
+# 주거공용 (counted in supply area) vs 기타공용. Registers file the same
+# stair/lift share under '아파트' or '부대시설', so the description decides.
+COMMON_IN = ("계단", "승강기", "엘리베이터", "엘레베이터", "E.V", "EV", "복도", "벽체", "홀", "현관", "코어", "주거공용", "로비")
+COMMON_OUT = ("주차", "대피", "기계", "전기", "발전", "관리", "노인", "경로", "경비", "보육", "어린이", "복지", "주민",
+              "문고", "도서", "체력", "운동", "재활용", "커뮤니티", "방재", "근린", "상가", "저수", "물탱크", "펌프",
+              "정화", "쓰레기", "창고", "사무")
+
+
+def residential_common(row):
+    """True when a 공용 row is part of the unit's supply area."""
+    if (row.get("flrGbCdNm") or "").strip() == "지하":
+        return False
+    desc = f"{row.get('etcPurps') or ''} {row.get('mainPurpsCdNm') or ''}"
+    if any(w in desc for w in COMMON_OUT):
+        return False
+    if any(w in desc for w in COMMON_IN):
+        return True
+    # Older registers leave the description blank for the stair/wall share.
+    return not (row.get("etcPurps") or "").strip() and \
+        (row.get("mainPurpsCdNm") or "").strip() in RESIDENTIAL | {""}
 REFRESH_DAYS = {"hub": 180, "kapt_list": 30, "kapt_basic": 180, "supply": 365}
 SUPPLY_RATIO = (1.03, 1.9)  # supply / exclusive outside this = register lacks common rows
 
@@ -214,7 +234,7 @@ class SupplyScan:
                 if purpose in RESIDENTIAL:
                     rec["exp"] += area
                     rec["res"] = True
-            elif purpose in RESIDENTIAL and "주차" not in (row.get("etcPurps") or ""):
+            elif residential_common(row):
                 rec["pub"] += area
         if first:
             self.edges[page] = (first, last)
@@ -255,8 +275,9 @@ def fetch_supply(session, key, budget, lot, ranges, max_pages):
     scan.add_page(1, items_of(body))
     read = 1
     for page in spread_order(pages_total)[1:]:
-        if covered(scan.table(), ranges) or read >= max_pages:
-            break
+        table = scan.table()
+        if covered(table, ranges) or read >= max_pages or (read >= 6 and not table):
+            break  # done, page cap, or a register this rule cannot read
         scan.add_page(page, items_of(get_body(session, url, {**params, "pageNo": str(page)}, key, budget)))
         read += 1
     table = scan.table()

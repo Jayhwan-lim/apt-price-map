@@ -53,7 +53,7 @@ jobs:
           MAX_CALLS: ${{ inputs.max_calls || '60000' }}
           SUPPLY_PAGES: ${{ inputs.supply_pages || '30' }}
           MAX_MINUTES: "270"
-          WORKERS: "4"
+          WORKERS: "8"
         run: python collector/building_facts.py
 
       - name: Recent rent contracts
