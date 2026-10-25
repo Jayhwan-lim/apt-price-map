@@ -16,7 +16,7 @@ const assert=require('node:assert/strict');
    const text=await page.evaluate(()=>__aptMap.mapMetricText(__aptMap.state.byKey.get('11710|신천동|17'),'35'));
    assert.ok(text.length>0);
    if(metric==='units')assert.equal(text,'6,864세대');
-   if(['gap','rentRatio'].includes(metric))assert.equal(text,'정보 없음');
+   if(['gap','rentRatio'].includes(metric))assert.ok(text==='전세 정보 없음' || /^(갭 |전세가율 )/.test(text), text);
    if(metric==='land')assert.equal(text,'5평 (16.5㎡)');
    if(metric==='pyeong')assert.ok(text.startsWith('평당 ') && text.endsWith('만원'), text);
    if(metric==='far')assert.equal(text,'용적률 283.6%');

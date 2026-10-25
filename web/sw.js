@@ -1,14 +1,14 @@
-/* 그땐 얼마? service worker — release tag: 20261018a (keep in step with the
+/* 그땐 얼마? service worker — release tag: 20261026a (keep in step with the
  * ?v= tags in index.html; bump both together on every release). */
-const CACHE = "geuttaen-20261018a";
+const CACHE = "geuttaen-20261026a";
 const EXT_CACHE = "geuttaen-ext-v1"; // Kakao tiles + SDK: the heavy half of a cold open
 const SHELL = [
   "./",
   "index.html",
-  "style.css?v=20261018a",
-  "config.js?v=20261018a",
-  "app.js?v=20261018a",
-  "map-metrics.js?v=20261018a",
+  "style.css?v=20261026a",
+  "config.js?v=20261026a",
+  "app.js?v=20261026a",
+  "map-metrics.js?v=20261026a",
   "manifest.webmanifest",
 ];
 
@@ -61,34 +61,39 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Data files: serve the cached copy instantly, refresh it in the
-  // background so the next open is current (data updates weekly).
+  // Data files: network first. Complex ids are positions in complexes.json
+  // and shift when a weekly update adds complexes, so a cached region or
+  // trades file must never be mixed with a fresh index. The cached copy is
+  // only an offline fallback.
   if (url.origin === location.origin && url.pathname.includes("/data/")) {
     e.respondWith(
-      caches.open(CACHE).then(async (c) => {
-        const hit = await c.match(req, { ignoreSearch: true });
-        const net = fetch(req)
-          .then((r) => {
-            if (r.ok) c.put(req, r.clone());
-            return r;
-          })
-          .catch(() => hit);
-        return hit || net;
-      })
+      fetch(req)
+        .then((r) => {
+          if (r.ok) {
+            const copy = r.clone();
+            e.waitUntil(caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {}));
+          }
+          return r;
+        })
+        .catch(() => caches.open(CACHE).then((c) => c.match(req, { ignoreSearch: true })))
     );
     return;
   }
 
-  // Page navigations: fresh HTML first so releases show up, cache offline.
+  // Page navigations: fresh HTML first so releases show up. Only the app
+  // page itself is kept for offline use (not 404s or other pages).
   if (req.mode === "navigate") {
+    const isApp = url.origin === location.origin && /\/(index\.html)?$/.test(url.pathname);
     e.respondWith(
       fetch(req)
         .then((r) => {
-          const copy = r.clone();
-          caches.open(CACHE).then((c) => c.put("index.html", copy));
+          if (isApp && r.ok && !r.redirected) {
+            const copy = r.clone();
+            e.waitUntil(caches.open(CACHE).then((c) => c.put("./", copy)).catch(() => {}));
+          }
           return r;
         })
-        .catch(() => caches.match("index.html"))
+        .catch(() => caches.match("./"))
     );
     return;
   }

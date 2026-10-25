@@ -1,0 +1,116 @@
+name: building-facts
+
+# Daily: building register (Building HUB) and K-apt facts for every complex,
+# recent rent contracts, then the map metrics file. Resumable: each run only
+# fetches missing or stale entries, most-traded complexes first.
+on:
+  workflow_dispatch:
+    inputs:
+      phases:
+        description: "Phases (hub,kapt,supply)"
+        default: "hub,kapt,supply"
+      max_calls:
+        description: "Request cap for this run"
+        default: "60000"
+      supply_pages:
+        description: "Max 전유공용면적 pages sampled per lot"
+        default: "30"
+  schedule:
+    # 02:41 KST every day
+    - cron: "41 17 * * *"
+
+permissions:
+  contents: write
+
+# Shares the group with collect-trades so the two never push at once.
+concurrency:
+  group: collect-trades
+  cancel-in-progress: false
+
+jobs:
+  facts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      PYTHONUNBUFFERED: "1"
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      CLOUDFLARE_DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Building register and K-apt facts
+        id: facts
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          DATA_GO_KR_HUB_KEY: ${{ secrets.DATA_GO_KR_HUB_KEY }}
+          PHASES: ${{ inputs.phases || 'hub,kapt,supply' }}
+          MAX_CALLS: ${{ inputs.max_calls || '60000' }}
+          SUPPLY_PAGES: ${{ inputs.supply_pages || '30' }}
+          MAX_MINUTES: "270"
+          WORKERS: "4"
+        run: python collector/building_facts.py
+
+      - name: Recent rent contracts
+        if: always()
+        continue-on-error: true
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python collector/fetch_rent.py
+
+      - name: Map metrics
+        if: always()
+        run: python collector/map_metrics.py
+
+      - name: Commit
+        id: commit
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/facts web/data/map-metrics.json
+          if [ -d data/raw_rent ]; then git add data/raw_rent; fi
+          if git diff --cached --quiet; then
+            echo "no changes"; exit 0
+          fi
+          git commit -q -m "data: building facts $(TZ=Asia/Seoul date +%F)"
+          for i in 1 2 3 4 5; do
+            git pull -q --rebase origin main && git push -q && { echo "pushed=true" >> "$GITHUB_OUTPUT"; exit 0; }
+            sleep $((i * 15))
+          done
+          exit 1
+
+      - name: Trigger Cloudflare Pages deploy
+        if: always() && steps.commit.outputs.pushed == 'true' && env.CLOUDFLARE_DEPLOY_HOOK_URL != ''
+        run: curl -fsS -X POST -o /dev/null "$CLOUDFLARE_DEPLOY_HOOK_URL" && echo "deploy hook called"
+
+      - name: Notify Slack
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          try:
+              s = json.load(open("data/facts/status.json", encoding="utf-8"))
+          except Exception:
+              s = {}
+          ph = s.get("phases", {})
+          def line(name):
+              p = ph.get(name) or {}
+              return f"{name}: {p.get('done', 0)}/{p.get('queued', 0)}" + (f" (stopped: {p['stopped']})" if p.get("stopped") else "")
+          lines = ["[Claude] 그땐 얼마? 건축물대장·단지정보 수집",
+                   f"호출 {s.get('calls', '-')}회 · 필지 {s.get('lots', '-')}곳",
+                   *[line(n) for n in ("hub", "kapt_list", "kapt_basic", "supply")],
+                   f"종료 사유: {s.get('stopped') or '완료'}",
+                   os.environ["RUN_URL"]]
+          req = urllib.request.Request(os.environ["SLACK_WEBHOOK_URL"],
+                                       data=json.dumps({"text": "\n".join(lines)}).encode(),
+                                       headers={"Content-Type": "application/json"})
+          urllib.request.urlopen(req, timeout=10)
+          PY
