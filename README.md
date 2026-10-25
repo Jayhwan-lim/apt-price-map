@@ -35,6 +35,23 @@ Two ways to start:
 | Collect | `collector/fetch.py` | `data/raw/<LAWD_CD>/<YYYYMM>.csv.gz` (resumable) |
 | Aggregate | `collector/aggregate.py` | `web/data/complexes.json` (loaded first), `web/data/region/<code>.json`, `web/data/year/<YYYY>.json`, `web/data/trades/<code>.json` (on demand) |
 | Geocode | `collector/geocode.py` | `data/geo.csv` (Kakao Local API, cached) |
+| Building facts | `collector/building_facts.py` (daily, `building-facts.yml`) | `data/facts/lots.json`, `data/facts/hub/`, `data/facts/kapt/`, `data/facts/supply/` |
+| Rent | `collector/fetch_rent.py` (same workflow) | `data/raw_rent/<LAWD_CD>/<YYYYMM>.json.gz` (last 13 months) |
+| Map metrics | `collector/map_metrics.py` | `web/data/map-metrics.json` |
+
+### Map metrics sources
+
+| Metric | Source and rule |
+|---|---|
+| 평당가격 | recent sale average ÷ supply area × 3.3058. Supply = exclusive + residential common (stairs, lifts, corridors, walls) from 건축HUB 전유공용면적, sampled across the lot until every traded area type is covered. Types not sampled use the complex's own common-area ratio (≈). |
+| 대지지분 | 총괄표제부 site area × type exclusive area ÷ complex exclusive total (K-apt `privArea`). Without K-apt: site area × supply ÷ FAR floor area (≈). |
+| 용적률 / 건폐율 | 총괄표제부, or 표제부 for single-building lots; values outside 30–1500% / 3–90% are dropped. |
+| 세대수 | K-apt `kaptdaCnt`, else 건축물대장 households. |
+| 입주시기 | use-approval date (K-apt, else 건축물대장). |
+| 거래회전율 | trades in the last 12 data months ÷ households. |
+| 매매전세갭 / 전세가율 | 12-month median jeonse deposit (monthly rent 0, ≥3 contracts) vs recent sale average. Needs 국토교통부_아파트 전월세 실거래가 자료 approved for the key. |
+
+No unit (호) numbers are stored; supply data keeps per-area aggregates only.
 
 Statistic rules: cancelled trades excluded; direct trades excluded in the
 `ex` variant and included in `all`; area grouped into bands (59/74/84/…);
@@ -47,6 +64,7 @@ Repository secrets:
 | Secret | Required | Purpose |
 |---|---|---|
 | `DATA_GO_KR_KEY` | yes | data.go.kr service key (**Decoding** version) |
+| `DATA_GO_KR_HUB_KEY` | optional | key for 건축HUB/K-apt if different (falls back to `DATA_GO_KR_KEY`) |
 | `KAKAO_REST_KEY` | for map | Kakao REST API key (geocoding) |
 | `SLACK_WEBHOOK_URL` | optional | Incoming webhook for run summaries |
 
