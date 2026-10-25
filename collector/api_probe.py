@@ -22,8 +22,18 @@ def items(r):
     return body, [batch] if isinstance(batch, dict) else batch
 
 
+def rent_check():
+    key = os.environ.get("DATA_GO_KR_KEY", "").strip()
+    r = requests.get("https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent",
+                     params={"serviceKey": key, "LAWD_CD": "11710", "DEAL_YMD": "202609", "numOfRows": "3",
+                             "pageNo": "1"}, timeout=40)
+    text = r.text.replace(key, "<key>")
+    print(f"rent: HTTP {r.status_code}", text[:1200])
+
+
 def main():
-    for lot in os.environ.get("LOTS", "").split(","):
+    rent_check()
+    for lot in [x for x in os.environ.get("LOTS", "").split(",") if x]:
         sgg, bjd, bun, ji = lot.split("-")
         p = {"serviceKey": KEY, "sigunguCd": sgg, "bjdongCd": bjd, "platGbCd": "0", "bun": bun, "ji": ji,
              "numOfRows": "100", "_type": "json"}
