@@ -1,7 +1,7 @@
 """Collect recent apartment rent contracts (전월세) for jeonse metrics.
 
 Only the last LOOKBACK months are needed (jeonse ratio and sale-jeonse gap
-use a 12-month median), so this is a small job: about 90 region codes x 13
+use a 12-month median, 24 months for complexes with few contracts), so this is a small job: about 90 region codes x 25
 months on the first run, then the latest REFRESH months each week.
 
     data/raw_rent/<LAWD_CD>/<YYYYMM>.json.gz   (selected fields only)
@@ -9,7 +9,7 @@ months on the first run, then the latest REFRESH months each week.
 Exits quietly when the key is not registered for the rent service yet
 (국토교통부_아파트 전월세 실거래가 자료 must be approved on data.go.kr).
 
-Environment: DATA_GO_KR_KEY, LOOKBACK (13), REFRESH (2), MAX_CALLS (3000)
+Environment: DATA_GO_KR_KEY, LOOKBACK (25), REFRESH (2), MAX_CALLS (4000)
 """
 
 import gzip
@@ -85,9 +85,9 @@ def main():
     key = os.environ.get("DATA_GO_KR_KEY", "").strip()
     if not key:
         sys.exit("DATA_GO_KR_KEY is not set")
-    lookback = int(os.environ.get("LOOKBACK", "13"))
+    lookback = int(os.environ.get("LOOKBACK", "25"))
     refresh = int(os.environ.get("REFRESH", "2"))
-    cap = int(os.environ.get("MAX_CALLS", "3000"))
+    cap = int(os.environ.get("MAX_CALLS", "4000"))
     probed = json.loads((ROOT / "data" / "probed_codes.json").read_text()).get("codes", [])
     codes = sorted(set(base_regions()) - set(SPLIT_PROBES)) + sorted(SPLIT_PROBES) + probed
     months = months_back(lookback)

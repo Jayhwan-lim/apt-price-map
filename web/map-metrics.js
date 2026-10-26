@@ -3,8 +3,8 @@
   const definitions = {
     sale:['실거래가','선택 면적의 최근 3·6·12개월 실거래 평균. 직거래 설정 반영.'],
     pyeong:['평당가격','최근 실거래 평균 ÷ 공급면적 × 3.3058. 공급면적은 건축물대장 전유공용면적의 전용 + 주거공용(계단·승강기·벽체)입니다. ≈ 표시는 같은 단지 다른 평형의 공용면적 비율로 추정한 값입니다.'],
-    gap:['매매전세갭','같은 면적의 최근 매매 평균 − 최근 12개월 전세 보증금 중앙값(3건 이상). 월세 계약은 제외합니다.'],
-    rentRatio:['전세가율','최근 12개월 전세 보증금 중앙값 ÷ 최근 매매 평균 × 100. 월세 계약은 제외합니다.'],
+    gap:['매매전세갭','같은 면적의 최근 매매 평균 − 최근 12개월 전세 보증금 중앙값(3건 이상). 1년 계약이 3건 미만이면 2년치를 쓰고 (2년)으로 표시합니다. 월세 계약은 제외합니다.'],
+    rentRatio:['전세가율','최근 12개월 전세 보증금 중앙값 ÷ 최근 매매 평균 × 100. 1년 계약이 3건 미만이면 2년치를 쓰고 (2년)으로 표시합니다. 월세 계약은 제외합니다.'],
     turnover:['거래회전율','최근 데이터 12개월의 단지 전체 매매 신고 건수 ÷ 세대수 × 100. 재거래도 각각 집계하며 직거래 설정을 반영합니다.'],
     units:['세대수','공동주택관리정보(K-apt) 세대수, 없으면 건축물대장(총괄표제부·표제부) 세대수.'],
     occupancy:['입주시기','사용승인일 기준(K-apt, 없으면 건축물대장). 실제 입주 시작과 몇 달 차이가 날 수 있습니다.'],
@@ -32,8 +32,9 @@
     if(metric==='units')return facts?.units>0?facts.units.toLocaleString('ko-KR')+'세대':'세대수 정보 없음';
     if(metric==='turnover')return facts?.units>0 && facts.trades12?'연 '+(facts.trades12[variant==='all'?1:0]/facts.units*100).toFixed(1)+'%':'회전율 정보 없음';
     const rent=facts?.rent?.[band];
-    if(metric==='gap')return rent && price>0?'갭 '+money(price-rent[0]):'전세 정보 없음';
-    if(metric==='rentRatio')return rent && price>0?'전세가율 '+Math.round(rent[0]/price*100)+'%':'전세 정보 없음';
+    const long=Array.isArray(facts?.rentLong)&&facts.rentLong.includes(band)?' (2년)':'';
+    if(metric==='gap')return rent && price>0?'갭 '+money(price-rent[0])+long:'전세 정보 없음';
+    if(metric==='rentRatio')return rent && price>0?'전세가율 '+Math.round(rent[0]/price*100)+'%'+long:'전세 정보 없음';
     const land=facts?.land?.[band];
     const one=x=>(Math.round(x*10)/10).toString();
     const est=facts?.landEst?'≈':'';

@@ -176,7 +176,7 @@ def rent_rows(index_by_lot, months):
             if len(keys) == 1:
                 out[keys[0]].append((area, dep, mon, (r.get("contractType") or "").strip(),
                                      money(r.get("preDeposit")), money(r.get("preMonthlyRent")),
-                                     (r.get("useRRRight") or "").strip()))
+                                     (r.get("useRRRight") or "").strip(), int(path.name[:6])))
     return out
 
 
@@ -222,7 +222,8 @@ def build():
     y0, m0 = divmod(int(data["mstart"]), 100)
     last_index = mcount - 1
     last_ym = (y0 + (m0 - 1 + last_index) // 12) * 100 + (m0 - 1 + last_index) % 12 + 1
-    rents = rent_rows(index_by_lot, recent_months(last_ym, 12))
+    months12 = recent_months(last_ym, 12)
+    rents = rent_rows(index_by_lot, recent_months(last_ym, 24))
     mix = load(FACTS / "trade_mix.json", {}).get("complexes", {})
     trades_by_code = {}
     y, m = divmod(last_ym, 100)
@@ -374,11 +375,18 @@ def build():
 
         # Rent, last 12 months: jeonse median per type (>= 3 contracts),
         # renewal increase and renewal-right use, monthly-rent conversion rate.
-        rr = rents.get(key, ())
-        rent, conv = {}, []
+        rr24 = rents.get(key, ())
+        rr = [r for r in rr24 if r[7] in months12]
+        rent, rent_long, conv = {}, [], []
         for band, (lo, hi, _mode, _n) in ty.items():
             in_band = [r for r in rr if lo - 0.3 <= r[0] <= hi + 0.3]
             jeonse = [r[1] for r in in_band if r[2] == 0]
+            if len(jeonse) < 3:
+                # Thin year: fall back to 24 months (flagged on the site)
+                in_band = [r for r in rr24 if lo - 0.3 <= r[0] <= hi + 0.3]
+                jeonse = [r[1] for r in in_band if r[2] == 0]
+                if len(jeonse) >= 3:
+                    rent_long.append(band)
             if len(jeonse) >= 3:
                 j = statistics.median(jeonse)
                 rent[band] = [int(j), len(jeonse)]
@@ -387,6 +395,8 @@ def build():
                         conv.append(r[2] * 12 / (j - r[1]))
         if rent:
             facts["rent"] = rent
+            if rent_long:
+                facts["rentLong"] = rent_long
         if len(conv) >= 3:
             facts["conv"] = round(statistics.median(conv) * 100, 2)
         renewals = [r for r in rr if r[3] == "갱신"]

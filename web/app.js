@@ -1502,8 +1502,9 @@
     if (rent && price) rentBits.push(`전세가율 <b>${Math.round(rent[0] / price * 100)}%</b>`);
     if (f.conv) rentBits.push(`전환율 <b>${f.conv.toFixed(1)}%</b>`);
     if (f.renew) rentBits.push(`갱신 인상 <b>${f.renew[1] >= 0 ? "+" : ""}${f.renew[1].toFixed(1)}%</b> · 청구권 ${f.renew[2]}%`);
+    const rentYears = f.rentLong?.includes(band) ? "최근 2년" : "최근 1년";
     if (rentBits.length) items.push(row("전월세", rentBits.join(" · "),
-      rent ? `전세 중앙값 ${fmtPrice(rent[0])} (최근 1년 ${rent[1]}건)` : "최근 1년 기준"));
+      rent ? `전세 중앙값 ${fmtPrice(rent[0])} (${rentYears} ${rent[1]}건)` : "최근 1년 기준"));
     const life = [];
     if (f.park) life.push(`세대당 주차 <b>${f.park.toFixed(2)}대</b>`);
     if (f.sub) life.push(`${f.sub[2] ? escapeHtml(f.sub[2]) + "역" : "지하철역"} <b>${escapeHtml(f.sub[0])}</b>${f.sub[1] ? ` (${escapeHtml(f.sub[1])})` : ""}`);
