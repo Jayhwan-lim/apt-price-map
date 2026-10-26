@@ -65,7 +65,7 @@
     chartSec: $("chart-section"), canvas: $("chart"), chartTitle: $("chart-title"), chartNote: $("chart-note"),
     simSec: $("similar-section"), simTitle: $("similar-title"), simList: $("similar-list"),
     tradesSec: $("trades-section"), tradesBody: $("trades-body"),
-    holdSec: $("holding-section"), holdBody: $("holding-body"),
+    holdSec: $("holding-section"), holdBody: $("holding-body"), factsSec: $("facts-section"), factsBody: $("facts-body"),
     tradeDistSec: $("trade-distribution-section"), tradeRef: $("trade-reference"),
     tradeSummary: $("trade-distribution-summary"), tradeBars: $("trade-distribution-bars"),
     fallback: $("map-fallback"), legend: $("map-legend"),
@@ -79,7 +79,7 @@
   };
 
   const state = {
-    mapMetric: "sale", mapFacts: null, mapFactsPromise: null, ready: false, data: null, byKey: new Map(), bands: new Map(),
+    mapMetric: "sale", rankMode: "gu", mapFacts: null, mapFactsPromise: null, ready: false, data: null, byKey: new Map(), bands: new Map(),
     band: "84", variant: "ex", tol: 0.05, scope: "all", mode: "price", gran: "month",
     sameBand: false,        // false: compare against every area band of other complexes
     // Base point: basis "year" (that year's median, viewYear) or "month"
@@ -450,7 +450,7 @@
   // duplicated, so the chart and tables keep working untouched.
   function placeDetailNodes(inCol) {
     if (detailInCol === inCol) return;
-    const nodes = [el.refSec, el.chartSec, el.holdSec, el.tradeDistSec, el.simSec, el.tradesSec];
+    const nodes = [el.refSec, el.chartSec, el.factsSec, el.holdSec, el.tradeDistSec, el.simSec, el.tradesSec];
     if (inCol) {
       const host = document.getElementById("detail-col-body");
       if (!host) return;
@@ -837,9 +837,10 @@
     el.priceSec.hidden = true;
     el.empty.hidden = has;
     el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = !has;
-    el.tradesSec.hidden = el.tradeDistSec.hidden = el.holdSec.hidden = !has;
+    el.tradesSec.hidden = el.tradeDistSec.hidden = el.holdSec.hidden = el.factsSec.hidden = !has;
     if (has) {
       renderRef();
+      renderFacts();
       renderHolding();
       renderSimilar();
       renderChart();
@@ -874,7 +875,7 @@
       state.ref = null;
       state.checked = [];
       state.slotOf.clear();
-      el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = el.tradeDistSec.hidden = el.holdSec.hidden = true;
+      el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = el.tradeDistSec.hidden = el.holdSec.hidden = el.factsSec.hidden = true;
       el.priceSec.hidden = false;
       if (state.price.mi == null) state.price.mi = Math.max(0, lastMi() - 60);
       if (run) runPrice();
@@ -1411,18 +1412,103 @@
       `<option value="${i}">${r[0].slice(0, 4)}.${r[0].slice(4, 6)}.${r[0].slice(6, 8)} · ${r[2]}층 · ${fmtPrice(r[3])}</option>`).join("");
     el.tradeRef.disabled = !state.tradeRows.length;
     renderTradeDistribution();
+    renderFacts();
   }
 
+  const factsOf = (c) =>
+    state.mapFacts && state.mapFacts.generated === state.data?.generated ? state.mapFacts.complexes[c.key] : null;
   function mapMetricText(c, band) {
-    const facts = state.mapFacts?.generated === state.data?.generated ? state.mapFacts.complexes[c.key] : null;
-    return MapMetrics.value(state.mapMetric, c, band, nowPrice(c, band), facts, state.variant);
+    return MapMetrics.value(state.mapMetric, c, band, nowPrice(c, band), factsOf(c), state.variant);
   }
   async function loadMapFacts() {
     if (!state.mapFactsPromise) state.mapFactsPromise = fetch("data/map-metrics.json")
       .then(r => { if (!r.ok) throw new Error("map facts unavailable"); return r.json(); })
-      .then(data => { state.mapFacts = data; map.refresh(); })
+      .then(data => { state.mapFacts = data; map.refresh(); if (state.ref) renderFacts(); })
       .catch(() => { state.mapFactsPromise = null; });
     return state.mapFactsPromise;
+  }
+
+  // Floor premium from the loaded trades of the selected type: each trade
+  // divided by its month's average (removes the time trend), median per
+  // low / middle / high third of the floors traded, last 36 months.
+  function floorPremium(c) {
+    const rows = state.tradeRows || [];
+    const mon = months(c);
+    const lastMi = state.data.mcount - 1;
+    const pts = [];
+    for (const r of rows) {
+      const mi = miOf(+r[0].slice(0, 4), +r[0].slice(4, 6));
+      const m = mon.get(mi);
+      if (!m || !(r[2] > 0) || mi < lastMi - 36) continue;
+      pts.push([r[2], r[3] / m[1]]);
+    }
+    if (pts.length < 9) return null;
+    const top = Math.max(...pts.map((p) => p[0]));
+    if (top < 4) return null;
+    const med = (a) => { const s = a.slice().sort((x, y) => x - y); const h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+    const all = med(pts.map((p) => p[1]));
+    const groups = [["저층", (f) => f <= top / 3], ["중층", (f) => f > top / 3 && f <= top * 2 / 3], ["고층", (f) => f > top * 2 / 3]];
+    const out = groups.map(([name, test]) => {
+      const g = pts.filter((p) => test(p[0])).map((p) => p[1]);
+      return g.length >= 3 ? [name, med(g) / all - 1, g.length] : null;
+    }).filter(Boolean);
+    return out.length >= 2 ? { out, top, n: pts.length } : null;
+  }
+
+  function renderFacts() {
+    const c = state.ref;
+    if (!c) return;
+    const f = factsOf(c);
+    if (!f) {
+      el.factsBody.innerHTML = `<p class="trade-distribution-empty">단지 통계를 불러오는 중…</p>`;
+      loadMapFacts();
+      return;
+    }
+    const band = state.band;
+    const now = nowPrice(c);
+    const price = now && now.avg;
+    const pct = (r, digits = 0) => `${r >= 0 ? "+" : "−"}${Math.abs(r * 100).toFixed(digits)}%`;
+    const row = (k, v, note) => v ? `<div><dt>${k}</dt><dd>${v}${note ? `<small>${note}</small>` : ""}</dd></div>` : "";
+    const gu = c.gu || c.sgg;
+    const rk = f.rk;
+    const items = [];
+    if (rk) items.push(row("지역 순위",
+      [rk[0] ? `${escapeHtml(gu)} <b>${rk[0]}위</b> / ${rk[1]}` : "", rk[2] ? `${escapeHtml(c.umd)} <b>${rk[2]}위</b> / ${rk[3]}` : ""].filter(Boolean).join(" · "),
+      f.ppm ? `최근 1년 전용 3.3㎡당 ${fmtPrice(f.ppm)} 기준` : ""));
+    const hi = f.high?.[band], pk = f.peak?.[band];
+    if (hi) items.push(row("신고가", `<b class="chg up">${fmtPrice(hi[1])}</b> (${hi[0].slice(0, 4)}.${hi[0].slice(4, 6)}.${hi[0].slice(6, 8)})`, `이전 최고 ${fmtPrice(hi[2])}`));
+    if (pk && price) {
+      const r = price / pk[1] - 1;
+      items.push(row("전고점 대비", `<b class="chg ${chgClass(r)}">${pct(r)}</b>`, `${pk[0]}년 연 중앙값 ${fmtPrice(pk[1])} → 지금 ${fmtPrice(price)}`));
+    }
+    const fp = floorPremium(c);
+    if (fp) items.push(row("층별 가격 차이", fp.out.map(([name, r, n]) => `${name} <b class="chg ${chgClass(r)}">${pct(r, 1)}</b>`).join(" · "),
+      `최근 3년 ${fp.n}건, 같은 달 평균 대비 · 최고 ${fp.top}층 기준 3등분`));
+    if (f.vol) {
+      const [n3, base] = f.vol;
+      items.push(row("거래 활발도", base > 0 ? `평소의 <b>${(n3 / base).toFixed(1)}배</b>` : `최근 3개월 <b>${n3}건</b>`,
+        base > 0 ? `최근 3개월 ${n3}건 · 그 전 3년의 3개월 평균 ${base}건` : ""));
+    }
+    if (f.mix) {
+      const [n, corp, direct, cancel] = f.mix;
+      const p = (x) => `${(x / n * 100).toFixed(1)}%`;
+      items.push(row("거래 구성", `법인 매수 <b>${p(corp)}</b> · 직거래 <b>${p(direct)}</b> · 해제 <b>${p(cancel)}</b>`, `최근 3년 신고 ${n}건`));
+    }
+    const land = f.land?.[band];
+    if (land && price) items.push(row("대지지분당 가격", `평당 <b>${f.landEst ? "≈" : ""}${fmtPrice(price / land[1])}</b>`,
+      `대지지분 ${land[1].toFixed(1)}평 (${land[0].toFixed(1)}㎡)`));
+    const rent = f.rent?.[band];
+    const rentBits = [];
+    if (rent && price) rentBits.push(`전세가율 <b>${Math.round(rent[0] / price * 100)}%</b>`);
+    if (f.conv) rentBits.push(`전환율 <b>${f.conv.toFixed(1)}%</b>`);
+    if (f.renew) rentBits.push(`갱신 인상 <b>${f.renew[1] >= 0 ? "+" : ""}${f.renew[1].toFixed(1)}%</b> · 청구권 ${f.renew[2]}%`);
+    if (rentBits.length) items.push(row("전월세", rentBits.join(" · "),
+      rent ? `전세 중앙값 ${fmtPrice(rent[0])} (최근 1년 ${rent[1]}건)` : "최근 1년 기준"));
+    const life = [];
+    if (f.park) life.push(`세대당 주차 <b>${f.park.toFixed(2)}대</b>`);
+    if (f.sub) life.push(`${f.sub[2] ? escapeHtml(f.sub[2]) + "역" : "지하철역"} <b>${escapeHtml(f.sub[0])}</b>${f.sub[1] ? ` (${escapeHtml(f.sub[1])})` : ""}`);
+    if (life.length) items.push(row("주차·교통", life.join(" · "), "K-apt 공동주택관리정보"));
+    el.factsBody.innerHTML = items.join("") || `<p class="trade-distribution-empty">이 단지의 통계가 아직 없습니다.</p>`;
   }
   function bindMapMetrics() {
     const select = document.getElementById("map-metric-select");
@@ -1435,9 +1521,18 @@
       document.getElementById("map-metric-note").textContent=MapMetrics.definitions[select.value][1];
       try { localStorage.setItem("map-metric",select.value); } catch (_) {}
       map.refresh();
-      if (["pyeong","units","turnover","land","landFar","far","coverage"].includes(select.value)) loadMapFacts();
+      if (select.value !== "sale") loadMapFacts();
     }
     select.value=state.mapMetric; select.addEventListener("change",changed); changed();
+    const rank = document.getElementById("rank-mode-select");
+    try { const saved = localStorage.getItem("rank-mode"); if (["gu", "dong", "off"].includes(saved)) state.rankMode = saved; } catch (_) {}
+    rank.value = state.rankMode;
+    rank.addEventListener("change", () => {
+      state.rankMode = rank.value;
+      try { localStorage.setItem("rank-mode", rank.value); } catch (_) {}
+      if (rank.value !== "off") loadMapFacts();
+      map.refresh();
+    });
   }
 
   // ---------- map ----------
@@ -1595,7 +1690,11 @@
       if (color) pin.style.setProperty("--c", color);
       pin.title = `${c.nm} (${where(c)}) · ${MapMetrics.definitions[state.mapMetric][0]}: ${text}`;
       pin.setAttribute("aria-label",pin.title);
-      pin.innerHTML = `<span class="n">${escapeHtml(c.nm)}</span><span class="v">${escapeHtml(text)}</span>`;
+      const rk = state.rankMode !== "off" && factsOf(c)?.rk;
+      const rank = rk && (state.rankMode === "gu" ? rk[0] : rk[2]);
+      const badge = rank ? `<span class="rk" title="${escapeAttr(state.rankMode === "gu" ? (c.gu || c.sgg) : c.umd)} ${rank}위 (최근 1년 3.3㎡당)">${rank}</span>` : "";
+      if (rank) pin.title += ` · ${state.rankMode === "gu" ? (c.gu || c.sgg) : c.umd} ${rank}위`;
+      pin.innerHTML = `${badge}<span class="n">${escapeHtml(c.nm)}</span><span class="v">${escapeHtml(text)}</span>`;
       bindMapSelection(pin, c);
       wrap.appendChild(pin);
       return new kakao.maps.CustomOverlay({
@@ -1978,6 +2077,7 @@
     await mapReady;
     map.refresh();
     state.ready = true;
+    if (state.rankMode !== "off") loadMapFacts();
   })();
 
   // Tablet Chrome in desktop-site mode sends a desktop user agent, and

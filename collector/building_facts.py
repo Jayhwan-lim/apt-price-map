@@ -48,6 +48,7 @@ WEB_DATA = ROOT / "web" / "data"
 HUB = "https://apis.data.go.kr/1613000/BldRgstHubService"
 KAPT_LIST = "https://apis.data.go.kr/1613000/AptListService4/getSigunguAptList4"
 KAPT_BASIC = "https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/getAphusBassInfoV5"
+KAPT_DETAIL = "https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/getAphusDtlInfoV5"
 KST = timezone(timedelta(hours=9))
 TODAY = datetime.now(KST).strftime("%Y%m%d")
 
@@ -349,6 +350,21 @@ def fetch_kapt_basic(session, key, budget, kapt_code):
     }
 
 
+def fetch_kapt_detail(session, key, budget, kapt_code):
+    batch = items_of(get_body(session, KAPT_DETAIL, {"kaptCode": kapt_code}, key, budget))
+    if not batch:
+        return {"f": TODAY}
+    b = batch[0]
+    parking = sum(int(num(b.get(f)) or 0) for f in ("kaptdPcnt", "kaptdPcntu"))
+    return {
+        "pk": parking or None,
+        "sub": (b.get("kaptdWtimesub") or "").strip() or None,
+        "line": (b.get("subwayLine") or "").strip() or None,
+        "st": (b.get("subwayStation") or "").strip() or None,
+        "f": TODAY,
+    }
+
+
 # ---------- run loop ----------
 
 def run_parallel(label, jobs, worker, on_result, workers, flush, every=200):
@@ -462,6 +478,14 @@ def main():
             status["phases"]["kapt_basic"] = run_parallel(
                 "kapt basic", jobs, fetch_kapt_basic, lambda c, rec: basic.put(sgg_of[c], c, rec),
                 workers, basic.flush)
+        detail = Shards(kfolder / "detail")
+        jobs = [(code, (session, key, budget, code)) for s, rec in lists.items()
+                for code, _name, bjd in rec.get("rows", [])
+                if code and bjd in ours and stale(detail.get(s, code), REFRESH_DAYS["kapt_basic"])]
+        if not budget.stopped:
+            status["phases"]["kapt_detail"] = run_parallel(
+                "kapt detail", jobs, fetch_kapt_detail, lambda c, rec: detail.put(sgg_of[c], c, rec),
+                workers, detail.flush)
 
     if "supply" in phases and not budget.stopped:
         types = complex_types()

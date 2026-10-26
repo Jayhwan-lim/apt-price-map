@@ -331,6 +331,32 @@ def _write_icon_pngs(web_dir):
             path.write_bytes(render(*args))
 
 
+def write_trade_mix(mix, months=36):
+    """Per complex, the last `months` complete data months: trades, corporate
+    buyers, direct trades, cancelled. data/facts/trade_mix.json"""
+    last = max((ym for cells in mix.values() for ym in cells), default=0)
+    if not last:
+        return
+    y, m = divmod(last, 100)
+    window = set()
+    for _ in range(months + 1):  # skip the current (partial) month
+        y, m = (y - 1, 12) if m == 1 else (y, m - 1)
+        window.add(y * 100 + m)
+    out = {}
+    for cid, cells in mix.items():
+        tot = [0, 0, 0, 0]
+        for ym, cell in cells.items():
+            if ym in window:
+                tot = [a + b for a, b in zip(tot, cell)]
+        if tot[0]:
+            out[cid] = tot
+    path = ROOT / "data" / "facts" / "trade_mix.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"months": months, "last": last, "complexes": out},
+                               ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n",
+                    encoding="utf-8")
+
+
 def main():
     regions = base_regions()
     shared = shared_lots()
@@ -345,6 +371,9 @@ def main():
     # monthly[cid][type][(y, m)] -> [n_ex, sum_ex, n_all, sum_all]
     monthly = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [0, 0, 0, 0])))
     trades = defaultdict(lambda: defaultdict(list))
+    # mix[cid][yyyymm] -> [trades, corporate buyer, direct, cancelled]
+    mix = defaultdict(lambda: defaultdict(lambda: [0, 0, 0, 0]))
+    mix_from = (datetime.now(KST).year - 4) * 100
     n_rows = n_dup = n_cancel = 0
 
     for code, row in read_raw():
@@ -378,6 +407,13 @@ def main():
 
         cancelled = bool(row["cdealType"].strip())
         direct = row["dealingGbn"].strip() == "직거래"
+        ym = y * 100 + m
+        if ym >= mix_from:
+            cell = mix[cid][ym]
+            cell[0] += 1
+            cell[1] += row.get("buyerGbn", "").strip() == "법인"
+            cell[2] += direct
+            cell[3] += cancelled
         trades[stable][cid].append([date, area, to_int(row["floor"]), amount,
                                     int(direct), int(cancelled), row.get("aptDong", "").strip()])
         if cancelled:
@@ -499,6 +535,7 @@ def main():
         (WEB_DATA / "trades" / f"{stable}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
+    write_trade_mix(mix)
     try:
         from map_metrics import build as build_map_metrics
         build_map_metrics()

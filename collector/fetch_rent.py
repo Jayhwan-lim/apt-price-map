@@ -30,7 +30,18 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "raw_rent"
 URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent"
 KEEP = ("sggCd", "umdNm", "aptNm", "aptSeq", "jibun", "excluUseAr", "dealYear", "dealMonth", "dealDay",
-        "deposit", "monthlyRent", "floor", "contractType")
+        "deposit", "monthlyRent", "floor", "contractType", "contractTerm", "preDeposit", "preMonthlyRent",
+        "useRRRight")
+
+
+def complete(path):
+    """A saved month counts as done only if it carries every kept field
+    (files written before the renewal fields were added are fetched again)."""
+    try:
+        rows = json.loads(gzip.decompress(path.read_bytes()).decode("utf-8"))
+    except (OSError, ValueError):
+        return False
+    return not rows or all(f in rows[0] for f in KEEP)
 KST = timezone(timedelta(hours=9))
 
 
@@ -86,7 +97,7 @@ def main():
         for ym in months:
             for code in codes:
                 path = OUT / code / f"{ym}.json.gz"
-                if path.exists() and ym not in months[:refresh]:
+                if path.exists() and ym not in months[:refresh] and complete(path):
                     continue
                 items, page = [], 1
                 while True:

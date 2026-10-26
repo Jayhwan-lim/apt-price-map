@@ -16,7 +16,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#14202b">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <script src="config.js?v=20261027a"></script>
+  <script src="config.js?v=20261027b"></script>
   <script>
     // Start the Kakao SDK before the map index so its first tile requests
     // aren't queued behind twelve data downloads.
@@ -51,7 +51,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261027a">
+  <link rel="stylesheet" href="style.css?v=20261027b">
 </head>
 <body>
   <div class="app">
@@ -60,7 +60,13 @@
       <div class="map-metric-control">
         <label for="map-metric-select">단지 표시</label>
         <select id="map-metric-select" aria-describedby="map-metric-note"></select>
-        <details><summary>표시 기준</summary><p id="map-metric-note"></p></details>
+        <label for="rank-mode-select" class="rank-mode">순위</label>
+        <select id="rank-mode-select" title="핀의 숫자: 최근 1년 전용 3.3㎡당 가격 순위">
+          <option value="gu">구</option>
+          <option value="dong">동</option>
+          <option value="off">끄기</option>
+        </select>
+        <details><summary>표시 기준</summary><p id="map-metric-note"></p><p class="rank-note">핀 왼쪽 위 숫자는 최근 12개월 실거래의 전용 3.3㎡당 가격으로 매긴 같은 구(또는 동) 안의 순위입니다. 거래 3건 이상인 단지만 매깁니다.</p></details>
       </div>
       <div id="map-fallback" class="map-fallback" hidden>
         <p class="fallback-title">지도를 불러오지 못했습니다</p>
@@ -196,6 +202,11 @@
           <p class="chart-note" id="chart-note"></p>
         </section>
 
+        <section class="trade-distribution" id="facts-section" hidden>
+          <h3>이 단지 한눈에</h3>
+          <dl class="facts-list" id="facts-body"></dl>
+        </section>
+
         <section class="trade-distribution" id="holding-section" hidden>
           <h3>언제 산 사람이 지금 얼마나 벌었을까?</h3>
           <p class="trade-distribution-hint">그해 실거래 중앙값에 샀다고 보고 지금 시세와 비교합니다. 취득세·대출이자 같은 비용은 빠져 있습니다.</p>
@@ -246,8 +257,8 @@
         </section>
       </div>
       <footer class="panel-foot">자료: 국토교통부 아파트 매매 실거래가(공공데이터포털). 해제 신고된 거래는 통계에서 뺐습니다. <a href="privacy">개인정보처리방침</a></footer>
-      <script src="map-metrics.js?v=20261027a"></script>
-      <script src="app.js?v=20261027a"></script>
+      <script src="map-metrics.js?v=20261027b"></script>
+      <script src="app.js?v=20261027b"></script>
       <section class="ad-slot" id="ad-section" aria-label="광고">
           <!-- The ad section appears only after the partner widget creates an iframe. -->
           <div class="ad-slot-body" id="coupang-slot"><script src="https://ads-partners.coupang.com/g.js"></script><script>new PartnersCoupang.G({"id":1037758,"template":"carousel","trackingCode":"AF8973032","width":"400","height":"100","tsource":""});</script></div>

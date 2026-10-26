@@ -101,13 +101,14 @@ def kapt_index():
     """(bjd10, jibun) -> [basic records]."""
     lists = load(FACTS / "kapt" / "list.json", {})
     basic = shards(FACTS / "kapt" / "basic")
+    detail = shards(FACTS / "kapt" / "detail")
     out = defaultdict(list)
     for rec in lists.values():
         for code, _name, bjd in rec.get("rows", []):
             b = basic.get(code)
             if not b or not b.get("addr"):
                 continue
-            out[bjd].append(b)
+            out[bjd].append({**b, "code": code, "detail": detail.get(code) or {}})
     return out
 
 
@@ -142,9 +143,16 @@ def recent_months(last_ym, count):
     return set(out)
 
 
-def rent_deposits(index_by_lot, months):
-    """complex key -> [(exclusive area, jeonse deposit)] from data/raw_rent,
-    jeonse only (monthly rent 0), contracts in `months`."""
+def money(v):
+    try:
+        return float(str(v).replace(",", "").strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def rent_rows(index_by_lot, months):
+    """complex key -> [(area, deposit, monthly, contract type, previous
+    deposit, previous monthly, renewal right used)] from data/raw_rent."""
     rent_dir = ROOT / "data" / "raw_rent"
     out = defaultdict(list)
     if not rent_dir.exists():
@@ -157,12 +165,8 @@ def rent_deposits(index_by_lot, months):
         rows = json.loads(gzip.decompress(path.read_bytes()).decode("utf-8"))
         stable = stable_code(path.parent.name)
         for r in rows:
-            if str(r.get("monthlyRent") or "0").replace(",", "").strip() not in ("0", ""):
-                continue  # 월세 is not comparable with jeonse
-            try:
-                dep = float(str(r["deposit"]).replace(",", ""))
-                area = float(r["excluUseAr"])
-            except (KeyError, ValueError):
+            area, dep, mon = money(r.get("excluUseAr")), money(r.get("deposit")), money(r.get("monthlyRent"))
+            if not area or dep is None or mon is None:
                 continue
             tail = (r.get("jibun") or "").strip() or (r.get("aptNm") or "").strip()
             keys = index_by_lot.get(f"{stable}|{(r.get('umdNm') or '').strip()}|{tail}", [])
@@ -170,8 +174,35 @@ def rent_deposits(index_by_lot, months):
                 seq = (r.get("aptSeq") or "").strip()
                 keys = [k for k in keys if seq and k.endswith("#" + seq)]
             if len(keys) == 1:
-                out[keys[0]].append((area, dep))
+                out[keys[0]].append((area, dep, mon, (r.get("contractType") or "").strip(),
+                                     money(r.get("preDeposit")), money(r.get("preMonthlyRent")),
+                                     (r.get("useRRRight") or "").strip()))
     return out
+
+
+def series_counts(series):
+    """{month index: (n, avg)} for the 'e' (direct excluded) and merged
+    'all' variants of one band's monthly series."""
+    e = series.get("e", [])
+    ex = {e[i]: (e[i + 1], e[i + 2]) for i in range(0, len(e), 3)}
+    all_ = dict(ex)
+    a = series.get("a", [])
+    all_.update({a[i]: (a[i + 1], a[i + 2]) for i in range(0, len(a), 3)})
+    return ex, all_
+
+
+def new_high(rows, lo, hi, recent_from):
+    """[date, amount, previous record] when the band's record price was set
+    by a trade dated on/after recent_from (YYYYMMDD), else None."""
+    hist = sorted((r[0], r[3]) for r in rows
+                  if lo - 0.01 <= r[1] <= hi + 0.01 and not r[5] and not r[4])
+    before = [amt for d, amt in hist if d < recent_from]
+    after = [(d, amt) for d, amt in hist if d >= recent_from]
+    if not before or not after:
+        return None
+    d, amt = max(after, key=lambda x: (x[1], x[0]))
+    prev = max(before)
+    return [d, amt, prev] if amt > prev else None
 
 
 def build():
@@ -191,7 +222,14 @@ def build():
     y0, m0 = divmod(int(data["mstart"]), 100)
     last_index = mcount - 1
     last_ym = (y0 + (m0 - 1 + last_index) // 12) * 100 + (m0 - 1 + last_index) % 12 + 1
-    deposits = rent_deposits(index_by_lot, recent_months(last_ym, 12))
+    rents = rent_rows(index_by_lot, recent_months(last_ym, 12))
+    mix = load(FACTS / "trade_mix.json", {}).get("complexes", {})
+    trades_by_code = {}
+    y, m = divmod(last_ym, 100)
+    for _ in range(2):
+        y, m = (y - 1, 12) if m == 1 else (y, m - 1)
+    recent_from = f"{y:04d}{m:02d}01"  # first day of the 3-month window
+    rank_groups = defaultdict(list)  # (code) and (code, umd) -> [(ppm, key)]
 
     regions, out = {}, {}
     stats = defaultdict(int)
@@ -206,16 +244,58 @@ def build():
         shared = "#" in key
         lid = lot_id(entry)
 
-        # Trades in the last 12 data months: [direct excluded, all]
+        # Trades in the last 12 data months [direct excluded, all], price per
+        # m2 for the regional rank, and activity: last 3 complete months vs
+        # the average 3 months over the 36 before.
         totals = [0, 0]
-        for series in rec.get("m", {}).values():
-            ex = {series["e"][i]: series["e"][i + 1] for i in range(0, len(series.get("e", [])), 3)}
-            all_ = dict(ex)
-            a = series.get("a", [])
-            all_.update({a[i]: a[i + 1] for i in range(0, len(a), 3)})
+        ppm_sum = ppm_n = 0
+        recent3 = base36 = 0
+        for band, series in rec.get("m", {}).items():
+            ex, all_ = series_counts(series)
             for j, counts in enumerate((ex, all_)):
-                totals[j] += sum(n for mi, n in counts.items() if mcount - 12 <= mi < mcount)
+                totals[j] += sum(n for mi, (n, _a) in counts.items() if mcount - 12 <= mi < mcount)
+            area = ty.get(band, [0, 0, 0])[2]
+            if area:
+                for mi, (n, avg) in ex.items():
+                    if mcount - 12 <= mi < mcount:
+                        ppm_sum += n * avg / area
+                        ppm_n += n
+            recent3 += sum(n for mi, (n, _a) in all_.items() if mcount - 4 <= mi <= mcount - 2)
+            base36 += sum(n for mi, (n, _a) in all_.items() if mcount - 40 <= mi <= mcount - 5)
         facts["trades12"] = totals
+        if base36 or recent3:
+            facts["vol"] = [recent3, round(base36 / 12, 1)]
+        if ppm_n >= 3:
+            ppm = ppm_sum / ppm_n * PYEONG
+            facts["ppm"] = round(ppm)
+            rank_groups[(code,)].append((ppm, key))
+            rank_groups[(code, c.get("umd", ""))].append((ppm, key))
+
+        # Record prices: highest yearly median (>= 3 trades) per type, and a
+        # new all-time high set within the last 3 months.
+        peak = {}
+        for band, b in rec.get("st", {}).items():
+            # 전고점: the best year before the latest data year
+            years = [(int(yy), v[1]) for yy, v in (b.get("ex") or {}).items()
+                     if v and v[0] >= 3 and int(yy) < last_ym // 100]
+            if years:
+                yy, med = max(years, key=lambda x: (x[1], x[0]))
+                peak[band] = [yy, med]
+        if peak:
+            facts["peak"] = peak
+        if code not in trades_by_code:
+            trades_by_code[code] = load(web / f"trades/{code}.json", {}).get("complexes", {})
+        rows = trades_by_code[code].get(str(c["id"]), [])
+        highs = {}
+        for band, (lo, hi, _mode, _n) in ty.items():
+            nh = new_high(rows, lo, hi, recent_from)
+            if nh:
+                highs[band] = nh
+        if highs:
+            facts["high"] = highs
+        mx = mix.get(key)
+        if mx and mx[0] >= 5:
+            facts["mix"] = mx
 
         h, h_named = pick_hub(hub.get(lid) if lid else None, c["nm"], shared)
         k = pick_kapt(kapt.get(entry.get("sgg", "") + entry.get("bjd", ""), []), entry, c["nm"], shared) \
@@ -292,19 +372,53 @@ def build():
             facts.pop("supplyEst", None)
             facts.pop("landEst", None)
 
-        # Jeonse median per type (last 12 months, >= 3 contracts)
-        rent = {}
+        # Rent, last 12 months: jeonse median per type (>= 3 contracts),
+        # renewal increase and renewal-right use, monthly-rent conversion rate.
+        rr = rents.get(key, ())
+        rent, conv = {}, []
         for band, (lo, hi, _mode, _n) in ty.items():
-            vals = [d for area, d in deposits.get(key, ()) if lo - 0.3 <= area <= hi + 0.3]
-            if len(vals) >= 3:
-                rent[band] = [int(statistics.median(vals)), len(vals)]
+            in_band = [r for r in rr if lo - 0.3 <= r[0] <= hi + 0.3]
+            jeonse = [r[1] for r in in_band if r[2] == 0]
+            if len(jeonse) >= 3:
+                j = statistics.median(jeonse)
+                rent[band] = [int(j), len(jeonse)]
+                for r in in_band:
+                    if r[2] > 0 and j - r[1] >= 1000:
+                        conv.append(r[2] * 12 / (j - r[1]))
         if rent:
             facts["rent"] = rent
+        if len(conv) >= 3:
+            facts["conv"] = round(statistics.median(conv) * 100, 2)
+        renewals = [r for r in rr if r[3] == "갱신"]
+        ups = [r[1] / r[4] - 1 for r in renewals if r[2] == 0 and r[4] and not r[5]]
+        if len(ups) >= 3:
+            used = sum(1 for r in renewals if r[6] == "사용")
+            facts["renew"] = [len(ups), round(statistics.median(ups) * 100, 1),
+                              round(used / len(renewals) * 100)]
 
-        for f in ("units", "far", "coverage", "occ", "supply", "land", "rent"):
+        # K-apt detail: parking per household, walk to subway
+        det = (k or {}).get("detail") or {}
+        if det.get("pk") and facts.get("units"):
+            per = det["pk"] / facts["units"]
+            if 0.05 <= per <= 6:
+                facts["park"] = round(per, 2)
+        if det.get("sub"):
+            facts["sub"] = [det["sub"], det.get("line") or "", det.get("st") or ""]
+
+        for f in ("units", "far", "coverage", "occ", "supply", "land", "rent", "peak", "high", "vol",
+                  "mix", "conv", "renew", "park", "sub"):
             if f in facts:
                 stats[f] += 1
         out[key] = facts
+
+    # Rank by recent price per 3.3 m2 (exclusive area) within district / dong
+    for group, items in rank_groups.items():
+        items.sort(key=lambda x: -x[0])
+        slot = 0 if len(group) == 1 else 2
+        for i, (_ppm, k) in enumerate(items, 1):
+            rk = out[k].setdefault("rk", [None, None, None, None])
+            rk[slot], rk[slot + 1] = i, len(items)
+    stats["rank"] = sum(1 for f in out.values() if "rk" in f)
 
     target = web / "map-metrics.json"
     tmp = target.with_suffix(".tmp")

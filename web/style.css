@@ -468,3 +468,21 @@ html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; ove
 .map-metric-control details { margin-top:4px; max-width:270px; }
 .map-metric-control summary { cursor:pointer; color:#536477; }
 .map-metric-control p { line-height:1.5; margin:5px 0 0; }
+
+/* Regional price rank badge on map pins */
+.pin { position: relative; }
+.pin .rk {
+  position: absolute; top: -8px; left: -8px; z-index: 2;
+  min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
+  background: #eb6834; color: #fff; font-size: 10.5px; font-weight: 700; line-height: 18px;
+  text-align: center; font-variant-numeric: tabular-nums; box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+}
+.map-metric-control .rank-mode { margin-left: 8px; }
+.rank-note { margin-top: 6px; }
+
+/* "이 단지 한눈에" */
+.facts-list { margin: 8px 0 0; display: grid; gap: 8px; }
+.facts-list > div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 8px; font-size: 12.5px; }
+.facts-list dt { color: var(--muted); }
+.facts-list dd { margin: 0; color: var(--ink); }
+.facts-list dd small { display: block; font-size: 11px; color: var(--muted); }
