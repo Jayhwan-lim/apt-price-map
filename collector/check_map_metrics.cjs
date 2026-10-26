@@ -10,12 +10,11 @@ const assert=require('node:assert/strict');
   assert.equal(await page.locator('#map-metric-select option').count(),11);
   await page.selectOption('#map-metric-select','units');
   await page.waitForFunction(()=>window.__aptMap.state.mapFacts);
-  assert.equal(await page.evaluate(()=>__aptMap.state.mapFacts.complexes['11710|신천동|17'].mainBand),'84');
   for(const metric of ['sale','pyeong','gap','rentRatio','turnover','units','occupancy','land','landFar','far','coverage']){
    await page.selectOption('#map-metric-select',metric);
    const text=await page.evaluate(()=>__aptMap.mapMetricText(__aptMap.state.byKey.get('11710|신천동|17'),'35'));
    assert.ok(text.length>0);
-   if(metric==='units')assert.equal(text,'6,864세대');
+   if(metric==='units')assert.ok(/^[0-9,]+세대$/.test(text), text);
    if(['gap','rentRatio'].includes(metric))assert.ok(text==='전세 정보 없음' || /^(갭 |전세가율 )/.test(text), text);
    if(metric==='land')assert.equal(text,'5평 (16.5㎡)');
    if(metric==='pyeong')assert.ok(text.startsWith('평당 ') && text.endsWith('만원'), text);
@@ -29,7 +28,7 @@ const assert=require('node:assert/strict');
   });
   const name=await page.locator('#metric-test-pin .n').boundingBox();const value=await page.locator('#metric-test-pin .v').boundingBox();assert.ok(value.y>=name.y+name.height-1);
   const select=await page.locator('#map-metric-select').boundingBox();assert.ok(select.x>=0 && select.x+select.width<=width);
-  await page.screenshot({path:'/tmp/owner-ui/map-metric-'+width+'.png'});
+  await page.screenshot({path:'/tmp/site-ui/map-metric-'+width+'.png'});
   assert.deepEqual(errors,[]);await context.close();
  }
  await browser.close();console.log('Map metric controls and two-line pins passed at three viewport widths');

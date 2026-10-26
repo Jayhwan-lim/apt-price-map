@@ -445,14 +445,15 @@ body.detail-open .detail-col {
   body.detail-open .detail-col { grid-row: 1; }
 }
 
-.owner-market { margin-top: 12px; font-size: 13px; }
-.owner-market small, .owner-row small { display: block; font-size: 11px; color: var(--muted); }
-.owner-row { grid-template-columns: 90px minmax(0, 1fr) 82px; }
-.owner-current { outline: 1px solid var(--ref); outline-offset: 3px; border-radius: 3px; }
-.owner-method { margin-top: 12px; font-size: 12px; color: var(--muted); }
-.owner-method summary { cursor: pointer; padding: 8px 0; }
-.owner-method p { margin: 8px 0; }
-.owner-row .trade-distribution-fill { min-width: 0; }
+.hold-row { grid-template-columns: 112px minmax(0, 1fr) 84px; }
+.hold-row small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+.hold-row.is-thin { opacity: .5; }
+.hold-row.is-base { outline: 1px solid var(--ref); outline-offset: 3px; border-radius: 3px; }
+.hold-track { position: relative; overflow: visible; }
+.hold-track.split::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--line); }
+.hold-fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+.hold-fill.up { background: var(--up); }
+.hold-fill.down { background: var(--down); }
 html.phone-ui body.sheet-open .panel { height: 100dvh; min-height: 0; overflow: hidden; }
 html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
 

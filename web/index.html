@@ -16,7 +16,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#14202b">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <script src="config.js?v=20261026b"></script>
+  <script src="config.js?v=20261027a"></script>
   <script>
     // Start the Kakao SDK before the map index so its first tile requests
     // aren't queued behind twelve data downloads.
@@ -51,7 +51,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261026b">
+  <link rel="stylesheet" href="style.css?v=20261027a">
 </head>
 <body>
   <div class="app">
@@ -196,16 +196,10 @@
           <p class="chart-note" id="chart-note"></p>
         </section>
 
-        <section class="trade-distribution" id="owner-distribution-section" hidden>
-          <h3>현재 소유주들은 얼마에 매수했을까? <span class="badge-thin">모형 추정 · 시범</span></h3>
-          <p class="trade-distribution-hint">공개 거래를 실제 세대수에 배정한 추정 분포입니다. 개별 소유주의 실제 매수가를 확인한 값은 아닙니다.</p>
-          <div id="owner-distribution-body" aria-live="polite"></div>
-          <details class="owner-method"><summary>추정 방식과 한계</summary>
-            <p>동이 있는 거래는 같은 동·층·전용면적의 세대수 안에서 최근순으로 배정합니다. 동이 없는 거래는 같은 층·면적의 각 세대가 거래됐을 가능성이 같다고 가정하고, 반복 매매로 이전 가격이 대체될 확률을 반영합니다.</p>
-            <p>건축물대장의 호수와 거래를 연결하지 않습니다. 동일 동·층·면적에도 여러 호가 있어 실제 마지막 매매를 확정할 수 없습니다. 동 누락 거래의 균등 확률 가정은 실제 보유기간이나 세대별 거래 빈도를 확인한 결과가 아닙니다.</p>
-            <p>비교 가격은 최근 1개월 실거래 중앙값이며 3건 미만이면 3·6·12개월로 넓힙니다. 위 가격 비교 기능의 평균가와 다를 수 있습니다. 해제와 직거래 설정을 반영하며 별도의 이상거래 추정 필터는 적용하지 않습니다.</p>
-            <p><a href="owner-method.html" target="_blank" rel="noopener">전체 계산 방법 보기</a></p>
-          </details>
+        <section class="trade-distribution" id="holding-section" hidden>
+          <h3>언제 산 사람이 지금 얼마나 벌었을까?</h3>
+          <p class="trade-distribution-hint">그해 실거래 중앙값에 샀다고 보고 지금 시세와 비교합니다. 취득세·대출이자 같은 비용은 빠져 있습니다.</p>
+          <div id="holding-body" aria-live="polite"></div>
         </section>
 
         <section class="trade-distribution" id="trade-distribution-section" hidden>
@@ -252,8 +246,8 @@
         </section>
       </div>
       <footer class="panel-foot">자료: 국토교통부 아파트 매매 실거래가(공공데이터포털). 해제 신고된 거래는 통계에서 뺐습니다. <a href="privacy">개인정보처리방침</a></footer>
-      <script src="map-metrics.js?v=20261026b"></script>
-      <script src="app.js?v=20261026b"></script>
+      <script src="map-metrics.js?v=20261027a"></script>
+      <script src="app.js?v=20261027a"></script>
       <section class="ad-slot" id="ad-section" aria-label="광고">
           <!-- The ad section appears only after the partner widget creates an iframe. -->
           <div class="ad-slot-body" id="coupang-slot"><script src="https://ads-partners.coupang.com/g.js"></script><script>new PartnersCoupang.G({"id":1037758,"template":"carousel","trackingCode":"AF8973032","width":"400","height":"100","tsource":""});</script></div>

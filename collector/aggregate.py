@@ -499,8 +499,6 @@ def main():
         (WEB_DATA / "trades" / f"{stable}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
-    from owner_distribution import build_optional as build_owner_distribution
-    build_owner_distribution()
     try:
         from map_metrics import build as build_map_metrics
         build_map_metrics()

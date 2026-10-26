@@ -1,8 +1,7 @@
 """Per-complex map facts (web/data/map-metrics.json).
 
 Sources, in priority order where they overlap:
-  units      verified owner inventory > K-apt 기본정보 > 건축물대장 > earlier
-             building_facts snapshot
+  units      K-apt 기본정보 > 건축물대장 > earlier building_facts snapshot
   far/cov    건축물대장 총괄표제부 (표제부 for single-building lots)
   occ        K-apt 사용승인일 > 건축물대장 사용승인일
   supply     건축물대장 전유공용면적: exclusive + residential common area per
@@ -178,9 +177,6 @@ def rent_deposits(index_by_lot, months):
 def build():
     web = ROOT / "web" / "data"
     data = json.loads((web / "complexes.json").read_text())
-    owners = load(web / "owner-distributions.json", {})
-    verified = owners.get("complexes", {}) if owners.get("generated") == data["generated"] else {}
-    inventory = {e["complex_key"]: e for e in load(ROOT / "data" / "owner_inventory.json", [])}
     land_pilot = load(ROOT / "data" / "land_facts.json", {})
     old_building = shards(ROOT / "data" / "building_facts")
     lots = load(FACTS / "lots.json", {})
@@ -227,12 +223,7 @@ def build():
         old = old_building.get(key) or {}
 
         # Households
-        owner = verified.get(key)
-        if owner and key in inventory and \
-                sum(v["ex"]["total"] for v in owner["bands"].values()) == inventory[key]["expected_units"]:
-            facts["units"] = sum(v["ex"]["total"] for v in owner["bands"].values())
-            facts["mainBand"] = max(owner["bands"].items(), key=lambda kv: kv[1]["ex"]["total"])[0]
-        elif k and k.get("u"):
+        if k and k.get("u"):
             facts["units"] = k["u"]
         elif h and h.get("u") and (h_named or not shared):
             facts["units"] = h["u"]
