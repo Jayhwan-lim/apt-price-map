@@ -54,7 +54,9 @@ jobs:
           MAX_CALLS: ${{ inputs.max_calls || '60000' }}
           SUPPLY_PAGES: ${{ inputs.supply_pages || '30' }}
           MAX_MINUTES: "270"
-          WORKERS: "4"
+          # One connection: the gateway answers ~5-6 req/s sequentially with no
+          # 429s, while parallel connections are throttled hard (2026-10-26).
+          WORKERS: "1"
         run: python collector/building_facts.py
 
       - name: Recent rent contracts

@@ -20,7 +20,7 @@ Environment:
     PHASES        comma list, default "hub,kapt,supply"
     MAX_CALLS     per-run request cap across phases, default 50000
     MAX_MINUTES   stop fetching after this many minutes, default 300
-    WORKERS       concurrent requests, default 4
+    WORKERS       concurrent requests, default 1 (parallel connections get 429s)
     SUPPLY_PAGES  max pages sampled per lot, default 30
 """
 
@@ -376,7 +376,7 @@ def main():
         sys.exit("DATA_GO_KR_HUB_KEY or DATA_GO_KR_KEY is required")
     phases = [p.strip() for p in os.environ.get("PHASES", "hub,kapt,supply").split(",") if p.strip()]
     budget = Budget(os.environ.get("MAX_CALLS", "50000"), os.environ.get("MAX_MINUTES", "300"))
-    workers = int(os.environ.get("WORKERS", "4"))
+    workers = int(os.environ.get("WORKERS", "1"))
     max_pages = int(os.environ.get("SUPPLY_PAGES", "30"))
     session = requests.Session()
     adapter = requests.adapters.HTTPAdapter(pool_connections=workers, pool_maxsize=workers * 2)

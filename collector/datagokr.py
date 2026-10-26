@@ -95,7 +95,7 @@ class Throttle:
         with self._lock:
             self.strikes += 1
             self.hits += 1
-            backoff = min(120.0, 2.0 ** min(self.strikes, 7))
+            backoff = min(30.0, 2.0 ** min(self.strikes - 1, 5))
             self.pause_until = max(self.pause_until, time.monotonic() + backoff)
             return self.strikes
 
@@ -111,7 +111,7 @@ class Throttle:
 
 
 THROTTLE = Throttle()
-MAX_STRIKES = 40  # ~ an hour of back-off with no success: treat as quota
+MAX_STRIKES = 60  # ~ 25 min of back-off with no success: treat as quota
 MAX_CONN_FAILS = 30  # consecutive connection failures across workers
 
 
