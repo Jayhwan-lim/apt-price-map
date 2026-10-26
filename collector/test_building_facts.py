@@ -103,5 +103,21 @@ class CommonRuleTest(unittest.TestCase):
         self.assertFalse(rc(row("부대시설", "경비실,재활용품창고")))
 
 
+class RecapFillTest(unittest.TestCase):
+    def test_blank_recap_completed_from_titles(self):
+        from building_facts import complete, needs_fill
+        recap = title_record({"bldNm": "은마아파트", "hhldCnt": "4424", "platArea": "0", "vlRat": "0",
+                              "bcRat": "0", "vlRatEstmTotArea": "488472.85", "archArea": "35000", "useAprDay": ""})
+        self.assertTrue(needs_fill({"s": "recap", "r": [recap]}))
+        homes = [title_record({"platArea": "239000", "useAprDay": "19791206"}),
+                 title_record({"platArea": "0", "useAprDay": "19790930"})]
+        row = complete(recap, homes)
+        self.assertEqual(row["d"], "19790930")
+        self.assertEqual(row["pa"], 239000.0)
+        self.assertAlmostEqual(row["v"], 204.38, places=2)
+        self.assertAlmostEqual(row["b"], 14.64, places=2)
+        self.assertFalse(needs_fill({"s": "recap", "r": [row], "fill": 1}))
+
+
 if __name__ == "__main__":
     unittest.main()

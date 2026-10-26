@@ -137,17 +137,38 @@ def title_record(row):
         "v": num(row.get("vlRat")),
         "b": num(row.get("bcRat")),
         "ve": num(row.get("vlRatEstmTotArea")),
+        "aa": num(row.get("archArea")),
         "u": int(num(row.get("hhldCnt")) or 0),
         "d": (row.get("useAprDay") or "").strip(),
     }
 
 
-def fetch_hub(session, key, budget, lot):
-    params = {**lot_params(lot), "numOfRows": "100", "pageNo": "1", "_type": "json"}
-    rows = items_of(get_body(session, f"{HUB}/getBrRecapTitleInfo", params, key, budget))
-    if rows:
-        return {"s": "recap", "r": [title_record(r) for r in rows], "f": TODAY}
-    # No 총괄표제부: single-building lots carry the figures on 표제부.
+def needs_fill(rec):
+    """Recap records with blank site area, ratios or use-approval date,
+    not yet completed from the per-building 표제부."""
+    if not rec or rec.get("fill") or rec.get("s") != "recap":
+        return False
+    return any(not (r.get("pa") and r.get("v") and r.get("b") and r.get("d")) for r in rec.get("r", []))
+
+
+def complete(rec_row, homes):
+    """Fill gaps in a recap row from per-building title rows; ratios the
+    register left blank are computed from its own floor areas."""
+    if not rec_row.get("d"):
+        rec_row["d"] = min((h["d"] for h in homes if h["d"]), default="")
+    if not rec_row.get("pa"):
+        rec_row["pa"] = max((h["pa"] or 0 for h in homes), default=0) or None
+    pa = rec_row.get("pa")
+    if pa and not rec_row.get("v") and rec_row.get("ve"):
+        rec_row["v"] = round(rec_row["ve"] / pa * 100, 2)
+        rec_row["vc"] = 1
+    if pa and not rec_row.get("b") and rec_row.get("aa"):
+        rec_row["b"] = round(rec_row["aa"] / pa * 100, 2)
+        rec_row["bc"] = 1
+    return rec_row
+
+
+def fetch_titles(session, key, budget, params):
     rows, page = [], 1
     while page <= 5:
         body = get_body(session, f"{HUB}/getBrTitleInfo", {**params, "pageNo": str(page)}, key, budget)
@@ -156,10 +177,23 @@ def fetch_hub(session, key, budget, lot):
         if not batch or len(rows) >= int(num(body.get("totalCount")) or 0):
             break
         page += 1
-    homes = [r for r in rows if (r.get("mainPurpsCdNm") or "").strip() in RESIDENTIAL]
-    if not homes:
+    return [title_record(r) for r in rows if (r.get("mainPurpsCdNm") or "").strip() in RESIDENTIAL]
+
+
+def fetch_hub(session, key, budget, lot):
+    params = {**lot_params(lot), "numOfRows": "100", "pageNo": "1", "_type": "json"}
+    rows = items_of(get_body(session, f"{HUB}/getBrRecapTitleInfo", params, key, budget))
+    if rows:
+        rec = {"s": "recap", "r": [title_record(r) for r in rows], "f": TODAY}
+        if needs_fill(rec):
+            homes = fetch_titles(session, key, budget, params)
+            rec["r"] = [complete(r, homes) for r in rec["r"]]
+            rec["fill"] = 1
+        return rec
+    # No 총괄표제부: single-building lots carry the figures on 표제부.
+    recs = fetch_titles(session, key, budget, params)
+    if not recs:
         return {"s": "none", "r": [], "f": TODAY}
-    recs = [title_record(r) for r in homes]
     with_site = [r for r in recs if (r["pa"] or 0) > 0]
     merged = {
         "nm": max((r["nm"] for r in recs), key=lambda n: sum(1 for r in recs if r["nm"] == n)),
@@ -168,11 +202,14 @@ def fetch_hub(session, key, budget, lot):
         "u": sum(r["u"] for r in recs),
         "d": min((r["d"] for r in recs if r["d"]), default=""),
         "ve": sum(r["ve"] or 0 for r in recs) or None,
+        "aa": sum(r["aa"] or 0 for r in recs) or None,
     }
     # Ratios are per building on 표제부; they describe the lot only when one
-    # building carries the site area.
-    if len(with_site) == 1:
+    # building carries the site area. Otherwise compute from summed areas.
+    if len(with_site) == 1 and with_site[0]["v"]:
         merged["v"], merged["b"] = with_site[0]["v"], with_site[0]["b"]
+    else:
+        complete(merged, [])
     return {"s": "title", "r": [merged], "f": TODAY, "nb": len(recs)}
 
 
@@ -398,7 +435,7 @@ def main():
     if "hub" in phases and not budget.stopped:
         hub = Shards(FACTS / "hub")
         jobs = [(lid, (session, key, budget, lid)) for lid, (code, _) in lots.items()
-                if stale(hub.get(code, lid), REFRESH_DAYS["hub"])]
+                if stale(hub.get(code, lid), REFRESH_DAYS["hub"]) or needs_fill(hub.get(code, lid))]
         status["phases"]["hub"] = run_parallel(
             "hub", jobs, fetch_hub, lambda lid, rec: hub.put(lots[lid][0], lid, rec), workers, hub.flush)
 
