@@ -332,7 +332,9 @@
   }
 
   async function loadFull() {
-    const data = await loadJson(CFG.dataUrl);
+    const early = window.__fullPromise ? await window.__fullPromise : null;
+    window.__fullPromise = null;
+    const data = early || await loadJson(CFG.dataUrl);
     if (!data) return false;
     state.data = data;
     state.byKey.clear();

@@ -2,9 +2,9 @@ name: owner-distribution-validation
 on:
   push:
     branches: [main]
-    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml', 'docs/owner-peer-snapshots.json']
+    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml']
   pull_request:
-    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml', 'docs/owner-peer-snapshots.json']
+    paths: ['collector/**', 'web/**', 'data/owner_inventory.json', '.github/workflows/owner-validation.yml']
 permissions:
   contents: read
 jobs:
@@ -16,6 +16,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: pip install -r requirements.txt
       - run: python -m unittest discover -s collector -p 'test_*.py'
       - run: node --check web/app.js
       - run: node --check web/map-metrics.js
@@ -26,10 +27,6 @@ jobs:
         run: |
           python collector/owner_distribution.py
           git diff --exit-code -- web/data/owner-distributions.json
-      - name: Verify reproducible comparison records
-        run: |
-          python collector/compare_owner_models.py
-          git diff --exit-code -- docs/owner-comparison-latest.json docs/owner-comparison-latest.md
       - name: Browser verification
         run: |
           npm install --prefix "$RUNNER_TEMP/owner-browser" playwright

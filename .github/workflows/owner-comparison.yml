@@ -1,7 +1,7 @@
 name: Weekly owner comparison
+# Manual only (2026-10-26): the weekly run fetched another service's API
+# (ulma.site) and committed its figures to this public repository.
 on:
-  schedule:
-    - cron: '20 4 * * 1'
   workflow_dispatch:
 permissions:
   contents: write
