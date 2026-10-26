@@ -155,9 +155,14 @@ def get_body(session, url, params, key, budget, retries=4):
             data = resp.json()["response"]
             code = str(data["header"]["resultCode"]).strip()
         except (ValueError, KeyError, TypeError):
-            last = ApiError(f"HTTP {resp.status_code} unexpected body")
-            attempt += 1
-            time.sleep(2 * attempt)
+            # Under sustained load the gateway sometimes answers 200 with an
+            # empty or non-JSON body: back off like a 429 and retry.
+            n = THROTTLE.hit()
+            if THROTTLE.hits in (1, 10, 100, 1000):
+                print(f"  unexpected body (HTTP {resp.status_code}): {text[:120]!r}", flush=True)
+            if n >= MAX_STRIKES:
+                budget.stop("unreadable responses persisted")
+                raise QuotaExceeded("unreadable responses persisted")
             continue
         if code in ("00", "000", "0"):
             return data.get("body") or {}

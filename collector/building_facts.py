@@ -443,7 +443,7 @@ def main():
     status["calls"] = budget.calls
     status["throttled"] = THROTTLE.hits
     status["stopped"] = budget.stopped
-    save_json(FACTS / "status.json", status)
+    save_json(FACTS / os.environ.get("FACTS_STATUS", "status.json"), status)
     print(json.dumps(status, ensure_ascii=False))
 
 
