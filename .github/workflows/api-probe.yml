@@ -7,6 +7,9 @@ on:
       lots:
         description: "Comma list of sgg-bjd-bun-ji"
         default: "11710-10100-0022-0000"
+      kapt:
+        description: "K-apt codes to inspect"
+        default: ""
       script:
         description: "api_probe or rate_probe"
         default: "api_probe"
@@ -29,3 +32,4 @@ jobs:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           DATA_GO_KR_HUB_KEY: ${{ secrets.DATA_GO_KR_HUB_KEY }}
           LOTS: ${{ inputs.lots }}
+          KAPT: ${{ inputs.kapt }}

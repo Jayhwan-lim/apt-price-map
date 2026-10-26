@@ -31,7 +31,18 @@ def rent_check():
     print(f"rent: HTTP {r.status_code}", text[:1200])
 
 
+def kapt_check():
+    key = os.environ.get("DATA_GO_KR_KEY", "").strip()
+    for code in [c for c in os.environ.get("KAPT", "").split(",") if c]:
+        r = requests.get("https://apis.data.go.kr/1613000/AptBasisInfoServiceV5/getAphusBassInfoV5",
+                         params={"serviceKey": key, "kaptCode": code}, timeout=40)
+        print(f"kapt {code}: HTTP {r.status_code} {r.headers.get('content-type')}", r.text.replace(key, "<key>")[:600])
+
+
 def main():
+    if os.environ.get("KAPT"):
+        kapt_check()
+        return
     rent_check()
     for lot in [x for x in os.environ.get("LOTS", "").split(",") if x]:
         sgg, bjd, bun, ji = lot.split("-")
