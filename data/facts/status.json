@@ -1,1 +1,1 @@
-{"calls":802,"generated":"2026-10-26T07:30:10+09:00","lots":17101,"phases":{"hub":{"done":50,"failed":0,"queued":17068,"stopped":"HTTP 429"},"kapt_basic":{"done":20,"failed":0,"queued":5304,"stopped":"HTTP 429"},"kapt_list":{"done":20,"failed":0,"queued":52,"stopped":"HTTP 429"},"supply":{"done":66,"failed":0,"queued":15731,"stopped":"HTTP 429"}},"stopped":null}
+{"calls":1428,"generated":"2026-10-26T09:18:13+09:00","lots":17101,"phases":{"hub":{"done":0,"failed":356,"queued":17018,"stopped":"time budget reached"}},"stopped":"time budget reached","throttled":0}
