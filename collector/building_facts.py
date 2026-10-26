@@ -39,7 +39,7 @@ from pathlib import Path
 import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from datagokr import ApiError, Budget, StopRun, get_body, items_of, num  # noqa: E402
+from datagokr import THROTTLE, ApiError, Budget, StopRun, get_body, items_of, num  # noqa: E402
 from lots import build_index, lot_id, lot_params  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -441,6 +441,7 @@ def main():
             workers, supply.flush, every=100)
 
     status["calls"] = budget.calls
+    status["throttled"] = THROTTLE.hits
     status["stopped"] = budget.stopped
     save_json(FACTS / "status.json", status)
     print(json.dumps(status, ensure_ascii=False))

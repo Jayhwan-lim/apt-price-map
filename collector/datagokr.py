@@ -75,20 +75,60 @@ def _gateway_error(text):
     return ApiError(f"{reason} {msg}")
 
 
+class Throttle:
+    """Shared back-off for HTTP 429 (per-second rate limit). Every worker
+    waits out the pause; consecutive hits grow it up to two minutes."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self.pause_until = 0.0
+        self.strikes = 0
+        self.hits = 0
+
+    def wait(self):
+        with self._lock:
+            delay = self.pause_until - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+
+    def hit(self):
+        with self._lock:
+            self.strikes += 1
+            self.hits += 1
+            backoff = min(120.0, 2.0 ** min(self.strikes, 7))
+            self.pause_until = max(self.pause_until, time.monotonic() + backoff)
+            return self.strikes
+
+    def ok(self):
+        with self._lock:
+            self.strikes = 0
+
+
+THROTTLE = Throttle()
+MAX_STRIKES = 40  # ~ an hour of back-off with no success: treat as quota
+
+
 def get_body(session, url, params, key, budget, retries=4):
     """Return the response body dict ({} for no data). Raises StopRun
     subclasses for run-ending conditions and ApiError after retries."""
     last = None
-    for attempt in range(retries):
+    attempt = 0
+    while attempt < retries:
+        THROTTLE.wait()
         budget.take()
         try:
             resp = session.get(url, params={"serviceKey": key, **params}, timeout=40)
         except requests.RequestException as exc:
             last = ApiError(type(exc).__name__)
-            time.sleep(2 * (attempt + 1))
+            attempt += 1
+            time.sleep(2 * attempt)
             continue
         if resp.status_code == 429:
-            raise QuotaExceeded("HTTP 429")
+            if THROTTLE.hit() >= MAX_STRIKES:
+                budget.stop("HTTP 429 persisted")
+                raise QuotaExceeded("HTTP 429 persisted")
+            continue  # rate limited: wait and retry without using an attempt
+        THROTTLE.ok()
         text = resp.text.lstrip()
         if text.startswith("<"):
             err = _gateway_error(text)
@@ -96,14 +136,16 @@ def get_body(session, url, params, key, budget, retries=4):
                 budget.stop(str(err))
                 raise err
             last = err
-            time.sleep(2 * (attempt + 1))
+            attempt += 1
+            time.sleep(2 * attempt)
             continue
         try:
             data = resp.json()["response"]
             code = str(data["header"]["resultCode"]).strip()
         except (ValueError, KeyError, TypeError):
             last = ApiError(f"HTTP {resp.status_code} unexpected body")
-            time.sleep(2 * (attempt + 1))
+            attempt += 1
+            time.sleep(2 * attempt)
             continue
         if code in ("00", "000", "0"):
             return data.get("body") or {}
@@ -113,7 +155,8 @@ def get_body(session, url, params, key, budget, retries=4):
             budget.stop("daily quota exceeded")
             raise QuotaExceeded(data["header"].get("resultMsg", ""))
         last = ApiError(f"result {code} {data['header'].get('resultMsg', '')}")
-        time.sleep(2 * (attempt + 1))
+        attempt += 1
+        time.sleep(2 * attempt)
     raise last or ApiError("unknown error")
 
 
