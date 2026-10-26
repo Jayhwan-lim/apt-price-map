@@ -50,7 +50,7 @@ def months_back(n):
 
 def get_page(session, key, code, ym, page):
     r = session.get(URL, params={"serviceKey": key, "LAWD_CD": code, "DEAL_YMD": ym,
-                                 "pageNo": page, "numOfRows": 1000}, timeout=40)
+                                 "pageNo": page, "numOfRows": 1000}, timeout=(10, 40))
     root = ET.fromstring(r.content)
     if root.tag == "OpenAPI_ServiceResponse":
         reason = (root.findtext(".//returnReasonCode") or "").strip()
@@ -97,8 +97,10 @@ def main():
                         try:
                             batch, total = get_page(session, key, code, ym, page)
                             break
-                        except (requests.RequestException, ET.ParseError, RuntimeError):
+                        except (requests.RequestException, ET.ParseError, RuntimeError) as exc:
                             if attempt == 2:
+                                if isinstance(exc, requests.ConnectionError):
+                                    raise Stop("API unreachable from this runner") from None
                                 raise
                             time.sleep(2 * (attempt + 1))
                     items += batch

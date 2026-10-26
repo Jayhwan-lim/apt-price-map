@@ -102,10 +102,17 @@ class Throttle:
     def ok(self):
         with self._lock:
             self.strikes = 0
+            self.conn_fails = 0
+
+    def conn_fail(self):
+        with self._lock:
+            self.conn_fails = getattr(self, "conn_fails", 0) + 1
+            return self.conn_fails
 
 
 THROTTLE = Throttle()
 MAX_STRIKES = 40  # ~ an hour of back-off with no success: treat as quota
+MAX_CONN_FAILS = 30  # consecutive connection failures across workers
 
 
 def get_body(session, url, params, key, budget, retries=4):
@@ -117,8 +124,13 @@ def get_body(session, url, params, key, budget, retries=4):
         THROTTLE.wait()
         budget.take()
         try:
-            resp = session.get(url, params={"serviceKey": key, **params}, timeout=40)
+            resp = session.get(url, params={"serviceKey": key, **params}, timeout=(10, 40))
         except requests.RequestException as exc:
+            if isinstance(exc, requests.ConnectionError) and THROTTLE.conn_fail() >= MAX_CONN_FAILS:
+                # The gateway stopped accepting connections from this runner;
+                # a later run (new runner, new address) picks up from here.
+                budget.stop("API unreachable from this runner")
+                raise RunLimit("API unreachable from this runner")
             last = ApiError(type(exc).__name__)
             attempt += 1
             time.sleep(2 * attempt)
