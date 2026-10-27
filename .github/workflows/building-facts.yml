@@ -26,10 +26,13 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
-# Shares the group with collect-trades so the two never push at once.
+# Own group: a queued run here must never displace a queued collect-trades
+# run (a group keeps only one pending run). Pushes from both rebase and
+# retry, and they write different files.
 concurrency:
-  group: collect-trades
+  group: building-facts
   cancel-in-progress: false
 
 env:
@@ -160,3 +163,16 @@ jobs:
                                        headers={"Content-Type": "application/json"})
           urllib.request.urlopen(req, timeout=10)
           PY
+
+      # GitHub's cron fires hours late or not at all: while supply areas are
+      # still missing, queue the next run right away (cron is a fallback).
+      - name: Queue the next run while work remains
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          more=$(python -c "import json; p=json.load(open('data/facts/status.json'))['phases']; print(any((p.get(n) or {}).get('stopped') == 'time budget reached' for n in ('hub', 'supply')))")
+          echo "work remains: $more"
+          if [ "$more" = "True" ]; then
+            gh api -X POST "repos/${{ github.repository }}/actions/workflows/building-facts.yml/dispatches" -f ref=main
+          fi

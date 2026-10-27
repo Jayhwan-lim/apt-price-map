@@ -3,7 +3,9 @@ name: kapt-facts
 # K-apt household count, use-approval date, exclusive-area total, parking and
 # subway for every complex. The service lets a burst of ~30 requests through
 # and then only ~5 a minute, so it gets its own near-continuous schedule
-# (4 runs a day, 5h20m each) instead of a slot inside building-facts.
+# (5h20m runs) instead of a slot inside building-facts. GitHub's cron
+# fires hours late or not at all, so each run queues the next one itself
+# while work remains; the cron is only a fallback.
 # Results land on main; building-facts' publish job picks them up.
 on:
   workflow_dispatch:
@@ -16,6 +18,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: kapt-facts
@@ -45,9 +48,9 @@ jobs:
           MAX_CALLS: "100000"
           MAX_MINUTES: ${{ inputs.max_minutes || '320' }}
           WORKERS: "1"
-          # One request every 8 s: close to what the service refills, so
-          # few calls are wasted on refusals.
-          MIN_INTERVAL: "8"
+          # One request every 5 s. At 8 s a whole run saw no refusal
+          # (2026-10-27); refusals still back off automatically.
+          MIN_INTERVAL: "5"
         run: python collector/building_facts.py
       - name: Commit
         if: always()
@@ -64,3 +67,13 @@ jobs:
             sleep $((i * 20))
           done
           exit 1
+      - name: Queue the next run while work remains
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          more=$(python -c "import json; p=json.load(open('data/facts/status-kapt.json'))['phases']; print(any((v or {}).get('stopped') == 'time budget reached' for v in p.values()))")
+          echo "work remains: $more"
+          if [ "$more" = "True" ]; then
+            gh api -X POST "repos/${{ github.repository }}/actions/workflows/kapt-facts.yml/dispatches" -f ref=main
+          fi
