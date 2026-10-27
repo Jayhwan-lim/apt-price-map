@@ -1,1 +1,1 @@
-{"calls":2392,"generated":"2026-10-27T11:51:45+09:00","lots":17102,"phases":{"kapt_basic":{"done":2392,"failed":0,"queued":8083,"stopped":"time budget reached"},"kapt_list":{"done":0,"failed":0,"queued":0,"stopped":null}},"stopped":"time budget reached","throttled":0}
+{"calls":3833,"generated":"2026-10-27T18:49:16+09:00","lots":17102,"phases":{"kapt_basic":{"done":3833,"failed":0,"queued":5691,"stopped":"time budget reached"},"kapt_list":{"done":0,"failed":0,"queued":0,"stopped":null}},"stopped":"time budget reached","throttled":0}
