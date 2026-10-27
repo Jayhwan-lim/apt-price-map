@@ -549,6 +549,7 @@
       localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 10)));
     } catch (e) { /* storage unavailable */ }
   }
+  const sideYearTried = new Set();
   function renderSide() {
     const sec = el.sideSec;
     if (!sec) return;
@@ -563,17 +564,21 @@
         const rows = [];
         for (const o of state.data.complexes) {
           if (!inScope(o)) continue;
+          // The band with the most basis trades among those that also have a
+          // current price (a busy band with no recent trade must not drop
+          // the complex from the ranking).
           let best = null;
           for (const b of o.b) {
             const w = baseOf(o, b);
             if (!w) continue;
-            if (!best || w.n > best.w.n) best = { c: o, band: b, w };
+            const now = nowPrice(o, b);
+            const growth = growthOf(w, now);
+            if (growth == null) continue;
+            if (!best || w.n > best.w.n) best = { c: o, band: b, w, now, growth };
           }
           if (!best) continue;
-          const now = nowPrice(best.c, best.band);
-          const growth = growthOf(best.w, now);
-          if (growth == null) continue;
-          rows.push({ ...best, now, growth, diff: 0, sample: now ? Math.min(best.w.n, now.n) : best.w.n, solid: !!now && !now.thin });
+          const { now } = best;
+          rows.push({ ...best, diff: 0, sample: Math.min(best.w.n, now.n), solid: !now.thin });
         }
         return sortEntries(rows, "desc");
       };
@@ -587,7 +592,15 @@
         const fy = baseYear() - 1;
         const baseOf = (o, b) => yearBase(o, b, fy);
         const reg2 = buildRows(baseOf, inRegion);
-        const nat2 = buildRows(baseOf, () => true);
+        // Year stats of other regions come from the per-year file; until it
+        // is loaded only the selected region is known, so the all-region
+        // list would just repeat the regional one. Load it, then redraw.
+        let nat2 = [];
+        if (yearStore.has(fy)) nat2 = buildRows(baseOf, () => true);
+        else if (!sideYearTried.has(fy)) {
+          sideYearTried.add(fy);
+          loadYear(fy).then(() => { if (state.ref === c) renderSide(); });
+        }
         if (reg2.length >= 3 || nat2.length >= 3) { regRows = reg2; natRows = nat2; rankLabel = `${fy}년`; }
       }
       const rowHtml = (r, i) => `<li><button type="button" class="side-item${r.c === c ? " is-cur" : ""}" data-side-key="${escapeAttr(r.c.key)}" data-side-band="${escapeAttr(r.band)}">
@@ -602,7 +615,7 @@
       }
       const natTop = natRows.slice(0, 10);
       if (natTop.length >= 3) {
-        el.sideNatTitle.textContent = `전국 · ${rankLabel} 이후 상승률`;
+        el.sideNatTitle.textContent = `서울·경기 전체 · ${rankLabel} 이후 상승률`;
         natHtml = natTop.map(rowHtml).join("");
       }
     }
@@ -777,10 +790,11 @@
     return out;
   }
 
-  // Growth order (dir "desc" or "asc"), bucketed to 0.5%p with larger samples
-  // first; thin current prices after solid ones; no growth last.
+  // Growth order (dir "desc" or "asc") at the displayed 0.1%p precision,
+  // larger samples first on ties; thin current prices after solid ones;
+  // no growth last.
   function sortEntries(out, dir = "desc") {
-    const bucket = (g) => Math.round(g * 200);
+    const bucket = (g) => Math.round(g * 1000);
     const sign = dir === "asc" ? -1 : 1;
     out.sort((a, b) => {
       if (a.growth == null && b.growth == null) return Math.abs(a.diff) - Math.abs(b.diff);
