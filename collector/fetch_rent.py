@@ -10,7 +10,7 @@ Exits quietly when the key is not registered for the rent service yet
 (국토교통부_아파트 전월세 실거래가 자료 must be approved on data.go.kr).
 
 Environment: DATA_GO_KR_KEY, LOOKBACK (25), REFRESH (2), MAX_CALLS (4000),
-RENT_MINUTES (45: stop and leave the rest to the next run)
+RENT_MINUTES (25: stop and leave the rest to the next run)
 """
 
 import gzip
@@ -89,7 +89,7 @@ def main():
     lookback = int(os.environ.get("LOOKBACK", "25"))
     refresh = int(os.environ.get("REFRESH", "2"))
     cap = int(os.environ.get("MAX_CALLS", "4000"))
-    deadline = time.monotonic() + 60 * float(os.environ.get("RENT_MINUTES", "45"))
+    deadline = time.monotonic() + 60 * float(os.environ.get("RENT_MINUTES", "25"))
     probed = json.loads((ROOT / "data" / "probed_codes.json").read_text()).get("codes", [])
     codes = sorted(set(base_regions()) - set(SPLIT_PROBES)) + sorted(SPLIT_PROBES) + probed
     months = months_back(lookback)
