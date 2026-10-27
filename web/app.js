@@ -1734,6 +1734,37 @@
       });
     }
 
+    // Size shown on a background label: the selected size (or a near one)
+    // when it has a current price, else the nearest size that has one,
+    // else the nearest size at all.
+    function labelBand(c) {
+      const near = nearestType(c, state.band, true);
+      if (near && nowPrice(c, near)) return near;
+      const t = areaOf(state.band);
+      let best = null, d = Infinity;
+      for (const b of c.b) {
+        if (!nowPrice(c, b)) continue;
+        const dk = Math.abs(Number(b) - t);
+        if (dk < d) { best = b; d = dk; }
+      }
+      return best || near || nearestType(c, state.band) || state.band;
+    }
+
+    // Small name tag for complexes whose full label would overlap others.
+    function miniFor(c) {
+      const tag = document.createElement("button");
+      tag.type = "button";
+      tag.className = "mini-pin";
+      tag.textContent = c.nm;
+      tag.title = `${c.nm} (${where(c)}) · ${MapMetrics.definitions[state.mapMetric][0]}: ${mapMetricText(c, labelBand(c))}`;
+      tag.setAttribute("aria-label", tag.title);
+      bindMapSelection(tag, c);
+      return new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(c.lat, c.lng),
+        content: tag, xAnchor: 0.5, yAnchor: 0.5, zIndex: 0,
+      });
+    }
+
     function refresh() {
       if (!kmap || !state.data) return;
       const refreshStartedAt = performance.now();
@@ -1759,33 +1790,31 @@
           mappable(c) && !want.has(c.key) &&
           bounds.contain(new kakao.maps.LatLng(c.lat, c.lng)));
         inView.sort((a, b) => volume(b) - volume(a));
-        // Skip labels that would sit on top of one already placed; busier
-        // complexes win. Highlighted pins always show and block others.
+        // Every complex in view stays visible. Close up (level <= 4) each
+        // gets a full label; at level 5, where labels would pile up, the
+        // busiest get full labels without overlap and the rest a small
+        // name tag. Beyond LABEL_CAP complexes, plain dots keep it fast.
         const proj = kmap.getProjection();
-        // Placed pins carry their height (highlight pins reach ~43px above
-        // their point, compact background labels ~28px), so collision uses
-        // the pair's average height instead of one fixed box.
         const placed = [];
         const pt = (c) => proj.pointFromCoords(new kakao.maps.LatLng(c.lat, c.lng));
         const clashes = (p, h) => placed.some((q) => Math.abs(q.x - p.x) < 136 && Math.abs(q.y - p.y) < (q.h + h) / 2 + 2);
-        for (const [c] of want.values()) if (mappable(c)) { const p = pt(c); placed.push({ x: p.x, y: p.y, h: 48 }); }
-        let n = 0;
-        for (const c of inView) {
-          const mf = state.mapFacts?.generated === state.data?.generated ? state.mapFacts.complexes[c.key] : null;
-          const hasBand = ["units","occupancy","turnover","land","landFar","far","coverage"].includes(state.mapMetric) || !!nearestType(c, state.band, true) || !!mf?.mainBand;
+        const crowded = level >= LABEL_LEVEL;
+        if (crowded) for (const [c] of want.values()) if (mappable(c)) { const p = pt(c); placed.push({ x: p.x, y: p.y, h: 48 }); }
+        const full = [], small = [];
+        inView.forEach((c, i) => {
+          if (i >= LABEL_CAP) { small.push([c, "dot"]); return; }
+          if (!crowded) { full.push(c); return; }
           const p = pt(c);
-          if (hasBand && n < LABEL_CAP && !clashes(p, 48)) {
-            placed.push({ x: p.x, y: p.y, h: 48 });
-            want.set(c.key, [c, "bg", null, mf?.mainBand || nearestType(c, state.band, true) || state.band]);
-            n++;
-          } else {
-            want.set(c.key, [c, hasBand ? "dot" : "dot-nb", null, state.band]);
-          }
-        }
+          if (!clashes(p, 48)) { placed.push({ x: p.x, y: p.y, h: 48 }); full.push(c); }
+          else small.push([c, "mini"]);
+        });
+        for (const [c, kind] of small) want.set(c.key, [c, kind, null, state.band]);
+        // Quietest first so busier labels sit on top where they overlap.
+        for (let i = full.length - 1; i >= 0; i--) want.set(full[i].key, [full[i], "bg", null, labelBand(full[i])]);
       }
       for (const [key, [c, kind, color, band]] of want) {
         if (!mappable(c)) continue;
-        const o = kind === "dot" || kind === "dot-nb" ? dotFor(c, kind === "dot") : pinFor(c, kind, color, band);
+        const o = kind === "mini" ? miniFor(c) : kind === "dot" || kind === "dot-nb" ? dotFor(c, kind === "dot") : pinFor(c, kind, color, band);
         o.setMap(kmap);
         overlays.set(key, o);
       }
