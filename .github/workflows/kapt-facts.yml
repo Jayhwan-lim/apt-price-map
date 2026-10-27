@@ -67,6 +67,17 @@ jobs:
             sleep $((i * 20))
           done
           exit 1
+      # Safety net: if the push still failed, keep the collected shards as
+      # a run artifact (7 days) so a later commit can restore them.
+      - name: Keep collected data if the push failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kapt-facts-${{ github.run_id }}
+          path: |
+            data/facts/kapt
+            data/facts/status-kapt.json
+          retention-days: 7
       - name: Queue the next run while work remains
         if: success()
         env:
