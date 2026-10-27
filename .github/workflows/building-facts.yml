@@ -121,7 +121,7 @@ jobs:
     needs: [register, kapt]
     if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 90
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       CLOUDFLARE_DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK_URL }}
@@ -139,6 +139,7 @@ jobs:
         continue-on-error: true
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          RENT_MINUTES: "45"
         run: python collector/fetch_rent.py
 
       - name: Map metrics
