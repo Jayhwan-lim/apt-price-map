@@ -71,6 +71,9 @@ jobs:
           git add data/facts/hub data/facts/supply data/facts/lots.json data/facts/status.json
           git diff --cached --quiet && exit 0
           git commit -q -m "data: building register facts $(TZ=Asia/Seoul date +%F)"
+          # Files this job wrote but does not own (e.g. lots.json) would
+          # block the rebase; drop them, the committed shards are what count.
+          git checkout -q -- . && git clean -fdq
           for i in 1 2 3 4 5; do
             git pull -q --rebase -X theirs origin main && git push -q && exit 0
             git rebase --abort 2>/dev/null || true
@@ -109,6 +112,9 @@ jobs:
           git add data/facts/kapt data/facts/status-kapt.json
           git diff --cached --quiet && exit 0
           git commit -q -m "data: K-apt facts $(TZ=Asia/Seoul date +%F)"
+          # Files this job wrote but does not own (e.g. lots.json) would
+          # block the rebase; drop them, the committed shards are what count.
+          git checkout -q -- . && git clean -fdq
           for i in 1 2 3 4 5; do
             git pull -q --rebase -X theirs origin main && git push -q && exit 0
             git rebase --abort 2>/dev/null || true
@@ -154,6 +160,7 @@ jobs:
           if [ -d data/raw_rent ]; then git add data/raw_rent; fi
           git diff --cached --quiet && { echo "no changes"; exit 0; }
           git commit -q -m "data: map metrics $(TZ=Asia/Seoul date +%F)"
+          git checkout -q -- . && git clean -fdq
           for i in 1 2 3 4 5; do
             if git pull -q --rebase origin main && git push -q; then
               echo "pushed=true" >> "$GITHUB_OUTPUT"; exit 0
