@@ -1,0 +1,66 @@
+name: kapt-facts
+
+# K-apt household count, use-approval date, exclusive-area total, parking and
+# subway for every complex. The service lets a burst of ~30 requests through
+# and then only ~5 a minute, so it gets its own near-continuous schedule
+# (4 runs a day, 5h20m each) instead of a slot inside building-facts.
+# Results land on main; building-facts' publish job picks them up.
+on:
+  workflow_dispatch:
+    inputs:
+      max_minutes:
+        description: "Fetch time budget (minutes)"
+        default: "320"
+  schedule:
+    - cron: "23 */6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kapt-facts
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  kapt:
+    name: K-apt (households, use approval, parking, subway)
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Collect
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          PHASES: kapt
+          FACTS_STATUS: status-kapt.json
+          MAX_CALLS: "100000"
+          MAX_MINUTES: ${{ inputs.max_minutes || '320' }}
+          WORKERS: "1"
+          # One request every 8 s: close to what the service refills, so
+          # few calls are wasted on refusals.
+          MIN_INTERVAL: "8"
+        run: python collector/building_facts.py
+      - name: Commit
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/facts/kapt data/facts/status-kapt.json
+          git diff --cached --quiet && exit 0
+          git commit -q -m "data: K-apt facts $(TZ=Asia/Seoul date +'%F %H:%M')"
+          git checkout -q -- . && git clean -fdq
+          for i in 1 2 3 4 5 6; do
+            git pull -q --rebase -X theirs origin main && git push -q && exit 0
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 20))
+          done
+          exit 1

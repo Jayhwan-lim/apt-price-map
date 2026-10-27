@@ -5,6 +5,7 @@ call cap, its time budget, or the portal's daily quota, and the caller can
 save what it has. Thread-safe: collectors use a few worker threads.
 """
 
+import os
 import threading
 import time
 import xml.etree.ElementTree as ET
@@ -79,17 +80,24 @@ class Throttle:
     """Shared back-off for HTTP 429 (per-second rate limit). Every worker
     waits out the pause; consecutive hits grow it up to two minutes."""
 
-    def __init__(self):
+    def __init__(self, min_interval=0.0):
         self._lock = threading.Lock()
         self.pause_until = 0.0
         self.strikes = 0
         self.hits = 0
+        # Fixed spacing between requests (MIN_INTERVAL seconds). K-apt lets
+        # a burst of ~30 through and then refuses everything until its
+        # allowance refills (~5 a minute), so pacing wastes fewer calls.
+        self.min_interval = min_interval
+        self.next_slot = 0.0
 
     def wait(self):
         with self._lock:
-            delay = self.pause_until - time.monotonic()
-        if delay > 0:
-            time.sleep(delay)
+            now = time.monotonic()
+            start = max(now, self.pause_until, self.next_slot)
+            self.next_slot = start + self.min_interval
+        if start > now:
+            time.sleep(start - now)
 
     def hit(self):
         with self._lock:
@@ -110,7 +118,7 @@ class Throttle:
             return self.conn_fails
 
 
-THROTTLE = Throttle()
+THROTTLE = Throttle(float(os.environ.get("MIN_INTERVAL", "0")))
 MAX_STRIKES = 60  # ~ 25 min of back-off with no success: treat as quota
 MAX_CONN_FAILS = 30  # consecutive connection failures across workers
 

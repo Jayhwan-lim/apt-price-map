@@ -468,21 +468,34 @@ def main():
         status["phases"]["kapt_list"] = run_parallel(
             "kapt list", jobs, fetch_kapt_list, keep_list, workers, lambda: save_json(kfolder / "list.json", lists))
         ours = {e["sgg"] + e["bjd"] for e in index.values()}
+        # K-apt answers ~5 requests a minute, so ask first about the
+        # neighbourhoods (법정동) with the most trades in the last year.
+        recent = {k: (f.get("trades12") or [0, 0])[1]
+                  for k, f in load_json(WEB_DATA / "map-metrics.json", {}).get("complexes", {}).items()}
+        dong_activity = {}
+        for k, e in index.items():
+            d = e.get("sgg", "") + e.get("bjd", "")
+            dong_activity[d] = dong_activity.get(d, 0) + recent.get(k, 0)
+
+        def busiest_first(jobs):
+            return [j for _a, j in sorted(((dong_activity.get(bjd, 0), (c, a)) for bjd, c, a in jobs),
+                                          key=lambda x: -x[0])]
         basic = Shards(kfolder / "basic")
         jobs = []
         for s, rec in lists.items():
             for code, _name, bjd in rec.get("rows", []):
                 if code and bjd in ours and stale(basic.get(s, code), REFRESH_DAYS["kapt_basic"]):
-                    jobs.append((code, (session, key, budget, code)))
+                    jobs.append((bjd, code, (session, key, budget, code)))
+        jobs = busiest_first(jobs)
         sgg_of = {code: s for s, rec in lists.items() for code, _n, _b in rec.get("rows", [])}
         if not budget.stopped:
             status["phases"]["kapt_basic"] = run_parallel(
                 "kapt basic", jobs, fetch_kapt_basic, lambda c, rec: basic.put(sgg_of[c], c, rec),
                 workers, basic.flush)
         detail = Shards(kfolder / "detail")
-        jobs = [(code, (session, key, budget, code)) for s, rec in lists.items()
-                for code, _name, bjd in rec.get("rows", [])
-                if code and bjd in ours and stale(detail.get(s, code), REFRESH_DAYS["kapt_basic"])]
+        jobs = busiest_first([(bjd, code, (session, key, budget, code)) for s, rec in lists.items()
+                              for code, _name, bjd in rec.get("rows", [])
+                              if code and bjd in ours and stale(detail.get(s, code), REFRESH_DAYS["kapt_basic"])])
         if not budget.stopped:
             status["phases"]["kapt_detail"] = run_parallel(
                 "kapt detail", jobs, fetch_kapt_detail, lambda c, rec: detail.put(sgg_of[c], c, rec),
