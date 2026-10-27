@@ -21,7 +21,8 @@ Environment:
     MAX_CALLS     per-run request cap across phases, default 50000
     MAX_MINUTES   stop fetching after this many minutes, default 300
     WORKERS       concurrent requests, default 1 (parallel connections get 429s)
-    SUPPLY_PAGES  max pages sampled per lot, default 30
+    SUPPLY_PAGES  max pages sampled per lot, default 12 (unsampled types use
+                  the lot's own common-area ratio)
 """
 
 import json
@@ -430,7 +431,7 @@ def main():
     phases = [p.strip() for p in os.environ.get("PHASES", "hub,kapt,supply").split(",") if p.strip()]
     budget = Budget(os.environ.get("MAX_CALLS", "50000"), os.environ.get("MAX_MINUTES", "300"))
     workers = int(os.environ.get("WORKERS", "1"))
-    max_pages = int(os.environ.get("SUPPLY_PAGES", "30"))
+    max_pages = int(os.environ.get("SUPPLY_PAGES", "12"))
     session = requests.Session()
     adapter = requests.adapters.HTTPAdapter(pool_connections=workers, pool_maxsize=workers * 2)
     session.mount("https://", adapter)
@@ -490,13 +491,21 @@ def main():
     if "supply" in phases and not budget.stopped:
         types = complex_types()
         supply = Shards(FACTS / "supply")
+        # Supply area only matters with a current price: skip complexes with
+        # no trade in the last 12 data months and do the busiest first.
+        recent = {k: (f.get("trades12") or [0, 0])[1]
+                  for k, f in load_json(WEB_DATA / "map-metrics.json", {}).get("complexes", {}).items()}
         jobs = []
         for lid, (code, keys) in lots.items():
+            activity = sum(recent.get(k, 0) for k in keys)
+            if recent and not activity:
+                continue
             ranges = [r for k in keys for r in types.get(k, [])]
             rec = supply.get(code, lid)
             if ranges and (stale(rec, REFRESH_DAYS["supply"]) or not covered(rec.get("a", {}), ranges, 1)
                            and rec.get("pg", 0) < max_pages and not rec.get("done")):
-                jobs.append((lid, (session, key, budget, lid, ranges, max_pages)))
+                jobs.append((activity, lid, (session, key, budget, lid, ranges, max_pages)))
+        jobs = [(lid, args) for _a, lid, args in sorted(jobs, key=lambda j: -j[0])]
         status["phases"]["supply"] = run_parallel(
             "supply", jobs, fetch_supply, lambda lid, rec: supply.put(lots[lid][0], lid, rec),
             workers, supply.flush, every=100)

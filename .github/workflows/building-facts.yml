@@ -17,7 +17,7 @@ on:
         default: "150"
       supply_pages:
         description: "Max 전유공용면적 pages sampled per lot"
-        default: "30"
+        default: "12"
   schedule:
     # 05:11 KST, after collect-trades (04:13) refreshed the complex list,
     # and 17:11 KST so results reach the site twice a day.
@@ -41,7 +41,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 200
     steps:
+      # Start from the latest main (not the dispatch/schedule commit): data
+      # shards written by an earlier run must be the base we add to.
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -54,7 +58,7 @@ jobs:
           FACTS_STATUS: status.json
           MAX_CALLS: ${{ inputs.max_calls || '100000' }}
           MAX_MINUTES: ${{ inputs.max_minutes || '150' }}
-          SUPPLY_PAGES: ${{ inputs.supply_pages || '30' }}
+          SUPPLY_PAGES: ${{ inputs.supply_pages || '12' }}
           # One connection: sequential requests run ~5-6/s without 429s,
           # parallel connections are throttled hard (2026-10-26).
           WORKERS: "1"
@@ -68,7 +72,8 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -q -m "data: building register facts $(TZ=Asia/Seoul date +%F)"
           for i in 1 2 3 4 5; do
-            git pull -q --rebase origin main && git push -q && exit 0
+            git pull -q --rebase -X theirs origin main && git push -q && exit 0
+            git rebase --abort 2>/dev/null || true
             sleep $((i * 15))
           done
           exit 1
@@ -78,7 +83,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 200
     steps:
+      # Start from the latest main (not the dispatch/schedule commit): data
+      # shards written by an earlier run must be the base we add to.
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -101,7 +110,8 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -q -m "data: K-apt facts $(TZ=Asia/Seoul date +%F)"
           for i in 1 2 3 4 5; do
-            git pull -q --rebase origin main && git push -q && exit 0
+            git pull -q --rebase -X theirs origin main && git push -q && exit 0
+            git rebase --abort 2>/dev/null || true
             sleep $((i * 15))
           done
           exit 1
