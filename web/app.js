@@ -1551,75 +1551,103 @@
   }
 
   // ---------- map filter (show/hide complexes by attributes) ----------
-  // Ranges are inclusive; an empty bound is open. Price is the latest
-  // trade average of a size, 평당가 per 3.3㎡ of supply area, units and
-  // move-in age from building facts. A complex passes when one of its sizes
-  // (within the area range) meets every price condition at once.
-  const FILTER_FIELDS = ["priceMin", "priceMax", "ppMin", "ppMax", "unitsMin", "unitsMax", "ageMin", "ageMax", "areaMin", "areaMax"];
+  // One filter per map tab. Ranges are inclusive; an empty bound is open.
+  // Size-level filters (band: true) must all hold for one size of the
+  // complex together; the others apply to the whole complex. A complex
+  // with no value for an active filter is hidden.
   const SUPPLY_RATIO_GUESS = 1.33; // typical supply/exclusive ratio when the register has none
+  const SUBWAY_MIN = { "5분이내": 5, "5~10분이내": 10, "10~15분이내": 15, "15~20분이내": 20, "20분초과": 99 };
+  const sizeOfBand = (x) => x.f?.areas?.[x.b] || areaOf(x.b);
+  const supplyOf = (x) => x.f?.supply?.[x.b] || sizeOfBand(x) * SUPPLY_RATIO_GUESS;
+  const FILTER_GROUPS = [
+    ["basic", "기본"], ["price", "가격·전세"], ["build", "건물·대지"], ["life", "생활"], ["trade", "거래·순위"],
+  ];
+  const FILTER_DEFS = [
+    { k: "price", g: "basic", label: "매매가", unit: "억", step: 0.5, band: true, get: (x) => x.now && x.now.avg / 10000 },
+    { k: "pp", g: "basic", label: "평당가", unit: "만원", step: 500, band: true, get: (x) => x.now && x.now.avg / supplyOf(x) * 3.305785 },
+    { k: "units", g: "basic", label: "세대수", unit: "세대", step: 100, get: (x) => x.f?.units || null },
+    { k: "age", g: "basic", label: "입주 연차", unit: "년", step: 1, get: (x) => { const y = x.f?.occ ? +x.f.occ.slice(0, 4) : x.c.by; return y ? ymOf(lastMi())[0] - y : null; } },
+    { k: "area", g: "basic", label: "전용면적", unit: "㎡", step: 1, band: true, needsPrice: false, get: (x) => sizeOfBand(x) },
+    { k: "gap", g: "price", label: "매매전세갭", unit: "억", step: 0.5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? (x.now.avg - r[0]) / 10000 : null; } },
+    { k: "rentRatio", g: "price", label: "전세가율", unit: "%", step: 5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? r[0] / x.now.avg * 100 : null; } },
+    { k: "peak", g: "price", label: "전고점 대비", unit: "%", step: 5, band: true, get: (x) => { const pk = x.f?.peak?.[x.b]; return x.now && pk ? (x.now.avg / pk[1] - 1) * 100 : null; } },
+    { k: "landPrice", g: "price", label: "대지지분당 가격", unit: "억/평", step: 0.5, band: true, get: (x) => { const l = x.f?.land?.[x.b]; return x.now && l ? x.now.avg / l[1] / 10000 : null; } },
+    { k: "conv", g: "price", label: "전월세 전환율", unit: "%", step: 0.5, get: (x) => x.f?.conv ?? null },
+    { k: "renew", g: "price", label: "전세 갱신 인상률", unit: "%", step: 1, get: (x) => x.f?.renew ? x.f.renew[1] : null },
+    { k: "renewRight", g: "price", label: "갱신청구권 사용", unit: "%", step: 10, get: (x) => x.f?.renew ? x.f.renew[2] : null },
+    { k: "land", g: "build", label: "대지지분", unit: "평", step: 1, band: true, needsPrice: false, get: (x) => x.f?.land?.[x.b]?.[1] ?? null },
+    { k: "far", g: "build", label: "용적률", unit: "%", step: 10, get: (x) => x.f?.far || null },
+    { k: "coverage", g: "build", label: "건폐율", unit: "%", step: 5, get: (x) => x.f?.coverage || null },
+    { k: "park", g: "life", label: "세대당 주차", unit: "대", step: 0.1, get: (x) => x.f?.park || null },
+    { k: "subway", g: "life", label: "지하철 도보", unit: "분 이내", step: 5, only: "max", get: (x) => SUBWAY_MIN[x.f?.sub?.[0]] ?? null },
+    { k: "rankGu", g: "trade", label: "구 내 순위", unit: "위", step: 1, get: (x) => x.f?.rk?.[0] || null },
+    { k: "rankDong", g: "trade", label: "동 내 순위", unit: "위", step: 1, get: (x) => x.f?.rk?.[2] || null },
+    { k: "turnover", g: "trade", label: "거래회전율", unit: "%/년", step: 1, get: (x) => x.f?.units > 0 && x.f.trades12 ? x.f.trades12[state.variant === "all" ? 1 : 0] / x.f.units * 100 : null },
+    { k: "vol", g: "trade", label: "거래 활발도", unit: "배", step: 0.5, get: (x) => x.f?.vol && x.f.vol[1] > 0 ? x.f.vol[0] / x.f.vol[1] : null },
+  ];
+  const FILTER_CHECKS = [
+    { k: "recent", g: "trade", label: "최근 1년 거래 있는 단지만", test: (c, f) => { const t = f?.trades12; return t ? t[1] > 0 : (c.b || []).some((b) => nowPrice(c, b)); } },
+    { k: "newHigh", g: "price", label: "최근 3개월 신고가 단지만", test: (c, f) => !!(f?.high && Object.keys(f.high).length) },
+  ];
   state.filter = {};
   const num = (v) => (v === "" || v == null || !isFinite(+v) ? null : +v);
-  const within = (x, lo, hi) => x != null && (lo == null || x >= lo) && (hi == null || x <= hi);
-  function filterActive() {
-    const f = state.filter;
-    return FILTER_FIELDS.some((k) => f[k] != null) || !!f.recent;
-  }
-  function filterCount() {
-    const f = state.filter;
-    return ["price", "pp", "units", "age", "area"].filter((k) => f[k + "Min"] != null || f[k + "Max"] != null).length + (f.recent ? 1 : 0);
-  }
+  const within = (x, lo, hi) => x != null && isFinite(x) && (lo == null || x >= lo) && (hi == null || x <= hi);
+  const defOn = (d, f = state.filter) => f[d.k + "Min"] != null || f[d.k + "Max"] != null;
+  const filterActive = () => FILTER_DEFS.some((d) => defOn(d)) || FILTER_CHECKS.some((d) => state.filter[d.k]);
+  const filterCount = () => FILTER_DEFS.filter((d) => defOn(d)).length + FILTER_CHECKS.filter((d) => state.filter[d.k]).length;
   function passFilter(c) {
     const f = state.filter;
     if (!filterActive()) return true;
     const facts = factsOf(c);
-    if (f.unitsMin != null || f.unitsMax != null) {
-      if (!within(facts?.units || null, f.unitsMin, f.unitsMax)) return false;
+    for (const d of FILTER_CHECKS) if (f[d.k] && !d.test(c, facts)) return false;
+    const bandDefs = [];
+    for (const d of FILTER_DEFS) {
+      if (!defOn(d)) continue;
+      if (d.band) { bandDefs.push(d); continue; }
+      if (!within(d.get({ c, f: facts }), f[d.k + "Min"], f[d.k + "Max"])) return false;
     }
-    if (f.ageMin != null || f.ageMax != null) {
-      const y = facts?.occ ? +facts.occ.slice(0, 4) : c.by;
-      if (!y || !within(ymOf(lastMi())[0] - y, f.ageMin, f.ageMax)) return false;
-    }
-    if (f.recent) {
-      const t = facts?.trades12;
-      const recent = t ? t[1] > 0 : (c.b || []).some((b) => nowPrice(c, b));
-      if (!recent) return false;
-    }
-    const areaOn = f.areaMin != null || f.areaMax != null;
-    const priceOn = f.priceMin != null || f.priceMax != null;
-    const ppOn = f.ppMin != null || f.ppMax != null;
-    if (!areaOn && !priceOn && !ppOn) return true;
-    const sizeOf = (b) => facts?.areas?.[b] || areaOf(b);
+    if (!bandDefs.length) return true;
     return (c.b || []).some((b) => {
-      if (areaOn && !within(sizeOf(b), f.areaMin, f.areaMax)) return false;
-      if (!priceOn && !ppOn) return true;
-      const now = nowPrice(c, b);
-      if (!now) return false;
-      if (priceOn && !within(now.avg / 10000, f.priceMin, f.priceMax)) return false;
-      if (ppOn) {
-        const sup = facts?.supply?.[b] || sizeOf(b) * SUPPLY_RATIO_GUESS;
-        if (!within(now.avg / sup * 3.305785, f.ppMin, f.ppMax)) return false;
-      }
-      return true;
+      const x = { c, b, f: facts, now: nowPrice(c, b) };
+      return bandDefs.every((d) => within(d.get(x), f[d.k + "Min"], f[d.k + "Max"]));
     });
   }
   function bindMapFilter() {
     const box = document.getElementById("map-filter");
+    const groups = document.getElementById("map-filter-groups");
     const toggle = document.getElementById("map-filter-toggle");
     const count = document.getElementById("map-filter-count");
-    if (!box || !toggle) return;
+    if (!box || !toggle || !groups) return;
     try { const saved = JSON.parse(localStorage.getItem("map-filter") || "{}"); if (saved && typeof saved === "object") state.filter = saved; } catch (_) {}
-    const inputs = [...box.querySelectorAll("input[data-f]")];
+    const input = (k, ph, d) => `<input data-f="${k}" type="number" inputmode="decimal" step="${d.step}" placeholder="${ph}" aria-label="${escapeAttr(d.label)} ${ph} (${escapeAttr(d.unit)})">`;
+    groups.innerHTML = FILTER_GROUPS.map(([g, title]) => {
+      const rows = FILTER_DEFS.filter((d) => d.g === g).map((d) => `<div class="mf-row"><span>${escapeHtml(d.label)} <small>${escapeHtml(d.unit)}</small></span>${
+        d.only === "max" ? `<em></em><i></i>${input(d.k + "Max", "이하", d)}` : `${input(d.k + "Min", "이상", d)}<i>~</i>${input(d.k + "Max", "이하", d)}`}</div>`).join("");
+      const checks = FILTER_CHECKS.filter((d) => d.g === g).map((d) => `<label class="mf-check"><input data-f="${d.k}" type="checkbox"> ${escapeHtml(d.label)}</label>`).join("");
+      return `<details class="mf-group" data-g="${g}"${g === "basic" ? " open" : ""}><summary>${escapeHtml(title)}<b class="mf-n"></b></summary>${rows}${checks}</details>`;
+    }).join("");
+    const inputs = [...groups.querySelectorAll("input[data-f]")];
     for (const i of inputs) {
       const v = state.filter[i.dataset.f];
       if (i.type === "checkbox") i.checked = !!v; else i.value = v ?? "";
+    }
+    // Groups holding an active condition start open.
+    for (const det of groups.querySelectorAll(".mf-group")) {
+      if ([...det.querySelectorAll("input[data-f]")].some((i) => (i.type === "checkbox" ? i.checked : i.value !== ""))) det.open = true;
     }
     let timer = 0;
     function summary() {
       const n = filterCount();
       toggle.textContent = n ? `필터 ${n}` : "필터";
       toggle.classList.toggle("on", n > 0);
+      for (const det of groups.querySelectorAll(".mf-group")) {
+        const g = det.dataset.g;
+        const k = FILTER_DEFS.filter((d) => d.g === g && defOn(d)).length + FILTER_CHECKS.filter((d) => d.g === g && state.filter[d.k]).length;
+        det.querySelector(".mf-n").textContent = k ? ` ${k}` : "";
+      }
       if (!state.data) { count.textContent = ""; return; }
       if (!n) { count.textContent = `전체 ${state.data.complexes.length.toLocaleString("ko-KR")}개 단지`; return; }
+      if (!state.mapFacts) { count.textContent = "단지 정보를 불러오는 중…"; return; }
       let k = 0;
       for (const c of state.data.complexes) if (passFilter(c)) k++;
       count.textContent = `조건에 맞는 단지 ${k.toLocaleString("ko-KR")}개`;
@@ -1633,13 +1661,13 @@
       }
       state.filter = f;
       try { localStorage.setItem("map-filter", JSON.stringify(f)); } catch (_) {}
-      // Units, move-in year and supply areas come from the facts file.
+      // Every condition except price and size reads the facts file.
       if (filterActive()) loadMapFacts();
       summary();
       map.refresh();
     }
     box.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(apply, 250); });
-    box.addEventListener("change", apply);
+    box.addEventListener("change", (e) => { if (e.target.matches("input[data-f]")) apply(); });
     document.getElementById("map-filter-reset").addEventListener("click", () => {
       for (const i of inputs) { if (i.type === "checkbox") i.checked = false; else i.value = ""; }
       apply();

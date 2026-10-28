@@ -498,8 +498,14 @@ html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; ove
 /* Map filter */
 .map-filter-toggle { margin-left: 8px; min-height: 36px; padding: 0 10px; border: 1px solid #ccd6df; border-radius: 8px; background: #fff; font: 600 12px var(--font); color: #14202b; cursor: pointer; }
 .map-filter-toggle.on { background: #2a78d6; border-color: #2a78d6; color: #fff; }
-.map-filter { margin-top: 8px; display: grid; gap: 6px; width: 290px; max-width: 100%; }
-.mf-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) 10px minmax(0, 1fr); align-items: center; gap: 4px; }
+.map-filter { margin-top: 8px; display: grid; gap: 6px; width: 310px; max-width: 100%; max-height: calc(100vh - 190px); overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
+.mf-group { border-top: 1px solid #e3e9ee; padding: 4px 0 2px; display: grid; gap: 5px; }
+.mf-group:first-child { border-top: 0; }
+.mf-group > summary { cursor: pointer; font-weight: 700; color: #14202b; padding: 3px 0; }
+.mf-group[open] > summary { margin-bottom: 2px; }
+.mf-n { color: #2a78d6; }
+.mf-row small { font-weight: 400; color: #8995a0; font-size: 10.5px; }
+.mf-row { display: grid; grid-template-columns: 104px minmax(0, 1fr) 10px minmax(0, 1fr); align-items: center; gap: 4px; }
 .mf-row span { font-weight: 600; color: #36414b; }
 .mf-row i { font-style: normal; text-align: center; color: #8995a0; }
 .mf-row input { width: 100%; min-height: 32px; padding: 0 6px; border: 1px solid #ccd6df; border-radius: 6px; font: inherit; font-variant-numeric: tabular-nums; }
@@ -510,7 +516,8 @@ html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; ove
 .map-metric-control .mf-note { color: #6c7a86; font-size: 11px; line-height: 1.45; margin: 0; }
 @media (max-width: 860px) {
   .map-filter { width: 260px; }
-  .mf-row { grid-template-columns: 76px minmax(0, 1fr) 10px minmax(0, 1fr); }
+  .mf-row { grid-template-columns: 92px minmax(0, 1fr) 10px minmax(0, 1fr); }
+  .map-filter { max-height: none; }
   /* Keep the open filter inside the short phone map; it scrolls. */
   .map-metric-control { max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; }
 }
