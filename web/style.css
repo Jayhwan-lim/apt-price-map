@@ -494,3 +494,23 @@ html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; ove
 .facts-list dt { color: var(--muted); }
 .facts-list dd { margin: 0; color: var(--ink); }
 .facts-list dd small { display: block; font-size: 11px; color: var(--muted); }
+
+/* Map filter */
+.map-filter-toggle { margin-left: 8px; min-height: 36px; padding: 0 10px; border: 1px solid #ccd6df; border-radius: 8px; background: #fff; font: 600 12px var(--font); color: #14202b; cursor: pointer; }
+.map-filter-toggle.on { background: #2a78d6; border-color: #2a78d6; color: #fff; }
+.map-filter { margin-top: 8px; display: grid; gap: 6px; width: 290px; max-width: 100%; }
+.mf-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) 10px minmax(0, 1fr); align-items: center; gap: 4px; }
+.mf-row span { font-weight: 600; color: #36414b; }
+.mf-row i { font-style: normal; text-align: center; color: #8995a0; }
+.mf-row input { width: 100%; min-height: 32px; padding: 0 6px; border: 1px solid #ccd6df; border-radius: 6px; font: inherit; font-variant-numeric: tabular-nums; }
+.mf-check { display: flex; align-items: center; gap: 6px; font-weight: 500 !important; margin: 2px 0 0 !important; }
+.mf-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.mf-foot span { color: #2a78d6; font-weight: 600; }
+.mf-foot button { min-height: 30px; padding: 0 10px; border: 1px solid #ccd6df; border-radius: 6px; background: #fff; font: inherit; cursor: pointer; }
+.map-metric-control .mf-note { color: #6c7a86; font-size: 11px; line-height: 1.45; margin: 0; }
+@media (max-width: 860px) {
+  .map-filter { width: 260px; }
+  .mf-row { grid-template-columns: 76px minmax(0, 1fr) 10px minmax(0, 1fr); }
+  /* Keep the open filter inside the short phone map; it scrolls. */
+  .map-metric-control { max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; }
+}

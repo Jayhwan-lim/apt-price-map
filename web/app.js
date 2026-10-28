@@ -1437,7 +1437,7 @@
   async function loadMapFacts() {
     if (!state.mapFactsPromise) state.mapFactsPromise = fetch("data/map-metrics.json")
       .then(r => { if (!r.ok) throw new Error("map facts unavailable"); return r.json(); })
-      .then(data => { state.mapFacts = data; map.refresh(); if (state.ref) renderFacts(); })
+      .then(data => { state.mapFacts = data; map.refresh(); if (state.ref) renderFacts(); if (state.filterSummary) state.filterSummary(); })
       .catch(() => { state.mapFactsPromise = null; });
     return state.mapFactsPromise;
   }
@@ -1550,6 +1550,108 @@
     });
   }
 
+  // ---------- map filter (show/hide complexes by attributes) ----------
+  // Ranges are inclusive; an empty bound is open. Price is the latest
+  // trade average of a size, 평당가 per 3.3㎡ of supply area, units and
+  // move-in age from building facts. A complex passes when one of its sizes
+  // (within the area range) meets every price condition at once.
+  const FILTER_FIELDS = ["priceMin", "priceMax", "ppMin", "ppMax", "unitsMin", "unitsMax", "ageMin", "ageMax", "areaMin", "areaMax"];
+  const SUPPLY_RATIO_GUESS = 1.33; // typical supply/exclusive ratio when the register has none
+  state.filter = {};
+  const num = (v) => (v === "" || v == null || !isFinite(+v) ? null : +v);
+  const within = (x, lo, hi) => x != null && (lo == null || x >= lo) && (hi == null || x <= hi);
+  function filterActive() {
+    const f = state.filter;
+    return FILTER_FIELDS.some((k) => f[k] != null) || !!f.recent;
+  }
+  function filterCount() {
+    const f = state.filter;
+    return ["price", "pp", "units", "age", "area"].filter((k) => f[k + "Min"] != null || f[k + "Max"] != null).length + (f.recent ? 1 : 0);
+  }
+  function passFilter(c) {
+    const f = state.filter;
+    if (!filterActive()) return true;
+    const facts = factsOf(c);
+    if (f.unitsMin != null || f.unitsMax != null) {
+      if (!within(facts?.units || null, f.unitsMin, f.unitsMax)) return false;
+    }
+    if (f.ageMin != null || f.ageMax != null) {
+      const y = facts?.occ ? +facts.occ.slice(0, 4) : c.by;
+      if (!y || !within(ymOf(lastMi())[0] - y, f.ageMin, f.ageMax)) return false;
+    }
+    if (f.recent) {
+      const t = facts?.trades12;
+      const recent = t ? t[1] > 0 : (c.b || []).some((b) => nowPrice(c, b));
+      if (!recent) return false;
+    }
+    const areaOn = f.areaMin != null || f.areaMax != null;
+    const priceOn = f.priceMin != null || f.priceMax != null;
+    const ppOn = f.ppMin != null || f.ppMax != null;
+    if (!areaOn && !priceOn && !ppOn) return true;
+    const sizeOf = (b) => facts?.areas?.[b] || areaOf(b);
+    return (c.b || []).some((b) => {
+      if (areaOn && !within(sizeOf(b), f.areaMin, f.areaMax)) return false;
+      if (!priceOn && !ppOn) return true;
+      const now = nowPrice(c, b);
+      if (!now) return false;
+      if (priceOn && !within(now.avg / 10000, f.priceMin, f.priceMax)) return false;
+      if (ppOn) {
+        const sup = facts?.supply?.[b] || sizeOf(b) * SUPPLY_RATIO_GUESS;
+        if (!within(now.avg / sup * 3.305785, f.ppMin, f.ppMax)) return false;
+      }
+      return true;
+    });
+  }
+  function bindMapFilter() {
+    const box = document.getElementById("map-filter");
+    const toggle = document.getElementById("map-filter-toggle");
+    const count = document.getElementById("map-filter-count");
+    if (!box || !toggle) return;
+    try { const saved = JSON.parse(localStorage.getItem("map-filter") || "{}"); if (saved && typeof saved === "object") state.filter = saved; } catch (_) {}
+    const inputs = [...box.querySelectorAll("input[data-f]")];
+    for (const i of inputs) {
+      const v = state.filter[i.dataset.f];
+      if (i.type === "checkbox") i.checked = !!v; else i.value = v ?? "";
+    }
+    let timer = 0;
+    function summary() {
+      const n = filterCount();
+      toggle.textContent = n ? `필터 ${n}` : "필터";
+      toggle.classList.toggle("on", n > 0);
+      if (!state.data) { count.textContent = ""; return; }
+      if (!n) { count.textContent = `전체 ${state.data.complexes.length.toLocaleString("ko-KR")}개 단지`; return; }
+      let k = 0;
+      for (const c of state.data.complexes) if (passFilter(c)) k++;
+      count.textContent = `조건에 맞는 단지 ${k.toLocaleString("ko-KR")}개`;
+    }
+    state.filterSummary = summary;
+    function apply() {
+      const f = {};
+      for (const i of inputs) {
+        if (i.type === "checkbox") { if (i.checked) f[i.dataset.f] = true; }
+        else { const v = num(i.value); if (v != null) f[i.dataset.f] = v; }
+      }
+      state.filter = f;
+      try { localStorage.setItem("map-filter", JSON.stringify(f)); } catch (_) {}
+      // Units, move-in year and supply areas come from the facts file.
+      if (filterActive()) loadMapFacts();
+      summary();
+      map.refresh();
+    }
+    box.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(apply, 250); });
+    box.addEventListener("change", apply);
+    document.getElementById("map-filter-reset").addEventListener("click", () => {
+      for (const i of inputs) { if (i.type === "checkbox") i.checked = false; else i.value = ""; }
+      apply();
+    });
+    toggle.addEventListener("click", () => {
+      box.hidden = !box.hidden;
+      toggle.setAttribute("aria-expanded", String(!box.hidden));
+      if (!box.hidden) summary();
+    });
+    summary();
+  }
+
   // ---------- map ----------
   const map = (() => {
     let kmap = null, clusterer = null;
@@ -1631,6 +1733,7 @@
       const nextKeys = new Set();
       for (const c of state.data.complexes) {
         if (!mappable(c) || c.lat < south || c.lat > north || c.lng < west || c.lng > east) continue;
+        if (!passFilter(c)) continue;
         nextKeys.add(c.key);
         let marker = markerCache.get(c.key);
         if (marker) {
@@ -1738,11 +1841,16 @@
     // when it has a current price, else the nearest size that has one,
     // else the nearest size at all.
     function labelBand(c) {
+      const f = state.filter;
+      const facts = factsOf(c);
+      const inArea = (b) => within(facts?.areas?.[b] || areaOf(b), f.areaMin, f.areaMax);
+      const areaOn = f.areaMin != null || f.areaMax != null;
       const near = nearestType(c, state.band, true);
-      if (near && nowPrice(c, near)) return near;
+      if (near && nowPrice(c, near) && (!areaOn || inArea(near))) return near;
       const t = areaOf(state.band);
       let best = null, d = Infinity;
       for (const b of c.b) {
+        if (areaOn && !inArea(b)) continue;
         if (!nowPrice(c, b)) continue;
         const dk = Math.abs(Number(b) - t);
         if (dk < d) { best = b; d = dk; }
@@ -1780,6 +1888,7 @@
         const on = state.slotOf.has(s.key);
         const cur = want.get(s.c.key);
         if (cur && (cur[1] === "ref" || cur[1] === "cmp" || !on)) continue;
+        if (!on && !passFilter(s.c)) continue;
         want.set(s.c.key, [s.c, on ? "cmp" : "sim", on ? pal[state.slotOf.get(s.key)] : null, s.band]);
       }
 
@@ -1788,7 +1897,7 @@
         const bounds = kmap.getBounds();
         const inView = state.data.complexes.filter((c) =>
           mappable(c) && !want.has(c.key) &&
-          bounds.contain(new kakao.maps.LatLng(c.lat, c.lng)));
+          bounds.contain(new kakao.maps.LatLng(c.lat, c.lng)) && passFilter(c));
         inView.sort((a, b) => volume(b) - volume(a));
         // Every complex in view stays visible. Close up (level <= 4) each
         // gets a full label; at level 5, where labels would pile up, the
@@ -1927,6 +2036,7 @@
   // ---------- events ----------
   function bind() {
     bindMapMetrics();
+    bindMapFilter();
     el.search.addEventListener("input", runSearch);
     el.search.addEventListener("keydown", (e) => {
       if (el.results.hidden) return;
@@ -2121,7 +2231,8 @@
     await mapReady;
     map.refresh();
     state.ready = true;
-    if (state.rankMode !== "off") loadMapFacts();
+    if (state.rankMode !== "off" || filterActive()) loadMapFacts();
+    if (state.filterSummary) state.filterSummary();
   })();
 
   // Tablet Chrome in desktop-site mode sends a desktop user agent, and

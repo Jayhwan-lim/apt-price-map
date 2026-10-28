@@ -16,7 +16,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#14202b">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <script src="config.js?v=20261027e"></script>
+  <script src="config.js?v=20261028a"></script>
   <script>
     // Start the Kakao SDK before the map index so its first tile requests
     // aren't queued behind twelve data downloads.
@@ -51,7 +51,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261027e">
+  <link rel="stylesheet" href="style.css?v=20261028a">
 </head>
 <body>
   <div class="app">
@@ -66,6 +66,17 @@
           <option value="dong">동</option>
           <option value="off">끄기</option>
         </select>
+        <button type="button" id="map-filter-toggle" class="map-filter-toggle" aria-expanded="false" aria-controls="map-filter">필터</button>
+        <div id="map-filter" class="map-filter" hidden>
+          <div class="mf-row"><span>매매가 (억)</span><input data-f="priceMin" type="number" inputmode="decimal" min="0" step="0.5" placeholder="이상" aria-label="매매가 이상 (억)"><i>~</i><input data-f="priceMax" type="number" inputmode="decimal" min="0" step="0.5" placeholder="이하" aria-label="매매가 이하 (억)"></div>
+          <div class="mf-row"><span>평당가 (만원)</span><input data-f="ppMin" type="number" inputmode="numeric" min="0" step="500" placeholder="이상" aria-label="평당가 이상 (만원)"><i>~</i><input data-f="ppMax" type="number" inputmode="numeric" min="0" step="500" placeholder="이하" aria-label="평당가 이하 (만원)"></div>
+          <div class="mf-row"><span>세대수</span><input data-f="unitsMin" type="number" inputmode="numeric" min="0" step="100" placeholder="이상" aria-label="세대수 이상"><i>~</i><input data-f="unitsMax" type="number" inputmode="numeric" min="0" step="100" placeholder="이하" aria-label="세대수 이하"></div>
+          <div class="mf-row"><span>입주 연차 (년)</span><input data-f="ageMin" type="number" inputmode="numeric" min="0" step="1" placeholder="이상" aria-label="입주 연차 이상"><i>~</i><input data-f="ageMax" type="number" inputmode="numeric" min="0" step="1" placeholder="이하" aria-label="입주 연차 이하"></div>
+          <div class="mf-row"><span>전용면적 (㎡)</span><input data-f="areaMin" type="number" inputmode="decimal" min="0" step="1" placeholder="이상" aria-label="전용면적 이상"><i>~</i><input data-f="areaMax" type="number" inputmode="decimal" min="0" step="1" placeholder="이하" aria-label="전용면적 이하"></div>
+          <label class="mf-check"><input data-f="recent" type="checkbox"> 최근 1년 거래 있는 단지만</label>
+          <div class="mf-foot"><span id="map-filter-count"></span><button type="button" id="map-filter-reset">초기화</button></div>
+          <p class="mf-note">가격 조건은 한 평형이 모두 만족해야 합니다(최근 실거래 평균). 평당가는 공급면적 기준이며, 공급면적 자료가 없는 평형은 전용 × 1.33으로 어림합니다. 세대수·입주 정보가 없는 단지는 해당 조건에서 숨겨집니다. 선택한 단지와 그래프에 표시 중인 단지는 항상 보입니다.</p>
+        </div>
         <details><summary>표시 기준</summary><p id="map-metric-note"></p><p class="rank-note">핀 왼쪽 위 숫자는 최근 12개월 실거래의 전용 3.3㎡당 가격으로 매긴 같은 구(또는 동) 안의 순위입니다. 거래 3건 이상인 단지만 매깁니다.</p></details>
       </div>
       <div id="map-fallback" class="map-fallback" hidden>
@@ -257,8 +268,8 @@
         </section>
       </div>
       <footer class="panel-foot">자료: 국토교통부 아파트 매매 실거래가(공공데이터포털). 해제 신고된 거래는 통계에서 뺐습니다. <a href="privacy">개인정보처리방침</a></footer>
-      <script src="map-metrics.js?v=20261027e"></script>
-      <script src="app.js?v=20261027e"></script>
+      <script src="map-metrics.js?v=20261028a"></script>
+      <script src="app.js?v=20261028a"></script>
       <section class="ad-slot" id="ad-section" aria-label="광고">
           <!-- The ad section appears only after the partner widget creates an iframe. -->
           <div class="ad-slot-body" id="coupang-slot"><script src="https://ads-partners.coupang.com/g.js"></script><script>new PartnersCoupang.G({"id":1037758,"template":"carousel","trackingCode":"AF8973032","width":"400","height":"100","tsource":""});</script></div>
