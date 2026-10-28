@@ -13,6 +13,9 @@ Sources, in priority order where they overlap:
   trades12   trades in the last 12 data months (both direct-trade variants)
   rent       median jeonse deposit per type over the last 12 months, when
              apartment rent data has been collected (data/raw_rent)
+  rv         standing vs the district: price per 3.3 m2 relative to the
+             district median, usual (yearly, REL_YEARS before last year)
+             against now (last 12 months)
 
 Every register value is range-checked; impossible values are dropped rather
 than shown.
@@ -36,6 +39,11 @@ FAR_RANGE = (30.0, 1500.0)
 COVERAGE_RANGE = (3.0, 90.0)
 LAND_RANGE = (3.0, 400.0)  # m2 per unit
 SUPPLY_RATIO = (1.03, 1.9)
+# "Usual" standing: the 5 full years before the one just finished, so a
+# recent dip shows against the years before it. At least 3 of them.
+REL_YEARS = 5
+REL_MIN_YEARS = 3
+REL_MIN_TRADES = 3
 
 
 def load(path, default):
@@ -231,6 +239,9 @@ def build():
         y, m = (y - 1, 12) if m == 1 else (y, m - 1)
     recent_from = f"{y:04d}{m:02d}01"  # first day of the 3-month window
     rank_groups = defaultdict(list)  # (code) and (code, umd) -> [(ppm, key)]
+    yearly_ppm = {}  # key -> {year: [sum price/m2 x n, n]}
+    last_year = last_ym // 100
+    rel_years = range(last_year - 1 - REL_YEARS, last_year - 1)
 
     regions, out = {}, {}
     stats = defaultdict(int)
@@ -261,6 +272,11 @@ def build():
                     if mcount - 12 <= mi < mcount:
                         ppm_sum += n * avg / area
                         ppm_n += n
+                    yr = y0 + (m0 - 1 + mi) // 12
+                    if yr in rel_years:
+                        acc = yearly_ppm.setdefault(key, {}).setdefault(yr, [0.0, 0])
+                        acc[0] += n * avg / area
+                        acc[1] += n
             recent3 += sum(n for mi, (n, _a) in all_.items() if mcount - 4 <= mi <= mcount - 2)
             base36 += sum(n for mi, (n, _a) in all_.items() if mcount - 40 <= mi <= mcount - 5)
         facts["trades12"] = totals
@@ -429,6 +445,40 @@ def build():
             rk = out[k].setdefault("rk", [None, None, None, None])
             rk[slot], rk[slot + 1] = i, len(items)
     stats["rank"] = sum(1 for f in out.values() if "rk" in f)
+
+    # Standing vs the district: each complex's price per m2 over the
+    # district median, per year (>= 3 trades) and for the last 12 months.
+    # rv = [usual % above the median, now %, change in standing %, years].
+    code_of = {c["key"]: c["code"] for c in data["complexes"]}
+    year_vals = defaultdict(list)  # (code, year) -> [ppm]
+    for k, years in yearly_ppm.items():
+        for yr, (tot, n) in years.items():
+            if n >= REL_MIN_TRADES:
+                year_vals[(code_of[k], yr)].append(tot / n)
+    year_med = {g: statistics.median(v) for g, v in year_vals.items() if len(v) >= 5}
+    now_med = {g[0]: statistics.median(p for p, _k in items)
+               for g, items in rank_groups.items() if len(g) == 1 and len(items) >= 5}
+    rel_groups = defaultdict(list)
+    for k, years in yearly_ppm.items():
+        f = out[k]
+        code = code_of[k]
+        if "ppm" not in f or code not in now_med:
+            continue
+        ratios = [tot / n / year_med[(code, yr)] for yr, (tot, n) in years.items()
+                  if n >= REL_MIN_TRADES and (code, yr) in year_med]
+        if len(ratios) < REL_MIN_YEARS:
+            continue
+        usual = statistics.mean(ratios)
+        now = f["ppm"] / now_med[code]
+        change = (now / usual - 1) * 100
+        f["rv"] = [round((usual - 1) * 100, 1), round((now - 1) * 100, 1), round(change, 1), len(ratios)]
+        rel_groups[code].append((change, k))
+    # Rank inside the district: the largest fall in standing is 1.
+    for code, items in rel_groups.items():
+        items.sort()
+        for i, (_c, k) in enumerate(items, 1):
+            out[k]["rvk"] = [i, len(items)]
+    stats["rv"] = sum(1 for f in out.values() if "rv" in f)
 
     target = web / "map-metrics.json"
     tmp = target.with_suffix(".tmp")

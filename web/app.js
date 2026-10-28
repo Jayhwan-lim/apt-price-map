@@ -1570,6 +1570,8 @@
     { k: "area", opts: [["~40㎡",null,40],["40~60㎡",40,60],["60~85㎡",60,85],["85~102㎡",85,102],["102~135㎡",102,135],["135㎡~",135,null]], g: "basic", label: "전용면적", unit: "㎡", step: 1, band: true, needsPrice: false, get: (x) => sizeOfBand(x) },
     { k: "gap", opts: [["~3억",null,3],["3~5억",3,5],["5~10억",5,10],["10억~",10,null]], g: "price", label: "매매전세갭", unit: "억", step: 0.5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? (x.now.avg - r[0]) / 10000 : null; } },
     { k: "rentRatio", opts: [["~40%",null,40],["40~50%",40,50],["50~60%",50,60],["60~70%",60,70],["70%~",70,null]], g: "price", label: "전세가율", unit: "%", step: 5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? r[0] / x.now.avg * 100 : null; } },
+    { k: "rel", opts: [["−20% 이하",null,-20],["−10~−20%",-20,-10],["−5~−10%",-10,-5],["±5%",-5,5],["+5% 이상",5,null]], g: "price", label: "평소 대비 상대가격", short: "평소 대비", unit: "%", step: 5, get: (x) => x.f?.rv ? x.f.rv[2] : null },
+    { k: "relRank", opts: [["구 1위",null,1],["구 3위 이내",null,3],["구 5위 이내",null,5],["구 10위 이내",null,10],["구 20위 이내",null,20]], g: "trade", label: "상대가격 하락 순위", unit: "위", step: 1, get: (x) => x.f?.rvk ? x.f.rvk[0] : null },
     { k: "peak", opts: [["전고점 돌파",0,null],["-5% 이내",-5,null],["-5~-10%",-10,-5],["-10~-20%",-20,-10],["-20% 이하",null,-20]], g: "price", label: "전고점 대비", unit: "%", step: 5, band: true, get: (x) => { const pk = x.f?.peak?.[x.b]; return x.now && pk ? (x.now.avg / pk[1] - 1) * 100 : null; } },
     { k: "landPrice", opts: [["~5천만",null,0.5],["0.5~1억",0.5,1],["1~1.5억",1,1.5],["1.5~2억",1.5,2],["2억~",2,null]], g: "price", label: "대지지분당 가격", unit: "억/평", step: 0.5, band: true, get: (x) => { const l = x.f?.land?.[x.b]; return x.now && l ? x.now.avg / l[1] / 10000 : null; } },
     { k: "conv", opts: [["~4%",null,4],["4~5%",4,5],["5~6%",5,6],["6%~",6,null]], g: "price", label: "전월세 전환율", unit: "%", step: 0.5, get: (x) => x.f?.conv ?? null },
@@ -1588,6 +1590,7 @@
   const FILTER_CHECKS = [
     { k: "recent", g: "trade", label: "최근 1년 거래 있는 단지만", test: (c, f) => { const t = f?.trades12; return t ? t[1] > 0 : (c.b || []).some((b) => nowPrice(c, b)); } },
     { k: "newHigh", g: "price", label: "최근 3개월 신고가 단지만", test: (c, f) => !!(f?.high && Object.keys(f.high).length) },
+    { k: "wasAbove", g: "price", label: "평소 구 평균보다 비쌌던 단지만", test: (c, f) => !!(f?.rv && f.rv[0] >= 0) },
   ];
   state.filter = {};
   const num = (v) => (v === "" || v == null || !isFinite(+v) ? null : +v);
@@ -1614,7 +1617,7 @@
   }
   // Click filter: a chip bar over the map. Main filters have their own
   // chip; "더보기" lists every filter. Each option is a preset range.
-  const FILTER_TOP = ["price", "pp", "units", "age", "area", "rankGu"];
+  const FILTER_TOP = ["price", "pp", "units", "age", "area", "rankGu", "rel"];
   function bindMapFilter() {
     const bar = document.getElementById("map-filter-bar");
     const pop = document.getElementById("map-filter-pop");
@@ -1640,9 +1643,14 @@
       return `<button type="button" class="mf-chip${on ? " on" : ""}${openKey === key ? " open" : ""}" data-chip="${key}" aria-expanded="${openKey === key}"${extra}>${escapeHtml(label)}</button>`;
     }
     function renderBar() {
-      const parts = FILTER_TOP.map((k) => { const d = defOf(k); const v = chosenLabel(d); return chip(v ? `${d.label} ${v}` : d.label, k, !!v); });
+      const parts = FILTER_TOP.map((k) => {
+        const d = defOf(k); const v = chosenLabel(d); const name = d.short || d.label;
+        const plus = k === "rel" && state.filter.wasAbove ? " · 평소 우세" : "";
+        return chip(v ? `${name} ${v}${plus}` : name + plus, k, !!v || !!plus);
+      });
       parts.push(chip("신고가", "newHigh", !!state.filter.newHigh, ' aria-pressed="' + !!state.filter.newHigh + '"'));
-      const moreN = FILTER_DEFS.filter((d) => !FILTER_TOP.includes(d.k) && defOn(d)).length + (state.filter.recent ? 1 : 0);
+      const moreN = FILTER_DEFS.filter((d) => !FILTER_TOP.includes(d.k) && defOn(d)).length +
+        FILTER_CHECKS.filter((d) => d.k !== "newHigh" && d.k !== "wasAbove" && state.filter[d.k]).length;
       parts.push(chip(moreN ? `더보기 ${moreN}` : "더보기", "more", moreN > 0));
       if (filterActive()) parts.push(`<button type="button" class="mf-chip mf-reset" data-chip="reset">초기화</button><span class="mf-count">${escapeHtml(count())}</span>`);
       bar.innerHTML = parts.join("");
@@ -1664,6 +1672,11 @@
       } else {
         const d = defOf(openKey);
         body = `<div class="mf-opts">${optionRow(d)}</div>`;
+        if (d.k === "rel") {
+          // The "usually ahead, now behind" reading: combine with this switch.
+          body += `<div class="mf-opts mf-sub"><button type="button" class="mf-opt${state.filter.wasAbove ? " on" : ""}" data-check="wasAbove">평소 구 평균보다 비쌌던 단지만</button></div>` +
+            `<p class="mf-hint">구 안에서 평소(지난해 전 5년) 차지하던 가격 위치보다 지금(최근 12개월) 얼마나 내려왔는지입니다. 새 아파트의 노후화나 주변 신축 입주로 꾸준히 내려가는 경우도 있어 일시적 열세인지는 따로 봐야 합니다. 투자 추천이 아닙니다.</p>`;
+        }
       }
       pop.innerHTML = `${body}<div class="mf-foot"><span>${escapeHtml(count())}</span><button type="button" class="mf-close">닫기</button></div>`;
       pop.classList.toggle("wide", openKey === "more");

@@ -511,6 +511,8 @@ html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; ove
 .mf-opt { min-height: 32px; padding: 0 11px; border: 1px solid #ccd6df; border-radius: 16px; background: #fff; color: #14202b; font: 500 12px var(--font); cursor: pointer; }
 .mf-opt:hover { border-color: #2a78d6; color: #2a78d6; }
 .mf-opt.on { background: #e9f2fc; border-color: #2a78d6; color: #174a78; font-weight: 700; }
+
+.mf-sub { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e3e9ee; }
 .mf-sec { border-top: 1px solid #e3e9ee; padding: 8px 0 4px; }
 .mf-sec:first-child { border-top: 0; padding-top: 0; }
 .mf-sec h4 { margin: 0 0 6px; font-size: 12.5px; color: #14202b; }
