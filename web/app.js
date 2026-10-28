@@ -1563,27 +1563,27 @@
     ["basic", "기본"], ["price", "가격·전세"], ["build", "건물·대지"], ["life", "생활"], ["trade", "거래·순위"],
   ];
   const FILTER_DEFS = [
-    { k: "price", g: "basic", label: "매매가", unit: "억", step: 0.5, band: true, get: (x) => x.now && x.now.avg / 10000 },
-    { k: "pp", g: "basic", label: "평당가", unit: "만원", step: 500, band: true, get: (x) => x.now && x.now.avg / supplyOf(x) * 3.305785 },
-    { k: "units", g: "basic", label: "세대수", unit: "세대", step: 100, get: (x) => x.f?.units || null },
-    { k: "age", g: "basic", label: "입주 연차", unit: "년", step: 1, get: (x) => { const y = x.f?.occ ? +x.f.occ.slice(0, 4) : x.c.by; return y ? ymOf(lastMi())[0] - y : null; } },
-    { k: "area", g: "basic", label: "전용면적", unit: "㎡", step: 1, band: true, needsPrice: false, get: (x) => sizeOfBand(x) },
-    { k: "gap", g: "price", label: "매매전세갭", unit: "억", step: 0.5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? (x.now.avg - r[0]) / 10000 : null; } },
-    { k: "rentRatio", g: "price", label: "전세가율", unit: "%", step: 5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? r[0] / x.now.avg * 100 : null; } },
-    { k: "peak", g: "price", label: "전고점 대비", unit: "%", step: 5, band: true, get: (x) => { const pk = x.f?.peak?.[x.b]; return x.now && pk ? (x.now.avg / pk[1] - 1) * 100 : null; } },
-    { k: "landPrice", g: "price", label: "대지지분당 가격", unit: "억/평", step: 0.5, band: true, get: (x) => { const l = x.f?.land?.[x.b]; return x.now && l ? x.now.avg / l[1] / 10000 : null; } },
-    { k: "conv", g: "price", label: "전월세 전환율", unit: "%", step: 0.5, get: (x) => x.f?.conv ?? null },
-    { k: "renew", g: "price", label: "전세 갱신 인상률", unit: "%", step: 1, get: (x) => x.f?.renew ? x.f.renew[1] : null },
-    { k: "renewRight", g: "price", label: "갱신청구권 사용", unit: "%", step: 10, get: (x) => x.f?.renew ? x.f.renew[2] : null },
-    { k: "land", g: "build", label: "대지지분", unit: "평", step: 1, band: true, needsPrice: false, get: (x) => x.f?.land?.[x.b]?.[1] ?? null },
-    { k: "far", g: "build", label: "용적률", unit: "%", step: 10, get: (x) => x.f?.far || null },
-    { k: "coverage", g: "build", label: "건폐율", unit: "%", step: 5, get: (x) => x.f?.coverage || null },
-    { k: "park", g: "life", label: "세대당 주차", unit: "대", step: 0.1, get: (x) => x.f?.park || null },
-    { k: "subway", g: "life", label: "지하철 도보", unit: "분 이내", step: 5, only: "max", get: (x) => SUBWAY_MIN[x.f?.sub?.[0]] ?? null },
-    { k: "rankGu", g: "trade", label: "구 내 순위", unit: "위", step: 1, get: (x) => x.f?.rk?.[0] || null },
-    { k: "rankDong", g: "trade", label: "동 내 순위", unit: "위", step: 1, get: (x) => x.f?.rk?.[2] || null },
-    { k: "turnover", g: "trade", label: "거래회전율", unit: "%/년", step: 1, get: (x) => x.f?.units > 0 && x.f.trades12 ? x.f.trades12[state.variant === "all" ? 1 : 0] / x.f.units * 100 : null },
-    { k: "vol", g: "trade", label: "거래 활발도", unit: "배", step: 0.5, get: (x) => x.f?.vol && x.f.vol[1] > 0 ? x.f.vol[0] / x.f.vol[1] : null },
+    { k: "price", opts: [["~5억",null,5],["5~10억",5,10],["10~15억",10,15],["15~20억",15,20],["20~30억",20,30],["30억~",30,null]], g: "basic", label: "매매가", unit: "억", step: 0.5, band: true, get: (x) => x.now && x.now.avg / 10000 },
+    { k: "pp", opts: [["~2천만",null,2000],["2~4천만",2000,4000],["4~6천만",4000,6000],["6~8천만",6000,8000],["8천~1억",8000,10000],["1억~",10000,null]], g: "basic", label: "평당가", unit: "만원", step: 500, band: true, get: (x) => x.now && x.now.avg / supplyOf(x) * 3.305785 },
+    { k: "units", opts: [["100세대+",100,null],["300세대+",300,null],["500세대+",500,null],["1천세대+",1000,null],["2천세대+",2000,null],["3천세대+",3000,null]], g: "basic", label: "세대수", unit: "세대", step: 100, get: (x) => x.f?.units || null },
+    { k: "age", opts: [["5년 이내",null,5],["10년 이내",null,10],["15년 이내",null,15],["20년 이내",null,20],["20~30년",20,30],["30년 이상",30,null]], g: "basic", label: "입주 연차", unit: "년", step: 1, get: (x) => { const y = x.f?.occ ? +x.f.occ.slice(0, 4) : x.c.by; return y ? ymOf(lastMi())[0] - y : null; } },
+    { k: "area", opts: [["~40㎡",null,40],["40~60㎡",40,60],["60~85㎡",60,85],["85~102㎡",85,102],["102~135㎡",102,135],["135㎡~",135,null]], g: "basic", label: "전용면적", unit: "㎡", step: 1, band: true, needsPrice: false, get: (x) => sizeOfBand(x) },
+    { k: "gap", opts: [["~3억",null,3],["3~5억",3,5],["5~10억",5,10],["10억~",10,null]], g: "price", label: "매매전세갭", unit: "억", step: 0.5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? (x.now.avg - r[0]) / 10000 : null; } },
+    { k: "rentRatio", opts: [["~40%",null,40],["40~50%",40,50],["50~60%",50,60],["60~70%",60,70],["70%~",70,null]], g: "price", label: "전세가율", unit: "%", step: 5, band: true, get: (x) => { const r = x.f?.rent?.[x.b]; return x.now && r ? r[0] / x.now.avg * 100 : null; } },
+    { k: "peak", opts: [["전고점 돌파",0,null],["-5% 이내",-5,null],["-5~-10%",-10,-5],["-10~-20%",-20,-10],["-20% 이하",null,-20]], g: "price", label: "전고점 대비", unit: "%", step: 5, band: true, get: (x) => { const pk = x.f?.peak?.[x.b]; return x.now && pk ? (x.now.avg / pk[1] - 1) * 100 : null; } },
+    { k: "landPrice", opts: [["~5천만",null,0.5],["0.5~1억",0.5,1],["1~1.5억",1,1.5],["1.5~2억",1.5,2],["2억~",2,null]], g: "price", label: "대지지분당 가격", unit: "억/평", step: 0.5, band: true, get: (x) => { const l = x.f?.land?.[x.b]; return x.now && l ? x.now.avg / l[1] / 10000 : null; } },
+    { k: "conv", opts: [["~4%",null,4],["4~5%",4,5],["5~6%",5,6],["6%~",6,null]], g: "price", label: "전월세 전환율", unit: "%", step: 0.5, get: (x) => x.f?.conv ?? null },
+    { k: "renew", opts: [["동결·인하",null,0],["0~5%",0,5],["5%~",5,null]], g: "price", label: "전세 갱신 인상률", unit: "%", step: 1, get: (x) => x.f?.renew ? x.f.renew[1] : null },
+    { k: "renewRight", opts: [["~30%",null,30],["30~50%",30,50],["50%~",50,null]], g: "price", label: "갱신청구권 사용", unit: "%", step: 10, get: (x) => x.f?.renew ? x.f.renew[2] : null },
+    { k: "land", opts: [["~5평",null,5],["5~10평",5,10],["10~15평",10,15],["15~20평",15,20],["20평~",20,null]], g: "build", label: "대지지분", unit: "평", step: 1, band: true, needsPrice: false, get: (x) => x.f?.land?.[x.b]?.[1] ?? null },
+    { k: "far", opts: [["~150%",null,150],["150~200%",150,200],["200~250%",200,250],["250~300%",250,300],["300%~",300,null]], g: "build", label: "용적률", unit: "%", step: 10, get: (x) => x.f?.far || null },
+    { k: "coverage", opts: [["~15%",null,15],["15~20%",15,20],["20~30%",20,30],["30%~",30,null]], g: "build", label: "건폐율", unit: "%", step: 5, get: (x) => x.f?.coverage || null },
+    { k: "park", opts: [["~0.8대",null,0.8],["0.8~1대",0.8,1],["1~1.2대",1,1.2],["1.2~1.5대",1.2,1.5],["1.5대~",1.5,null]], g: "life", label: "세대당 주차", unit: "대", step: 0.1, get: (x) => x.f?.park || null },
+    { k: "subway", opts: [["5분 이내",null,5],["10분 이내",null,10],["15분 이내",null,15],["20분 이내",null,20]], g: "life", label: "지하철 도보", unit: "분 이내", step: 5, only: "max", get: (x) => SUBWAY_MIN[x.f?.sub?.[0]] ?? null },
+    { k: "rankGu", opts: [["1위",null,1],["3위 이내",null,3],["5위 이내",null,5],["10위 이내",null,10],["20위 이내",null,20],["30위 이내",null,30]], g: "trade", label: "구 내 순위", unit: "위", step: 1, get: (x) => x.f?.rk?.[0] || null },
+    { k: "rankDong", opts: [["1위",null,1],["3위 이내",null,3],["5위 이내",null,5],["10위 이내",null,10]], g: "trade", label: "동 내 순위", unit: "위", step: 1, get: (x) => x.f?.rk?.[2] || null },
+    { k: "turnover", opts: [["~3%",null,3],["3~5%",3,5],["5~10%",5,10],["10%~",10,null]], g: "trade", label: "거래회전율", unit: "%/년", step: 1, get: (x) => x.f?.units > 0 && x.f.trades12 ? x.f.trades12[state.variant === "all" ? 1 : 0] / x.f.units * 100 : null },
+    { k: "vol", opts: [["평소 이하",null,1],["1~1.5배",1,1.5],["1.5~2배",1.5,2],["2배~",2,null]], g: "trade", label: "거래 활발도", unit: "배", step: 0.5, get: (x) => x.f?.vol && x.f.vol[1] > 0 ? x.f.vol[0] / x.f.vol[1] : null },
   ];
   const FILTER_CHECKS = [
     { k: "recent", g: "trade", label: "최근 1년 거래 있는 단지만", test: (c, f) => { const t = f?.trades12; return t ? t[1] > 0 : (c.b || []).some((b) => nowPrice(c, b)); } },
@@ -1612,72 +1612,111 @@
       return bandDefs.every((d) => within(d.get(x), f[d.k + "Min"], f[d.k + "Max"]));
     });
   }
+  // Click filter: a chip bar over the map. Main filters have their own
+  // chip; "더보기" lists every filter. Each option is a preset range.
+  const FILTER_TOP = ["price", "pp", "units", "age", "area", "rankGu"];
   function bindMapFilter() {
-    const box = document.getElementById("map-filter");
-    const groups = document.getElementById("map-filter-groups");
-    const toggle = document.getElementById("map-filter-toggle");
-    const count = document.getElementById("map-filter-count");
-    if (!box || !toggle || !groups) return;
+    const bar = document.getElementById("map-filter-bar");
+    const pop = document.getElementById("map-filter-pop");
+    if (!bar || !pop) return;
     try { const saved = JSON.parse(localStorage.getItem("map-filter") || "{}"); if (saved && typeof saved === "object") state.filter = saved; } catch (_) {}
-    const input = (k, ph, d) => `<input data-f="${k}" type="number" inputmode="decimal" step="${d.step}" placeholder="${ph}" aria-label="${escapeAttr(d.label)} ${ph} (${escapeAttr(d.unit)})">`;
-    groups.innerHTML = FILTER_GROUPS.map(([g, title]) => {
-      const rows = FILTER_DEFS.filter((d) => d.g === g).map((d) => `<div class="mf-row"><span>${escapeHtml(d.label)} <small>${escapeHtml(d.unit)}</small></span>${
-        d.only === "max" ? `<em></em><i></i>${input(d.k + "Max", "이하", d)}` : `${input(d.k + "Min", "이상", d)}<i>~</i>${input(d.k + "Max", "이하", d)}`}</div>`).join("");
-      const checks = FILTER_CHECKS.filter((d) => d.g === g).map((d) => `<label class="mf-check"><input data-f="${d.k}" type="checkbox"> ${escapeHtml(d.label)}</label>`).join("");
-      return `<details class="mf-group" data-g="${g}"${g === "basic" ? " open" : ""}><summary>${escapeHtml(title)}<b class="mf-n"></b></summary>${rows}${checks}</details>`;
-    }).join("");
-    const inputs = [...groups.querySelectorAll("input[data-f]")];
-    for (const i of inputs) {
-      const v = state.filter[i.dataset.f];
-      if (i.type === "checkbox") i.checked = !!v; else i.value = v ?? "";
+    const defOf = (k) => FILTER_DEFS.find((d) => d.k === k);
+    const fmt = (v) => (Math.abs(v) >= 1000 ? v.toLocaleString("ko-KR") : String(v));
+    function chosenLabel(d) {
+      const lo = state.filter[d.k + "Min"], hi = state.filter[d.k + "Max"];
+      if (lo == null && hi == null) return null;
+      const o = d.opts.find((x) => x[1] === (lo ?? null) && x[2] === (hi ?? null));
+      return o ? o[0] : `${lo != null ? fmt(lo) : ""}~${hi != null ? fmt(hi) : ""}${d.unit}`;
     }
-    // Groups holding an active condition start open.
-    for (const det of groups.querySelectorAll(".mf-group")) {
-      if ([...det.querySelectorAll("input[data-f]")].some((i) => (i.type === "checkbox" ? i.checked : i.value !== ""))) det.open = true;
-    }
-    let timer = 0;
-    function summary() {
-      const n = filterCount();
-      toggle.textContent = n ? `필터 ${n}` : "필터";
-      toggle.classList.toggle("on", n > 0);
-      for (const det of groups.querySelectorAll(".mf-group")) {
-        const g = det.dataset.g;
-        const k = FILTER_DEFS.filter((d) => d.g === g && defOn(d)).length + FILTER_CHECKS.filter((d) => d.g === g && state.filter[d.k]).length;
-        det.querySelector(".mf-n").textContent = k ? ` ${k}` : "";
-      }
-      if (!state.data) { count.textContent = ""; return; }
-      if (!n) { count.textContent = `전체 ${state.data.complexes.length.toLocaleString("ko-KR")}개 단지`; return; }
-      if (!state.mapFacts) { count.textContent = "단지 정보를 불러오는 중…"; return; }
+    let openKey = null;
+    function count() {
+      if (!filterActive()) return `전체 ${state.data ? state.data.complexes.length.toLocaleString("ko-KR") : ""}개 단지`;
+      if (!state.mapFacts || !state.data) return "단지 정보를 불러오는 중…";
       let k = 0;
       for (const c of state.data.complexes) if (passFilter(c)) k++;
-      count.textContent = `조건에 맞는 단지 ${k.toLocaleString("ko-KR")}개`;
+      return `조건에 맞는 단지 ${k.toLocaleString("ko-KR")}개`;
     }
-    state.filterSummary = summary;
-    function apply() {
-      const f = {};
-      for (const i of inputs) {
-        if (i.type === "checkbox") { if (i.checked) f[i.dataset.f] = true; }
-        else { const v = num(i.value); if (v != null) f[i.dataset.f] = v; }
+    function chip(label, key, on, extra = "") {
+      return `<button type="button" class="mf-chip${on ? " on" : ""}${openKey === key ? " open" : ""}" data-chip="${key}" aria-expanded="${openKey === key}"${extra}>${escapeHtml(label)}</button>`;
+    }
+    function renderBar() {
+      const parts = FILTER_TOP.map((k) => { const d = defOf(k); const v = chosenLabel(d); return chip(v ? `${d.label} ${v}` : d.label, k, !!v); });
+      parts.push(chip("신고가", "newHigh", !!state.filter.newHigh, ' aria-pressed="' + !!state.filter.newHigh + '"'));
+      const moreN = FILTER_DEFS.filter((d) => !FILTER_TOP.includes(d.k) && defOn(d)).length + (state.filter.recent ? 1 : 0);
+      parts.push(chip(moreN ? `더보기 ${moreN}` : "더보기", "more", moreN > 0));
+      if (filterActive()) parts.push(`<button type="button" class="mf-chip mf-reset" data-chip="reset">초기화</button><span class="mf-count">${escapeHtml(count())}</span>`);
+      bar.innerHTML = parts.join("");
+    }
+    function optionRow(d) {
+      const cur = chosenLabel(d);
+      const btn = (label, lo, hi, on) => `<button type="button" class="mf-opt${on ? " on" : ""}" data-k="${d.k}" data-lo="${lo ?? ""}" data-hi="${hi ?? ""}">${escapeHtml(label)}</button>`;
+      return btn("전체", null, null, !cur) + d.opts.map((o) => btn(o[0], o[1], o[2], cur === o[0])).join("");
+    }
+    function renderPop() {
+      if (!openKey) { pop.hidden = true; pop.innerHTML = ""; return; }
+      let body;
+      if (openKey === "more") {
+        body = FILTER_GROUPS.map(([g, title]) => {
+          const rows = FILTER_DEFS.filter((d) => d.g === g).map((d) => `<div class="mf-line"><span class="mf-label">${escapeHtml(d.label)}</span><div class="mf-opts">${optionRow(d)}</div></div>`).join("");
+          const checks = FILTER_CHECKS.filter((d) => d.g === g).map((d) => `<div class="mf-line"><span class="mf-label"></span><div class="mf-opts"><button type="button" class="mf-opt${state.filter[d.k] ? " on" : ""}" data-check="${d.k}">${escapeHtml(d.label)}</button></div></div>`).join("");
+          return `<section class="mf-sec"><h4>${escapeHtml(title)}</h4>${rows}${checks}</section>`;
+        }).join("") + `<p class="mf-hint">가격·면적·대지지분 조건은 한 평형이 함께 만족해야 합니다(최근 실거래 평균). 평당가는 공급면적 기준이며 자료가 없으면 전용 × 1.33으로 어림합니다. 값이 없는 단지는 그 조건을 고르면 숨겨집니다. 선택한 단지와 그래프에 표시 중인 단지는 항상 보입니다.</p>`;
+      } else {
+        const d = defOf(openKey);
+        body = `<div class="mf-opts">${optionRow(d)}</div>`;
       }
-      state.filter = f;
-      try { localStorage.setItem("map-filter", JSON.stringify(f)); } catch (_) {}
-      // Every condition except price and size reads the facts file.
+      pop.innerHTML = `${body}<div class="mf-foot"><span>${escapeHtml(count())}</span><button type="button" class="mf-close">닫기</button></div>`;
+      pop.classList.toggle("wide", openKey === "more");
+      pop.hidden = false;
+      // Place a single-filter popover under its chip.
+      const anchor = bar.querySelector(`[data-chip="${openKey}"]`);
+      if (anchor && openKey !== "more") {
+        const left = anchor.offsetLeft - bar.scrollLeft;
+        pop.style.left = Math.max(0, Math.min(left, bar.clientWidth - pop.offsetWidth)) + "px";
+      } else pop.style.left = "0px";
+    }
+    function apply() {
+      try { localStorage.setItem("map-filter", JSON.stringify(state.filter)); } catch (_) {}
       if (filterActive()) loadMapFacts();
-      summary();
+      renderBar(); renderPop();
       map.refresh();
     }
-    box.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(apply, 250); });
-    box.addEventListener("change", (e) => { if (e.target.matches("input[data-f]")) apply(); });
-    document.getElementById("map-filter-reset").addEventListener("click", () => {
-      for (const i of inputs) { if (i.type === "checkbox") i.checked = false; else i.value = ""; }
+    state.filterSummary = () => { renderBar(); if (openKey) renderPop(); };
+    bar.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-chip]");
+      if (!b) return;
+      const key = b.dataset.chip;
+      if (key === "reset") { state.filter = {}; openKey = null; apply(); return; }
+      if (key === "newHigh") { if (state.filter.newHigh) delete state.filter.newHigh; else state.filter.newHigh = true; apply(); return; }
+      openKey = openKey === key ? null : key;
+      renderBar(); renderPop();
+    });
+    pop.addEventListener("click", (e) => {
+      if (e.target.closest(".mf-close")) { openKey = null; renderBar(); renderPop(); return; }
+      const o = e.target.closest(".mf-opt");
+      if (!o) return;
+      if (o.dataset.check) {
+        const k = o.dataset.check;
+        if (state.filter[k]) delete state.filter[k]; else state.filter[k] = true;
+      } else {
+        const k = o.dataset.k, lo = num(o.dataset.lo), hi = num(o.dataset.hi);
+        delete state.filter[k + "Min"]; delete state.filter[k + "Max"];
+        if (lo != null) state.filter[k + "Min"] = lo;
+        if (hi != null) state.filter[k + "Max"] = hi;
+        if (openKey !== "more") openKey = null; // a single choice closes its popover
+      }
       apply();
     });
-    toggle.addEventListener("click", () => {
-      box.hidden = !box.hidden;
-      toggle.setAttribute("aria-expanded", String(!box.hidden));
-      if (!box.hidden) summary();
+    // Capture phase: the Kakao map swallows clicks on itself.
+    document.addEventListener("pointerdown", (e) => {
+      // composedPath: the clicked chip may already be replaced by a re-render.
+      const inside = e.composedPath().some((n) => n.classList && n.classList.contains("mf-bar-wrap"));
+      if (openKey && !inside) { openKey = null; renderBar(); renderPop(); }
+    }, true);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && openKey) { openKey = null; renderBar(); renderPop(); }
     });
-    summary();
+    renderBar();
   }
 
   // ---------- map ----------
