@@ -1587,6 +1587,34 @@
     { k: "turnover", opts: [["~3%",null,3],["3~5%",3,5],["5~10%",5,10],["10%~",10,null]], g: "trade", label: "거래회전율", unit: "%/년", step: 1, get: (x) => x.f?.units > 0 && x.f.trades12 ? x.f.trades12[state.variant === "all" ? 1 : 0] / x.f.units * 100 : null },
     { k: "vol", opts: [["평소 이하",null,1],["1~1.5배",1,1.5],["1.5~2배",1.5,2],["2배~",2,null]], g: "trade", label: "거래 활발도", unit: "배", step: 0.5, get: (x) => x.f?.vol && x.f.vol[1] > 0 ? x.f.vol[0] / x.f.vol[1] : null },
   ];
+  // Slider stops per filter. The two ends are open: the left handle at the
+  // first stop means "no lower limit", the right one at the last stop
+  // means "no upper limit".
+  const FILTER_SCALES = {
+    price: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 30, 35, 40, 50, 60, 80, 100],
+    pp: [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000, 12000, 15000, 20000],
+    units: [0, 50, 100, 150, 200, 300, 400, 500, 700, 1000, 1500, 2000, 3000, 4000, 5000, 7000, 10000],
+    age: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 50],
+    area: [0, 20, 30, 40, 50, 60, 70, 80, 85, 90, 100, 102, 110, 120, 135, 150, 200, 300],
+    gap: [0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 30],
+    rentRatio: [0, 10, 20, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100],
+    rel: [-50, -40, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 40, 50],
+    peak: [-60, -50, -40, -30, -25, -20, -15, -10, -5, 0, 5, 10, 20, 30, 50],
+    landPrice: [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4, 5],
+    conv: [0, 1, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 10],
+    renew: [-20, -10, -5, 0, 1, 2, 3, 4, 5, 7, 10, 15, 20, 30],
+    renewRight: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    land: [0, 2, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50],
+    far: [0, 50, 100, 125, 150, 175, 200, 225, 250, 275, 300, 350, 400, 500, 800],
+    coverage: [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90],
+    park: [0, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.5, 1.6, 1.8, 2, 2.5, 3],
+    subway: [0, 5, 10, 15, 20, 99],
+    rankGu: [1, 2, 3, 5, 10, 15, 20, 30, 50, 100, 200, 500],
+    rankDong: [1, 2, 3, 5, 10, 20, 50, 100],
+    relRank: [1, 2, 3, 5, 10, 20, 50, 100, 500],
+    turnover: [0, 1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30],
+    vol: [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 5],
+  };
   const FILTER_CHECKS = [
     { k: "recent", g: "trade", label: "최근 1년 거래 있는 단지만", test: (c, f) => { const t = f?.trades12; return t ? t[1] > 0 : (c.b || []).some((b) => nowPrice(c, b)); } },
     { k: "newHigh", g: "price", label: "최근 3개월 신고가 단지만", test: (c, f) => !!(f?.high && Object.keys(f.high).length) },
@@ -1629,7 +1657,7 @@
       const lo = state.filter[d.k + "Min"], hi = state.filter[d.k + "Max"];
       if (lo == null && hi == null) return null;
       const o = d.opts.find((x) => x[1] === (lo ?? null) && x[2] === (hi ?? null));
-      return o ? o[0] : `${lo != null ? fmt(lo) : ""}~${hi != null ? fmt(hi) : ""}${d.unit}`;
+      return o ? o[0] : rangeText(d);
     }
     let openKey = null;
     function count() {
@@ -1655,6 +1683,93 @@
       if (filterActive()) parts.push(`<button type="button" class="mf-chip mf-reset" data-chip="reset">초기화</button><span class="mf-count">${escapeHtml(count())}</span>`);
       bar.innerHTML = parts.join("");
     }
+    const scaleOf = (d) => FILTER_SCALES[d.k] || [0, 1];
+    // Nearest stop for a stored bound (values saved from presets may sit
+    // between stops).
+    const idxOf = (sc, v, end) => {
+      if (v == null) return end;
+      let best = 0;
+      for (let i = 1; i < sc.length; i++) if (Math.abs(sc[i] - v) < Math.abs(sc[best] - v)) best = i;
+      return best;
+    };
+    const stopText = (d, v) => (d.k === "subway" && v === 99 ? "20분 초과" : `${fmt(v)}${d.unit}`);
+    function rangeText(d) {
+      const lo = state.filter[d.k + "Min"], hi = state.filter[d.k + "Max"];
+      if (lo == null && hi == null) return "전체";
+      if (lo != null && hi != null && lo === hi) return stopText(d, lo);
+      return `${lo != null ? stopText(d, lo) : "최소"} ~ ${hi != null ? stopText(d, hi) : "최대"}`;
+    }
+    function sliderRow(d) {
+      const sc = scaleOf(d), n = sc.length - 1;
+      const lo = idxOf(sc, state.filter[d.k + "Min"], 0), hi = idxOf(sc, state.filter[d.k + "Max"], n);
+      return `<div class="mf-slider" data-k="${d.k}">
+        <div class="mf-sl-head"><span class="mf-label">${escapeHtml(d.label)}</span><output>${escapeHtml(rangeText(d))}</output></div>
+        <div class="mf-range" style="--lo:${lo / n * 100}%;--hi:${hi / n * 100}%">
+          <div class="mf-track"><div class="mf-fill"></div></div>
+          <input type="range" class="mf-lo" min="0" max="${n}" step="1" value="${lo}" aria-label="${escapeAttr(d.label)} 최소">
+          <input type="range" class="mf-hi" min="0" max="${n}" step="1" value="${hi}" aria-label="${escapeAttr(d.label)} 최대">
+        </div>
+        <div class="mf-ends"><span>${escapeHtml(stopText(d, sc[0]))}</span><span>${escapeHtml(stopText(d, sc[n]))}+</span></div>
+      </div>`;
+    }
+    // Move one handle of a slider to stop `i` and update the filter in
+    // place (the popover is not re-rendered, so a drag keeps going).
+    let liveTimer = 0;
+    function setHandle(row, which, i, commit) {
+      const d = defOf(row.dataset.k), sc = scaleOf(d), n = sc.length - 1;
+      const loEl = row.querySelector(".mf-lo"), hiEl = row.querySelector(".mf-hi");
+      i = Math.max(0, Math.min(n, i));
+      if (which === "lo") { loEl.value = Math.min(i, +hiEl.value); } else { hiEl.value = Math.max(i, +loEl.value); }
+      const lo = +loEl.value, hi = +hiEl.value;
+      delete state.filter[d.k + "Min"]; delete state.filter[d.k + "Max"];
+      if (lo > 0) state.filter[d.k + "Min"] = sc[lo];
+      if (hi < n) state.filter[d.k + "Max"] = sc[hi];
+      const range = row.querySelector(".mf-range");
+      range.style.setProperty("--lo", lo / n * 100 + "%");
+      range.style.setProperty("--hi", hi / n * 100 + "%");
+      row.querySelector("output").textContent = rangeText(d);
+      clearTimeout(liveTimer);
+      liveTimer = setTimeout(() => apply(false), commit ? 0 : 200);
+    }
+    function nearestHandle(row, i) {
+      const lo = +row.querySelector(".mf-lo").value, hi = +row.querySelector(".mf-hi").value;
+      if (lo === hi) return i < lo ? "lo" : "hi";
+      return Math.abs(i - lo) <= Math.abs(i - hi) ? "lo" : "hi";
+    }
+    const stopAt = (range, clientX, n) => {
+      const r = range.getBoundingClientRect();
+      return Math.round(Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * n);
+    };
+    pop.addEventListener("input", (e) => {
+      const row = e.target.closest(".mf-slider");
+      if (row) setHandle(row, e.target.classList.contains("mf-lo") ? "lo" : "hi", +e.target.value, false);
+    });
+    // Click or drag on the track: the nearer handle jumps there and follows.
+    pop.addEventListener("pointerdown", (e) => {
+      const range = e.target.closest(".mf-range");
+      if (!range || e.target.matches("input")) return;
+      const row = range.closest(".mf-slider"), n = scaleOf(defOf(row.dataset.k)).length - 1;
+      const i = stopAt(range, e.clientX, n);
+      const which = nearestHandle(row, i);
+      setHandle(row, which, i, false);
+      const move = (ev) => setHandle(row, which, stopAt(range, ev.clientX, n), false);
+      const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); apply(false); };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      e.preventDefault();
+    });
+    // Mouse wheel over a slider steps the handle nearer the pointer.
+    pop.addEventListener("wheel", (e) => {
+      const range = e.target.closest(".mf-range");
+      if (!range) return;
+      e.preventDefault();
+      const row = range.closest(".mf-slider"), n = scaleOf(defOf(row.dataset.k)).length - 1;
+      const which = nearestHandle(row, stopAt(range, e.clientX, n));
+      const cur = +row.querySelector(which === "lo" ? ".mf-lo" : ".mf-hi").value;
+      const dir = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : -e.deltaY) > 0 ? 1 : -1;
+      setHandle(row, which, cur + dir, false);
+    }, { passive: false });
+
     function optionRow(d) {
       const cur = chosenLabel(d);
       const btn = (label, lo, hi, on) => `<button type="button" class="mf-opt${on ? " on" : ""}" data-k="${d.k}" data-lo="${lo ?? ""}" data-hi="${hi ?? ""}">${escapeHtml(label)}</button>`;
@@ -1665,13 +1780,13 @@
       let body;
       if (openKey === "more") {
         body = FILTER_GROUPS.map(([g, title]) => {
-          const rows = FILTER_DEFS.filter((d) => d.g === g).map((d) => `<div class="mf-line"><span class="mf-label">${escapeHtml(d.label)}</span><div class="mf-opts">${optionRow(d)}</div></div>`).join("");
-          const checks = FILTER_CHECKS.filter((d) => d.g === g).map((d) => `<div class="mf-line"><span class="mf-label"></span><div class="mf-opts"><button type="button" class="mf-opt${state.filter[d.k] ? " on" : ""}" data-check="${d.k}">${escapeHtml(d.label)}</button></div></div>`).join("");
+          const rows = FILTER_DEFS.filter((d) => d.g === g).map(sliderRow).join("");
+          const checks = FILTER_CHECKS.filter((d) => d.g === g).map((d) => `<div class="mf-opts mf-checks"><button type="button" class="mf-opt${state.filter[d.k] ? " on" : ""}" data-check="${d.k}">${escapeHtml(d.label)}</button></div>`).join("");
           return `<section class="mf-sec"><h4>${escapeHtml(title)}</h4>${rows}${checks}</section>`;
         }).join("") + `<p class="mf-hint">가격·면적·대지지분 조건은 한 평형이 함께 만족해야 합니다(최근 실거래 평균). 평당가는 공급면적 기준이며 자료가 없으면 전용 × 1.33으로 어림합니다. 값이 없는 단지는 그 조건을 고르면 숨겨집니다. 선택한 단지와 그래프에 표시 중인 단지는 항상 보입니다.</p>`;
       } else {
         const d = defOf(openKey);
-        body = `<div class="mf-opts">${optionRow(d)}</div>`;
+        body = `${sliderRow(d)}<div class="mf-opts mf-presets">${optionRow(d)}</div>`;
         if (d.k === "rel") {
           // The "usually ahead, now behind" reading: combine with this switch.
           body += `<div class="mf-opts mf-sub"><button type="button" class="mf-opt${state.filter.wasAbove ? " on" : ""}" data-check="wasAbove">평소 구 평균보다 비쌌던 단지만</button></div>` +
@@ -1688,10 +1803,20 @@
         pop.style.left = Math.max(0, Math.min(left, bar.clientWidth - pop.offsetWidth)) + "px";
       } else pop.style.left = "0px";
     }
-    function apply() {
+    function apply(redrawPop = true) {
       try { localStorage.setItem("map-filter", JSON.stringify(state.filter)); } catch (_) {}
       if (filterActive()) loadMapFacts();
-      renderBar(); renderPop();
+      renderBar();
+      if (redrawPop) renderPop();
+      else {
+        const foot = pop.querySelector(".mf-foot span");
+        if (foot) foot.textContent = count();
+        // Preset buttons follow the slider.
+        for (const b of pop.querySelectorAll(".mf-opt[data-k]")) {
+          const k = b.dataset.k, lo = num(b.dataset.lo), hi = num(b.dataset.hi);
+          b.classList.toggle("on", (state.filter[k + "Min"] ?? null) === lo && (state.filter[k + "Max"] ?? null) === hi);
+        }
+      }
       map.refresh();
     }
     state.filterSummary = () => { renderBar(); if (openKey) renderPop(); };
@@ -1716,7 +1841,6 @@
         delete state.filter[k + "Min"]; delete state.filter[k + "Max"];
         if (lo != null) state.filter[k + "Min"] = lo;
         if (hi != null) state.filter[k + "Max"] = hi;
-        if (openKey !== "more") openKey = null; // a single choice closes its popover
       }
       apply();
     });
