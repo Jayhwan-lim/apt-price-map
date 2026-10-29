@@ -2,7 +2,7 @@
 (function(root){
   const definitions = {
     sale:['실거래가','선택 면적의 최근 3·6·12개월 실거래 평균. 직거래 설정 반영.'],
-    pyeong:['평당가격','최근 실거래 평균 ÷ 공급면적 × 3.3058. 공급면적은 건축물대장 전유공용면적의 전용 + 주거공용(계단·승강기·벽체)입니다. ≈ 표시는 같은 단지 다른 평형의 공용면적 비율로 추정한 값입니다.'],
+    pyeong:['평당가격','최근 실거래 평균 ÷ 공급면적 × 3.3058. 공급면적은 건축물대장 전유공용면적의 전용 + 주거공용(계단·승강기·벽체)입니다. ≈ 표시는 추정값입니다: 같은 단지 다른 평형의 공용면적 비율, 대장에 자료가 없는 단지는 같은 동·같은 연대 단지들의 공급/전용 비율 중앙값(없으면 구 단위)을 씁니다. 실제 값이 있는 단지로 맞춰 보면 오차 중앙값 0%, 절반이 ±3% 안입니다. 최근 12개월 거래가 없으면 마지막 거래 달 평균에 날짜를 붙여 씁니다.'],
     gap:['매매전세갭','같은 면적의 최근 매매 평균 − 최근 12개월 전세 보증금 중앙값(3건 이상). 1년 계약이 3건 미만이면 2년치를 쓰고 (2년)으로 표시합니다. 월세 계약은 제외합니다.'],
     rentRatio:['전세가율','최근 12개월 전세 보증금 중앙값 ÷ 최근 매매 평균 × 100. 1년 계약이 3건 미만이면 2년치를 쓰고 (2년)으로 표시합니다. 월세 계약은 제외합니다.'],
     turnover:['거래회전율','최근 데이터 12개월의 단지 전체 매매 신고 건수 ÷ 세대수 × 100. 재거래도 각각 집계하며 직거래 설정을 반영합니다.'],
@@ -29,7 +29,13 @@
     const size=area?area+'㎡':band+'㎡형';
     const approx=(list)=>Array.isArray(list)&&list.includes(band)?'≈':'';
     if(metric==='sale')return price>0?size+' · '+money(price):'실거래 정보 없음';
-    if(metric==='pyeong'){const sup=facts?.supply?.[band];return price>0 && sup>0?'평당 '+approx(facts.supplyEst)+Math.round(price/sup*3.305785).toLocaleString('ko-KR')+'만원':'평당가 정보 없음';}
+    // No trade in the last 12 months: the last traded month, dated.
+    const lastOf=()=>{const o=!(price>0)&&facts?.last?.[band];return o?{p:o[1],tag:' ('+String(o[0]).slice(2,4)+'.'+String(o[0]).slice(4)+' 거래)'}:null;};
+    if(metric==='pyeong'){
+      const sup=facts?.supply?.[band];if(!(sup>0))return '평당가 정보 없음';
+      const o=lastOf(),p=price>0?price:o?o.p:0;if(!p)return '실거래 정보 없음';
+      return '평당 '+approx(facts.supplyEst)+Math.round(p/sup*3.305785).toLocaleString('ko-KR')+'만원'+(o?o.tag:'');
+    }
     if(metric==='units')return facts?.units>0?facts.units.toLocaleString('ko-KR')+'세대':'세대수 정보 없음';
     if(metric==='turnover')return facts?.units>0 && facts.trades12?'연 '+(facts.trades12[variant==='all'?1:0]/facts.units*100).toFixed(1)+'%':'회전율 정보 없음';
     const rent=facts?.rent?.[band];
@@ -55,10 +61,8 @@
     if(metric==='vol'){const v=facts?.vol;if(!v)return '거래 정보 없음';return v[1]>0?'평소의 '+(v[0]/v[1]).toFixed(1)+'배 ('+v[0]+'건)':'최근 3개월 '+v[0]+'건';}
     if(metric==='landPrice'){
       const l=facts?.land?.[band];if(!l)return '대지지분 정보 없음';
-      // No trade in the last 12 months: use the last traded month, dated.
-      const old=!(price>0)&&facts?.last?.[band];
-      const p=price>0?price:old?old[1]:0;if(!p)return '실거래 정보 없음';
-      return '대지 평당 '+(facts.landEst?'≈':'')+money(p/l[1])+(old?' ('+String(old[0]).slice(2,4)+'.'+String(old[0]).slice(4)+' 거래)':'');
+      const o=lastOf(),p=price>0?price:o?o.p:0;if(!p)return '실거래 정보 없음';
+      return '대지 평당 '+(facts.landEst?'≈':'')+money(p/l[1])+(o?o.tag:'');
     }
     if(metric==='conv')return facts?.conv?'전환율 '+facts.conv.toFixed(1)+'%':'월세 정보 없음';
     if(metric==='renew'){const r=facts?.renew;return r?'갱신 '+(r[1]>=0?'+':'')+r[1].toFixed(1)+'% · 청구권 '+r[2]+'%':'갱신 정보 없음';}

@@ -6,7 +6,9 @@ Sources, in priority order where they overlap:
   occ        K-apt 사용승인일 > 건축물대장 사용승인일
   supply     건축물대장 전유공용면적: exclusive + residential common area per
              exclusive-area type; types not sampled use the complex's own
-             common-area ratio and are flagged as estimates
+             common-area ratio, and complexes with no sample the median
+             ratio of same-decade complexes nearby (supplyPeer); all of
+             these are flagged as estimates
   land       site area x type exclusive area / complex exclusive total
              (K-apt privArea). Without K-apt: site area x supply / FAR floor
              area. Without a usable site area (shared or missing lot):
@@ -460,11 +462,49 @@ def build():
             rk[slot], rk[slot + 1] = i, len(items)
     stats["rank"] = sum(1 for f in out.values() if "rk" in f)
 
+    def built_year(c):
+        f = out[c["key"]]
+        return int(f["occ"][:4]) if f.get("occ") else c.get("by")
+
+    # Supply area where the register gave none: exclusive area x the
+    # median supply ratio of same-decade complexes in the dong, then the
+    # district by decade, then the district, then a typical 1.33.
+    ratio_peers = defaultdict(list)
+    for c in data["complexes"]:
+        f, y = out[c["key"]], built_year(c)
+        if not f.get("supply") or set(f.get("supplyEst") or ()) >= set(f["supply"]):
+            continue
+        rs = [f["supply"][b] / a for b, a in (f.get("areas") or {}).items()
+              if a and b in f["supply"] and b not in (f.get("supplyEst") or ())]
+        if not rs:
+            continue
+        r = statistics.median(rs)
+        dec = y // 10 if y else None
+        if dec:
+            ratio_peers[(c["code"], c.get("umd", ""), dec)].append(r)
+            ratio_peers[(c["code"], dec)].append(r)
+        ratio_peers[(c["code"],)].append(r)
+    for c in data["complexes"]:
+        f = out[c["key"]]
+        areas = f.get("areas") or {}
+        if not areas or f.get("supply"):
+            continue
+        y = built_year(c)
+        ratio = SUPPLY_GUESS
+        for g in ([(c["code"], c.get("umd", ""), y // 10), (c["code"], y // 10)] if y else []) + [(c["code"],)]:
+            if len(ratio_peers.get(g, ())) >= 3:
+                ratio = statistics.median(ratio_peers[g])
+                break
+        f["supply"] = {b: round(a * ratio, 2) for b, a in areas.items() if a}
+        f["supplyEst"] = list(f["supply"])
+        f["supplyPeer"] = round(ratio, 3)
+        stats["supply_estimated"] += 1
+    stats["supply"] = sum(1 for f in out.values() if f.get("supply"))
+
     # Land share where the register gave none: a unit's land is roughly its
     # floor area over the FAR. Use the complex's FAR, else the median FAR of
     # complexes of the same build decade in the same dong, then district.
-    built = {c["key"]: (int(out[c["key"]]["occ"][:4]) if out[c["key"]].get("occ") else c.get("by"))
-             for c in data["complexes"]}
+    built = {c["key"]: built_year(c) for c in data["complexes"]}
     peers = defaultdict(list)
     for c in data["complexes"]:
         f, y = out[c["key"]], built[c["key"]]
