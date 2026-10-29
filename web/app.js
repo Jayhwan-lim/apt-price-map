@@ -1510,7 +1510,8 @@
     }
     const land = f.land?.[band];
     if (land && price) items.push(row("대지지분당 가격", `평당 <b>${f.landEst ? "≈" : ""}${fmtPrice(price / land[1])}</b>`,
-      `대지지분 ${land[1].toFixed(1)}평 (${land[0].toFixed(1)}㎡)`));
+      `대지지분 ${f.landEst ? "≈" : ""}${land[1].toFixed(1)}평 (${land[0].toFixed(1)}㎡)` +
+      (f.landPeer ? ` · 대장에 대지 정보가 없어 주변 같은 연대 단지 용적률(${f.landPeer}%)로 추정` : f.landEst ? " · 공급면적 ÷ 용적률로 추정" : "")));
     const rent = f.rent?.[band];
     const rentBits = [];
     if (rent && price) rentBits.push(`전세가율 <b>${Math.round(rent[0] / price * 100)}%</b>`);

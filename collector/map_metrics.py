@@ -9,7 +9,9 @@ Sources, in priority order where they overlap:
              common-area ratio and are flagged as estimates
   land       site area x type exclusive area / complex exclusive total
              (K-apt privArea). Without K-apt: site area x supply / FAR floor
-             area, flagged as an estimate
+             area. Without a usable site area (shared or missing lot):
+             supply / FAR, with the FAR of similar nearby complexes when the
+             register has none (landPeer). All but the first are estimates
   trades12   trades in the last 12 data months (both direct-trade variants)
   rent       median jeonse deposit per type over the last 12 months, when
              apartment rent data has been collected (data/raw_rent)
@@ -39,6 +41,7 @@ FAR_RANGE = (30.0, 1500.0)
 COVERAGE_RANGE = (3.0, 90.0)
 LAND_RANGE = (3.0, 400.0)  # m2 per unit
 SUPPLY_RATIO = (1.03, 1.9)
+SUPPLY_GUESS = 1.33  # supply / exclusive when the register has no sample
 # "Usual" standing: the 5 full years before the one just finished, so a
 # recent dip shows against the years before it. At least 3 of them.
 REL_YEARS = 5
@@ -280,6 +283,17 @@ def build():
             recent3 += sum(n for mi, (n, _a) in all_.items() if mcount - 4 <= mi <= mcount - 2)
             base36 += sum(n for mi, (n, _a) in all_.items() if mcount - 40 <= mi <= mcount - 5)
         facts["trades12"] = totals
+        # Last trade month per type with no trade in the last 12 months:
+        # [YYYYMM, average], so price-based tabs can still show a dated value.
+        last = {}
+        for band, series in rec.get("m", {}).items():
+            ex, _all = series_counts(series)
+            if ex and max(ex) < mcount - 12:
+                mi = max(ex)
+                ym = (y0 + (m0 - 1 + mi) // 12) * 100 + (m0 - 1 + mi) % 12 + 1
+                last[band] = [ym, round(ex[mi][1])]
+        if last:
+            facts["last"] = last
         if base36 or recent3:
             facts["vol"] = [recent3, round(base36 / 12, 1)]
         if ppm_n >= 3:
@@ -445,6 +459,49 @@ def build():
             rk = out[k].setdefault("rk", [None, None, None, None])
             rk[slot], rk[slot + 1] = i, len(items)
     stats["rank"] = sum(1 for f in out.values() if "rk" in f)
+
+    # Land share where the register gave none: a unit's land is roughly its
+    # floor area over the FAR. Use the complex's FAR, else the median FAR of
+    # complexes of the same build decade in the same dong, then district.
+    built = {c["key"]: (int(out[c["key"]]["occ"][:4]) if out[c["key"]].get("occ") else c.get("by"))
+             for c in data["complexes"]}
+    peers = defaultdict(list)
+    for c in data["complexes"]:
+        f, y = out[c["key"]], built[c["key"]]
+        if f.get("far") and y:
+            dec = y // 10
+            peers[(c["code"], c.get("umd", ""), dec)].append(f["far"])
+            peers[(c["code"], dec)].append(f["far"])
+            peers[(c["code"],)].append(f["far"])
+    for c in data["complexes"]:
+        f = out[c["key"]]
+        areas = f.get("areas") or {}
+        if not areas or (f.get("land") and len(f["land"]) == len(areas)):
+            continue
+        far, peer = f.get("far"), False
+        if not far:
+            y = built[c["key"]]
+            for g in ([(c["code"], c.get("umd", ""), y // 10), (c["code"], y // 10)] if y else []) + [(c["code"],)]:
+                if len(peers.get(g, ())) >= 3:
+                    far, peer = statistics.median(peers[g]), True
+                    break
+        if not far:
+            continue
+        land = dict(f.get("land") or {})
+        for band, excl in areas.items():
+            if band in land or not excl:
+                continue
+            sup = (f.get("supply") or {}).get(band) or excl * SUPPLY_GUESS
+            m2 = sup / (far / 100)
+            if in_range(m2, LAND_RANGE):
+                land[band] = [round(m2, 2), round(m2 / PYEONG, 2)]
+        if len(land) > len(f.get("land") or {}):
+            stats["land_estimated"] += 1
+            f["land"] = land
+            f["landEst"] = True
+            if peer:
+                f["landPeer"] = round(far, 1)
+    stats["land"] = sum(1 for f in out.values() if "land" in f)
 
     # Standing vs the district: each complex's price per m2 over the
     # district median, per year (>= 3 trades) and for the last 12 months.
