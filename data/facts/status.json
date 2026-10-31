@@ -1,1 +1,1 @@
-{"calls":30,"generated":"2026-10-31T00:01:38+09:00","lots":17104,"phases":{"hub":{"done":0,"failed":0,"queued":0,"stopped":null},"supply":{"done":0,"failed":7,"queued":1043,"stopped":"API unreachable from this runner"}},"stopped":"API unreachable from this runner","throttled":0}
+{"calls":7262,"generated":"2026-10-31T08:40:25+09:00","lots":17105,"phases":{"hub":{"done":1,"failed":0,"queued":1,"stopped":null},"supply":{"done":1055,"failed":0,"queued":1055,"stopped":null}},"stopped":null,"throttled":972}
