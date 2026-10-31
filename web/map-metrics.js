@@ -42,8 +42,12 @@
     const rent=facts?.rent?.[band];
     const long=Array.isArray(facts?.rentLong)&&facts.rentLong.includes(band)?' (2년)':'';
     const rE=E(Array.isArray(facts?.rentEst)&&facts.rentEst.includes(band));
-    if(metric==='gap')return rent && price>0?'갭 '+rE+money(price-rent[0])+long:'전세 정보 없음';
-    if(metric==='rentRatio')return rent && price>0?'전세가율 '+rE+Math.round(rent[0]/price*100)+'%'+long:'전세 정보 없음';
+    if(metric==='gap'||metric==='rentRatio'){
+      // No sale in the last 12 months: the last traded month, dated.
+      const o=lastOf(),p=price>0?price:o?o.p:0;
+      if(!rent)return '전세 정보 없음';if(!p)return '실거래 정보 없음';
+      return (metric==='gap'?'갭 '+rE+money(p-rent[0]):'전세가율 '+rE+Math.round(rent[0]/p*100)+'%')+long+(o?o.tag:'');
+    }
     const land=facts?.land?.[band];
     const one=x=>(Math.round(x*10)/10).toString();
     const est=facts?.landEst?'≈':'';
