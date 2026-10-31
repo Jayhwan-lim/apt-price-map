@@ -17,6 +17,8 @@ Sources, in priority order where they overlap:
   trades12   trades in the last 12 data months (both direct-trade variants)
   rent       median jeonse deposit per type over the last 12 months, when
              apartment rent data has been collected (data/raw_rent)
+  far        register FAR; without one, the median FAR of same-decade
+             complexes in the dong / district (farEst)
   rv         standing vs the district: price per 3.3 m2 relative to the
              district median, usual (yearly, REL_YEARS before last year)
              against now (last 12 months)
@@ -542,6 +544,21 @@ def build():
             if peer:
                 f["landPeer"] = round(far, 1)
     stats["land"] = sum(1 for f in out.values() if "land" in f)
+
+    # FAR where the register gave none (shared lots, missing or rejected
+    # values): the same peer median, flagged farEst.
+    for c in data["complexes"]:
+        f = out[c["key"]]
+        if f.get("far"):
+            continue
+        y = built[c["key"]]
+        for g in ([(c["code"], c.get("umd", ""), y // 10), (c["code"], y // 10)] if y else []) + [(c["code"],)]:
+            if len(peers.get(g, ())) >= 3:
+                f["far"] = round(statistics.median(peers[g]), 1)
+                f["farEst"] = True
+                stats["far_estimated"] += 1
+                break
+    stats["far"] = sum(1 for f in out.values() if f.get("far"))
 
     # Standing vs the district: each complex's price per m2 over the
     # district median, per year (>= 3 trades) and for the last 12 months.

@@ -1784,7 +1784,7 @@
           const rows = FILTER_DEFS.filter((d) => d.g === g).map(sliderRow).join("");
           const checks = FILTER_CHECKS.filter((d) => d.g === g).map((d) => `<div class="mf-opts mf-checks"><button type="button" class="mf-opt${state.filter[d.k] ? " on" : ""}" data-check="${d.k}">${escapeHtml(d.label)}</button></div>`).join("");
           return `<section class="mf-sec"><h4>${escapeHtml(title)}</h4>${rows}${checks}</section>`;
-        }).join("") + `<p class="mf-hint">가격·면적·대지지분 조건은 한 평형이 함께 만족해야 합니다(최근 실거래 평균). 평당가는 공급면적 기준이며, 대장에 자료가 없는 단지는 주변 같은 연대 단지의 공용률로 어림합니다(≈). 값이 없는 단지는 그 조건을 고르면 숨겨집니다. 선택한 단지와 그래프에 표시 중인 단지는 항상 보입니다.</p>`;
+        }).join("") + `<p class="mf-hint">가격·면적·대지지분 조건은 한 평형이 함께 만족해야 합니다(최근 실거래 평균). 평당가는 공급면적 기준이며, 대장에 자료가 없는 단지는 주변 같은 연대 단지의 공용률로 어림합니다(≈). 용적률·평당가·대지지분은 대장 값이 없으면 추정값(≈)으로 거릅니다. 그 밖에 값이 없는 단지는 그 조건을 고르면 숨겨집니다. 선택한 단지와 그래프에 표시 중인 단지는 항상 보입니다.</p>`;
       } else {
         const d = defOf(openKey);
         body = `${sliderRow(d)}<div class="mf-opts mf-presets">${optionRow(d)}</div>`;
