@@ -7,7 +7,8 @@ looked up more than REFRESH_DAYS ago) are queried.
 
     data/facts/subway.json  {complex key: [station name, distance m, YYYYMMDD]}
 
-Environment: KAKAO_REST_KEY (required), MAX_CALLS (20000), REFRESH_DAYS (365)
+Environment: KAKAO_REST_KEY (required), MAX_CALLS (20000), REFRESH_DAYS (365),
+SUBWAY_MINUTES (30: stop and leave the rest to the next run)
 """
 
 import json
@@ -42,8 +43,10 @@ def main():
     session = requests.Session()
     session.headers["Authorization"] = f"KakaoAK {key}"
     calls = done = 0
+    deadline = time.monotonic() + 60 * float(os.environ.get("SUBWAY_MINUTES", "30"))
     for c in todo:
-        if calls >= cap:
+        if calls >= cap or time.monotonic() > deadline:
+            print("subway: budget reached, the next run continues")
             break
         calls += 1
         try:
