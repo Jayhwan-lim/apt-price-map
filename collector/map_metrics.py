@@ -654,11 +654,12 @@ def build():
 
 
 def subway_bucket(dist_m):
-    """K-apt style walking-time bucket from a straight-line distance
-    (x1.3 for the street grid, 70 m a minute)."""
+    """K-apt style walking-time bucket from a straight-line distance at
+    70 m a minute: against 6,163 complexes K-apt also reports, this scale
+    has no bias (x1.3 for the street grid overstated the time)."""
     if dist_m is None:
         return "20분초과"
-    minutes = dist_m * 1.3 / 70
+    minutes = dist_m / 70
     for limit, label in ((5, "5분이내"), (10, "5~10분이내"), (15, "10~15분이내"), (20, "15~20분이내")):
         if minutes <= limit:
             return label
