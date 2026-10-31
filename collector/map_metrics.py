@@ -246,6 +246,8 @@ def build():
         y, m = (y - 1, 12) if m == 1 else (y, m - 1)
     recent_from = f"{y:04d}{m:02d}01"  # first day of the 3-month window
     rank_groups = defaultdict(list)  # (code) and (code, umd) -> [(ppm, key)]
+    thin_price = set()  # recent price per m2 from fewer than 3 trades
+    history = {}  # key -> (trades since 2006, years since the first one)
     yearly_ppm = {}  # key -> {year: [sum price/m2 x n, n]}
     last_year = last_ym // 100
     rel_years = range(last_year - 1 - REL_YEARS, last_year - 1)
@@ -268,6 +270,7 @@ def build():
         # the average 3 months over the 36 before.
         totals = [0, 0]
         ppm_sum = ppm_n = 0
+        all_sum = all_n = 0  # including direct trades, for complexes with only those
         recent3 = base36 = 0
         for band, series in rec.get("m", {}).items():
             ex, all_ = series_counts(series)
@@ -280,13 +283,25 @@ def build():
                         ppm_sum += n * avg / area
                         ppm_n += n
                     yr = y0 + (m0 - 1 + mi) // 12
-                    if yr in rel_years:
+                    if yr < last_year:
                         acc = yearly_ppm.setdefault(key, {}).setdefault(yr, [0.0, 0])
                         acc[0] += n * avg / area
                         acc[1] += n
+                for mi, (n, avg) in all_.items():
+                    if mcount - 12 <= mi < mcount:
+                        all_sum += n * avg / area
+                        all_n += n
             recent3 += sum(n for mi, (n, _a) in all_.items() if mcount - 4 <= mi <= mcount - 2)
             base36 += sum(n for mi, (n, _a) in all_.items() if mcount - 40 <= mi <= mcount - 5)
         facts["trades12"] = totals
+        hist_n = hist_first = 0
+        for series in rec.get("m", {}).values():
+            ex_h, _a = series_counts(series)
+            hist_n += sum(n for n, _avg in ex_h.values())
+            if ex_h:
+                first = min(ex_h)
+                hist_first = first if not hist_first else min(hist_first, first)
+        history[key] = (hist_n, max(1.0, (mcount - hist_first) / 12) if hist_n else 0)
         # Last trade month per type with no trade in the last 12 months:
         # [YYYYMM, average], so price-based tabs can still show a dated value.
         last = {}
@@ -300,24 +315,49 @@ def build():
             facts["last"] = last
         if base36 or recent3:
             facts["vol"] = [recent3, round(base36 / 12, 1)]
+        # Rank needs a recent price per m2: 3+ trades, else 1-2 trades or
+        # direct trades only (flagged rkEst, kept out of district medians).
+        ppm = None
         if ppm_n >= 3:
             ppm = ppm_sum / ppm_n * PYEONG
+        elif ppm_n or all_n:
+            ppm = (ppm_sum / ppm_n if ppm_n else all_sum / all_n) * PYEONG
+            facts["rkEst"] = True
+            thin_price.add(key)
+        if ppm:
             facts["ppm"] = round(ppm)
             rank_groups[(code,)].append((ppm, key))
             rank_groups[(code, c.get("umd", ""))].append((ppm, key))
 
         # Record prices: highest yearly median (>= 3 trades) per type, and a
         # new all-time high set within the last 3 months.
-        peak = {}
+        peak, peak_est = {}, []
         for band, b in rec.get("st", {}).items():
-            # 전고점: the best year before the latest data year
-            years = [(int(yy), v[1]) for yy, v in (b.get("ex") or {}).items()
-                     if v and v[0] >= 3 and int(yy) < last_ym // 100]
+            # 전고점: the best year before the latest data year (>= 3 trades);
+            # else any earlier year with a trade (estimate)
+            yearly = [(int(yy), v[1], v[0]) for yy, v in (b.get("ex") or {}).items()
+                      if v and v[0] >= 1 and int(yy) < last_ym // 100]
+            years = [y for y in yearly if y[2] >= 3] or yearly
             if years:
-                yy, med = max(years, key=lambda x: (x[1], x[0]))
+                yy, med, _n = max(years, key=lambda x: (x[1], x[0]))
                 peak[band] = [yy, med]
+                if years is yearly and not any(y[2] >= 3 for y in yearly):
+                    peak_est.append(band)
+        # New complexes with no earlier year: the best month before the
+        # last 3 (estimate).
+        for band, series in rec.get("m", {}).items():
+            if band in peak:
+                continue
+            ex, _all = series_counts(series)
+            earlier = [(mi, a) for mi, (n, a) in ex.items() if mi < mcount - 3]
+            if earlier:
+                mi, a = max(earlier, key=lambda x: x[1])
+                peak[band] = [y0 + (m0 - 1 + mi) // 12, round(a)]
+                peak_est.append(band)
         if peak:
             facts["peak"] = peak
+            if peak_est:
+                facts["peakEst"] = peak_est
         if code not in trades_by_code:
             trades_by_code[code] = load(web / f"trades/{code}.json", {}).get("complexes", {})
         rows = trades_by_code[code].get(str(c["id"]), [])
@@ -570,8 +610,9 @@ def build():
             if n >= REL_MIN_TRADES:
                 year_vals[(code_of[k], yr)].append(tot / n)
     year_med = {g: statistics.median(v) for g, v in year_vals.items() if len(v) >= 5}
-    now_med = {g[0]: statistics.median(p for p, _k in items)
-               for g, items in rank_groups.items() if len(g) == 1 and len(items) >= 5}
+    now_med = {g[0]: statistics.median(p for p, k in items if k not in thin_price)
+               for g, items in rank_groups.items()
+               if len(g) == 1 and sum(1 for _p, k in items if k not in thin_price) >= 5}
     rel_groups = defaultdict(list)
     for k, years in yearly_ppm.items():
         f = out[k]
@@ -579,13 +620,21 @@ def build():
         if "ppm" not in f or code not in now_med:
             continue
         ratios = [tot / n / year_med[(code, yr)] for yr, (tot, n) in years.items()
-                  if n >= REL_MIN_TRADES and (code, yr) in year_med]
+                  if yr in rel_years and n >= REL_MIN_TRADES and (code, yr) in year_med]
+        est = k in thin_price or len(ratios) < REL_MIN_YEARS
         if len(ratios) < REL_MIN_YEARS:
+            # Estimate: any earlier year with a trade, the latest five of them
+            loose = sorted(((yr, tot / n / year_med[(code, yr)]) for yr, (tot, n) in years.items()
+                            if n >= 1 and (code, yr) in year_med), reverse=True)[:REL_YEARS]
+            ratios = [r for _y, r in loose]
+        if not ratios:
             continue
         usual = statistics.mean(ratios)
         now = f["ppm"] / now_med[code]
         change = (now / usual - 1) * 100
         f["rv"] = [round((usual - 1) * 100, 1), round((now - 1) * 100, 1), round(change, 1), len(ratios)]
+        if est:
+            f["rvEst"] = True
         rel_groups[code].append((change, k))
     # Rank inside the district: the largest fall in standing is 1.
     for code, items in rel_groups.items():
@@ -594,12 +643,143 @@ def build():
             out[k]["rvk"] = [i, len(items)]
     stats["rv"] = sum(1 for f in out.values() if "rv" in f)
 
+    fill_estimates(data, out, history, built, stats)
+
     target = web / "map-metrics.json"
     tmp = target.with_suffix(".tmp")
     tmp.write_text(json.dumps({"generated": data["generated"], "complexes": out},
                               ensure_ascii=False, separators=(",", ":")))
     tmp.replace(target)
     print("map metrics:", len(out), "complexes;", dict(stats))
+
+
+def subway_bucket(dist_m):
+    """K-apt style walking-time bucket from a straight-line distance
+    (x1.3 for the street grid, 70 m a minute)."""
+    if dist_m is None:
+        return "20분초과"
+    minutes = dist_m * 1.3 / 70
+    for limit, label in ((5, "5분이내"), (10, "5~10분이내"), (15, "10~15분이내"), (20, "15~20분이내")):
+        if minutes <= limit:
+            return label
+    return "20분초과"
+
+
+def fill_estimates(data, out, history, built, stats):
+    """Fill the remaining blanks with flagged estimates, each from the same
+    measure of nearby comparable complexes: same dong and build decade,
+    then district and decade, then district (at least 3 values)."""
+    groups = lambda c: ([(c["code"], c.get("umd", ""), built[c["key"]] // 10), (c["code"], built[c["key"]] // 10)]
+                        if built.get(c["key"]) else []) + [(c["code"],)]
+
+    def peer_table(value):
+        table = defaultdict(list)
+        for c in data["complexes"]:
+            v = value(c, out[c["key"]])
+            if v is not None:
+                for g in groups(c):
+                    table[g].append(v)
+        return table
+
+    def peer(table, c):
+        for g in groups(c):
+            if len(table.get(g, ())) >= 3:
+                return statistics.median(table[g])
+        return None
+
+    def now_price(c, band):
+        nw = (c.get("nw") or {}).get(band) or {}
+        v = nw.get("e") or nw.get("a")
+        if v and v[0]:
+            return v[0]
+        last = (out[c["key"]].get("last") or {}).get(band)
+        return last[1] if last else None
+
+    # Coverage ratio
+    t = peer_table(lambda c, f: f["coverage"] if f.get("coverage") else None)
+    for c in data["complexes"]:
+        f = out[c["key"]]
+        if not f.get("coverage"):
+            v = peer(t, c)
+            if v:
+                f["coverage"], f["coverageEst"] = round(v, 1), True
+                stats["coverage_estimated"] += 1
+
+    # Households: trades a year over the peers' yearly trades per household
+    def rate(c, f):
+        n, years = history.get(c["key"], (0, 0))
+        return n / years / f["units"] if f.get("units") and n and years else None
+    t = peer_table(rate)
+    for c in data["complexes"]:
+        f = out[c["key"]]
+        n, years = history.get(c["key"], (0, 0))
+        if f.get("units") or not n:
+            continue
+        r = peer(t, c)
+        if r:
+            f["units"], f["unitsEst"] = max(10, int(round(n / years / r, -1) or 10)), True
+            stats["units_estimated"] += 1
+
+    # Jeonse per size: the complex's own jeonse ratio from other sizes,
+    # else the peers' median ratio, times the size's price
+    def ratio_of(c, f):
+        rs = [r[0] / p for b, r in (f.get("rent") or {}).items()
+              if b not in (f.get("rentEst") or ()) and (p := now_price(c, b))]
+        return statistics.median(rs) if rs else None
+    t = peer_table(ratio_of)
+    for c in data["complexes"]:
+        f = out[c["key"]]
+        missing = [b for b in (f.get("areas") or {}) if b not in (f.get("rent") or {})]
+        if not missing:
+            continue
+        r = ratio_of(c, f) or peer(t, c)
+        if not r:
+            continue
+        rent, est = dict(f.get("rent") or {}), list(f.get("rentEst") or [])
+        for b in missing:
+            p = now_price(c, b)
+            if p:
+                rent[b] = [int(r * p), 0]
+                est.append(b)
+        if est:
+            f["rent"], f["rentEst"] = rent, est
+            stats["rent_estimated"] += 1
+
+    # Conversion rate, renewal increase, parking per household
+    for field, flag, pick in (("conv", "convEst", lambda f: f.get("conv")),
+                              ("renew", "renewEst", lambda f: tuple(f["renew"][1:]) if f.get("renew") else None),
+                              ("park", "parkEst", lambda f: f.get("park"))):
+        if field == "renew":
+            t1 = peer_table(lambda c, f: f["renew"][1] if f.get("renew") and not f.get("renewEst") else None)
+            t2 = peer_table(lambda c, f: f["renew"][2] if f.get("renew") and not f.get("renewEst") else None)
+        else:
+            t1 = peer_table(lambda c, f, fd=field: f[fd] if f.get(fd) and not f.get(fd + "Est") else None)
+        for c in data["complexes"]:
+            f = out[c["key"]]
+            if f.get(field):
+                continue
+            v = peer(t1, c)
+            if v is None:
+                continue
+            if field == "renew":
+                f["renew"] = [0, round(v, 1), round(peer(t2, c) or 0)]
+            else:
+                f[field] = round(v, 2)
+            f[flag] = True
+            stats[field + "_estimated"] += 1
+
+    # Subway: K-apt where it manages the complex, else the distance to the
+    # nearest station from Kakao Local (data/facts/subway.json)
+    near = load(FACTS / "subway.json", {})
+    for c in data["complexes"]:
+        f = out[c["key"]]
+        if f.get("sub") or c["key"] not in near:
+            continue
+        station, dist, _day = near[c["key"]]
+        name, _sp, line = (station or "").partition(" ")
+        f["sub"] = [subway_bucket(dist), line, name[:-1] if name.endswith("역") else name]
+        f["subEst"] = True
+        stats["sub_estimated"] += 1
 
 
 def num(v):

@@ -1488,12 +1488,13 @@
     const items = [];
     if (rk) items.push(row("지역 순위",
       [rk[0] ? `${escapeHtml(gu)} <b>${rk[0]}위</b> / ${rk[1]}` : "", rk[2] ? `${escapeHtml(c.umd)} <b>${rk[2]}위</b> / ${rk[3]}` : ""].filter(Boolean).join(" · "),
-      f.ppm ? `최근 1년 전용 3.3㎡당 ${fmtPrice(f.ppm)} 기준` : ""));
+      (f.ppm ? `최근 1년 전용 3.3㎡당 ${fmtPrice(f.ppm)} 기준` : "") + (f.rkEst ? " · 최근 1년 거래가 1~2건이라 참고용" : "")));
     const hi = f.high?.[band], pk = f.peak?.[band];
     if (hi) items.push(row("신고가", `<b class="chg up">${fmtPrice(hi[1])}</b> (${hi[0].slice(0, 4)}.${hi[0].slice(4, 6)}.${hi[0].slice(6, 8)})`, `이전 최고 ${fmtPrice(hi[2])}`));
     if (pk && price) {
       const r = price / pk[1] - 1;
-      items.push(row("전고점 대비", `<b class="chg ${chgClass(r)}">${pct(r)}</b>`, `${pk[0]}년 연 중앙값 ${fmtPrice(pk[1])} → 지금 ${fmtPrice(price)}`));
+      const pe = f.peakEst?.includes(band);
+      items.push(row("전고점 대비", `<b class="chg ${chgClass(r)}">${pe ? "≈" : ""}${pct(r)}</b>`, `${pk[0]}년 ${pe ? "거래 적은 해 기준 " : "연 중앙값 "}${fmtPrice(pk[1])} → 지금 ${fmtPrice(price)}`));
     }
     const fp = floorPremium(c);
     if (fp) items.push(row("층별 가격 차이", fp.out.map(([name, r, n]) => `${name} <b class="chg ${chgClass(r)}">${pct(r, 1)}</b>`).join(" · "),
@@ -1514,16 +1515,19 @@
       (f.landPeer ? ` · 대장에 대지 정보가 없어 주변 같은 연대 단지 용적률(${f.landPeer}%)로 추정` : f.landEst ? " · 공급면적 ÷ 용적률로 추정" : "")));
     const rent = f.rent?.[band];
     const rentBits = [];
-    if (rent && price) rentBits.push(`전세가율 <b>${Math.round(rent[0] / price * 100)}%</b>`);
-    if (f.conv) rentBits.push(`전환율 <b>${f.conv.toFixed(1)}%</b>`);
-    if (f.renew) rentBits.push(`갱신 인상 <b>${f.renew[1] >= 0 ? "+" : ""}${f.renew[1].toFixed(1)}%</b> · 청구권 ${f.renew[2]}%`);
+    const rentEst = f.rentEst?.includes(band);
+    if (rent && price) rentBits.push(`전세가율 <b>${rentEst ? "≈" : ""}${Math.round(rent[0] / price * 100)}%</b>`);
+    if (f.conv) rentBits.push(`전환율 <b>${f.convEst ? "≈" : ""}${f.conv.toFixed(1)}%</b>`);
+    if (f.renew) rentBits.push(`갱신 인상 <b>${f.renewEst ? "≈" : ""}${f.renew[1] >= 0 ? "+" : ""}${f.renew[1].toFixed(1)}%</b> · 청구권 ${f.renew[2]}%`);
     const rentYears = f.rentLong?.includes(band) ? "최근 2년" : "최근 1년";
     if (rentBits.length) items.push(row("전월세", rentBits.join(" · "),
-      rent ? `전세 중앙값 ${fmtPrice(rent[0])} (${rentYears} ${rent[1]}건)` : "최근 1년 기준"));
+      (rent ? (rentEst ? `전세 ≈${fmtPrice(rent[0])} (계약이 없어 다른 평형·주변 단지 전세가율로 추정)` : `전세 중앙값 ${fmtPrice(rent[0])} (${rentYears} ${rent[1]}건)`) : "최근 1년 기준") +
+      (f.convEst || f.renewEst ? " · ≈ 표시는 주변 같은 연대 단지 중앙값" : "")));
     const life = [];
-    if (f.park) life.push(`세대당 주차 <b>${f.park.toFixed(2)}대</b>`);
-    if (f.sub) life.push(`${f.sub[2] ? escapeHtml(f.sub[2]) + "역" : "지하철역"} <b>${escapeHtml(f.sub[0])}</b>${f.sub[1] ? ` (${escapeHtml(f.sub[1])})` : ""}`);
-    if (life.length) items.push(row("주차·교통", life.join(" · "), "K-apt 공동주택관리정보"));
+    if (f.park) life.push(`세대당 주차 <b>${f.parkEst ? "≈" : ""}${f.park.toFixed(2)}대</b>`);
+    if (f.sub) life.push(`${f.sub[2] ? escapeHtml(f.sub[2]) + "역" : "지하철역"} <b>${f.subEst ? "≈" : ""}${escapeHtml(f.sub[0])}</b>${f.sub[1] ? ` (${escapeHtml(f.sub[1])})` : ""}`);
+    const lifeNote = [f.parkEst || f.subEst ? "" : "K-apt 공동주택관리정보", f.parkEst ? "주차는 주변 같은 연대 단지 중앙값" : "", f.subEst ? "역까지 시간은 카카오맵 직선거리로 추정" : ""].filter(Boolean).join(" · ");
+    if (life.length) items.push(row("주차·교통", life.join(" · "), lifeNote));
     el.factsBody.innerHTML = items.join("") || `<p class="trade-distribution-empty">이 단지의 통계가 아직 없습니다.</p>`;
   }
   function bindMapMetrics() {

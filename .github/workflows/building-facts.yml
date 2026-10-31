@@ -123,6 +123,12 @@ jobs:
           RENT_MINUTES: "45"
         run: python collector/fetch_rent.py
 
+      - name: Nearest subway station (Kakao, new complexes only after the first run)
+        continue-on-error: true
+        env:
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+        run: python collector/subway.py
+
       - name: Map metrics
         run: python collector/map_metrics.py | tee /tmp/map-metrics.log
 
@@ -133,6 +139,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add web/data/map-metrics.json
           if [ -d data/raw_rent ]; then git add data/raw_rent; fi
+          if [ -f data/facts/subway.json ]; then git add data/facts/subway.json; fi
           git diff --cached --quiet && { echo "no changes"; exit 0; }
           git commit -q -m "data: map metrics $(TZ=Asia/Seoul date +%F)"
           git checkout -q -- . && git clean -fdq
