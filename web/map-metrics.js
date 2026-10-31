@@ -76,7 +76,7 @@
     if(metric==='conv')return facts?.conv?'전환율 '+E(facts.convEst)+facts.conv.toFixed(1)+'%':'월세 정보 없음';
     if(metric==='renew'){const r=facts?.renew;return r?'갱신 '+E(facts.renewEst)+(r[1]>=0?'+':'')+r[1].toFixed(1)+'% · 청구권 '+r[2]+'%':'갱신 정보 없음';}
     if(metric==='park')return facts?.park?'세대당 '+E(facts.parkEst)+facts.park.toFixed(2)+'대':'주차 정보 없음';
-    if(metric==='subway'){const t=facts?.sub;return t?(t[2]?t[2]+'역 ':'역 ')+E(facts.subEst)+t[0]:'지하철 정보 없음';}
+    if(metric==='subway'){const t=facts?.sub;return t?(t[2]?t[2]+'역 ':'지하철역 ')+E(facts.subEst)+t[0]:'지하철 정보 없음';}
     if(metric==='occupancy'){
       if(facts?.occ){const y=+facts.occ.slice(0,4), m=+facts.occ.slice(4,6);return y+'.'+String(m).padStart(2,'0')+' 사용승인';}
       return c.by?'건축 '+c.by+'년':'입주시기 정보 없음';
