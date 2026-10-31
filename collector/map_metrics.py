@@ -774,10 +774,15 @@ def fill_estimates(data, out, history, built, stats):
     near = load(FACTS / "subway.json", {})
     for c in data["complexes"]:
         f = out[c["key"]]
-        if f.get("sub") or c["key"] not in near:
+        if c["key"] not in near:
             continue
         station, dist, _day = near[c["key"]]
         name, _sp, line = (station or "").partition(" ")
+        if f.get("sub"):
+            # K-apt often leaves the station name blank: name the nearest one
+            if not f["sub"][2] and name:
+                f["sub"][2] = name[:-1] if name.endswith("역") else name
+            continue
         f["sub"] = [subway_bucket(dist), line, name[:-1] if name.endswith("역") else name]
         f["subEst"] = True
         stats["sub_estimated"] += 1
