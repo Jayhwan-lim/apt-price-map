@@ -38,13 +38,14 @@ CSS_VERSION = "4"
 # swap the two codes in side_ad() — one place only.
 COUPANG_TRACKING = "AF8973032"
 COUPANG_BANNER_ID = 1037758
+BANNER_INNER_LEFT = 1045614  # 블로그_안쪽1_가전디지털 (전용 발급, 2026-11-01)
 AD_NOTE = "이 게시물은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
 
-def side_ad(cls, width):
+def side_ad(cls, width, banner_id):
     g = ('{"id":%d,"template":"carousel","trackingCode":"%s",'
          '"width":"%d","height":"600","tsource":""}'
-         % (COUPANG_BANNER_ID, COUPANG_TRACKING, width))
+         % (banner_id, COUPANG_TRACKING, width))
     return (f'    <aside class="side-ad {cls}" aria-label="광고">'
             '<div class="ad-slot-body">'
             '<script src="https://ads-partners.coupang.com/g.js"></script>'
@@ -123,8 +124,10 @@ def main():
                    f'      <h1>{e(p["title"])}</h1>\n      <p class="meta"><time datetime="{p["date"]}">'
                    f'{p["when"].year}년 {p["when"].month}월 {p["when"].day}일</time></p>\n'
                    f'{p["html"]}\n    </article>\n'
-                   + side_ad("side-left", 300) + side_ad("side-right", 300)
-                   + side_ad("side-left-outer", 160) + side_ad("side-right-outer", 160))
+                   + side_ad("side-left", 300, BANNER_INNER_LEFT)
+                   + side_ad("side-right", 300, COUPANG_BANNER_ID)
+                   + side_ad("side-left-outer", 160, COUPANG_BANNER_ID)
+                   + side_ad("side-right-outer", 160, COUPANG_BANNER_ID))
         target = OUT / p["slug"] / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(page(f'{p["title"]} | {BLOG_NAME}', p["description"], p["url"], content, "article", ld))
