@@ -37,3 +37,14 @@ em { color: var(--muted); }
 .site-foot { max-width: 860px; margin: 0 auto; padding: 18px 16px 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 .site-foot p { margin: 4px 0; font-size: 13px; }
 @media (max-width: 600px) { h1 { font-size: 23px; } h2 { font-size: 19px; } body { font-size: 15.5px; } }
+
+/* Coupang side rails on post pages: fixed beside the 860px column and
+   shown only when the viewport can hold column + both rails. */
+.side-ad { display: none; }
+@media (min-width: 1280px) {
+  .side-ad { display: block; position: fixed; top: 96px; width: 160px; z-index: 5; }
+  .side-ad.side-left { right: calc(50% + 446px); }
+  .side-ad.side-right { left: calc(50% + 446px); }
+  .side-ad .ad-slot-body iframe { max-width: 100%; }
+  .side-ad .ad-note { margin-top: 6px; font-size: 11px; line-height: 1.5; color: var(--muted); }
+}
