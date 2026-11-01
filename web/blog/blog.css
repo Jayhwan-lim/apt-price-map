@@ -57,3 +57,9 @@ em { color: var(--muted); }
   .side-ad.side-left-outer { right: calc(50% + 762px); }
   .side-ad.side-right-outer { left: calc(50% + 762px); }
 }
+
+/* Below 1520px (no side rails): one banner inside the article. */
+.inline-ad { margin: 8px auto 22px; max-width: 400px; text-align: center; }
+.inline-ad .ad-slot-body iframe { max-width: 100%; }
+.inline-ad .ad-note { margin: 6px 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+@media (min-width: 1520px) { .inline-ad { display: none; } }

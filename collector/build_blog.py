@@ -29,13 +29,12 @@ SITE = "https://geuttaeneolma.com"
 BLOG_NAME = "단지분석"
 BLOG_DESC = "그땐 얼마?의 서울·경기 아파트 실거래가 데이터로 단지를 들여다보는 글"
 KST = ZoneInfo("Asia/Seoul")
-CSS_VERSION = "4"
+CSS_VERSION = "5"
 
-# Coupang Partners side rails on post pages (inner 300x600, plus an
-# outer 160x600 rail on very wide screens), same
-# partner account as the map panel banner). Interim: the panel banner id
-# rendered at sidebar size. When dedicated left/right banners are issued,
-# swap the two codes in side_ad() — one place only.
+# Coupang Partners banners on post pages, all on the map panel's partner
+# account: inner 300x600 rails (>=1520px), outer 160x600 rails (>=1880px),
+# and below 1520px one 400x100 banner inside the article after its first
+# table (phones, tablets, laptops). Banner ids per slot are below.
 COUPANG_TRACKING = "AF8973032"
 COUPANG_BANNER_ID = 1037758
 BANNER_INNER_LEFT = 1045614  # 블로그_안쪽1_가전디지털 (전용 발급, 2026-11-01)
@@ -54,6 +53,26 @@ def side_ad(cls, width, banner_id):
             '<script src="https://ads-partners.coupang.com/g.js"></script>'
             f'<script>new PartnersCoupang.G({g});</script></div>'
             f'<p class="ad-note">{AD_NOTE}</p></aside>\n')
+
+
+def inline_ad():
+    """Banner inside the article for screens without side rails (the map
+    panel's 400x100 carousel). Placed after the first table, where far
+    more readers still are than at the end of a long post."""
+    g = ('{"id":%d,"template":"carousel","trackingCode":"%s",'
+         '"width":"400","height":"100","tsource":""}'
+         % (COUPANG_BANNER_ID, COUPANG_TRACKING))
+    return ('<aside class="inline-ad" aria-label="광고"><div class="ad-slot-body">'
+            '<script src="https://ads-partners.coupang.com/g.js"></script>'
+            f'<script>new PartnersCoupang.G({g});</script></div>'
+            f'<p class="ad-note">{AD_NOTE}</p></aside>')
+
+
+def with_inline_ad(body):
+    mark = "</table></div>"
+    if mark in body:
+        return body.replace(mark, mark + "\n" + inline_ad(), 1)
+    return body + "\n" + inline_ad()
 
 
 def read_post(path):
@@ -133,7 +152,7 @@ def main():
         content = (f'    <article class="post">\n      <p class="crumb"><a href="/blog/">{BLOG_NAME}</a></p>\n'
                    f'      <h1>{e(p["title"])}</h1>\n      <p class="meta"><time datetime="{p["date"]}">'
                    f'{p["when"].year}년 {p["when"].month}월 {p["when"].day}일</time></p>\n'
-                   f'{p["html"]}\n    </article>\n'
+                   f'{with_inline_ad(p["html"])}\n    </article>\n'
                    + side_rails())
         target = OUT / p["slug"] / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
