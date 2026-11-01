@@ -31,7 +31,8 @@ BLOG_DESC = "그땐 얼마?의 서울·경기 아파트 실거래가 데이터�
 KST = ZoneInfo("Asia/Seoul")
 CSS_VERSION = "4"
 
-# Coupang Partners side rails on post pages (skyscraper 160x600, same
+# Coupang Partners side rails on post pages (inner 300x600, plus an
+# outer 160x600 rail on very wide screens), same
 # partner account as the map panel banner). Interim: the panel banner id
 # rendered at sidebar size. When dedicated left/right banners are issued,
 # swap the two codes in side_ad() — one place only.
@@ -40,24 +41,12 @@ COUPANG_BANNER_ID = 1037758
 AD_NOTE = "이 게시물은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
 
-def side_ad(cls):
+def side_ad(cls, width):
     g = ('{"id":%d,"template":"carousel","trackingCode":"%s",'
-         '"width":"160","height":"600","tsource":""}'
-         % (COUPANG_BANNER_ID, COUPANG_TRACKING))
+         '"width":"%d","height":"600","tsource":""}'
+         % (COUPANG_BANNER_ID, COUPANG_TRACKING, width))
     return (f'    <aside class="side-ad {cls}" aria-label="광고">'
             '<div class="ad-slot-body">'
-            '<script src="https://ads-partners.coupang.com/g.js"></script>'
-            f'<script>new PartnersCoupang.G({g});</script></div>'
-            f'<p class="ad-note">{AD_NOTE}</p></aside>\n')
-
-
-def inline_ad():
-    """Banner under the article for screens too narrow for the side rails
-    (phones, tablets, small laptops): the map panel's 400x100 carousel."""
-    g = ('{"id":%d,"template":"carousel","trackingCode":"%s",'
-         '"width":"400","height":"100","tsource":""}'
-         % (COUPANG_BANNER_ID, COUPANG_TRACKING))
-    return ('    <aside class="inline-ad" aria-label="광고"><div class="ad-slot-body">'
             '<script src="https://ads-partners.coupang.com/g.js"></script>'
             f'<script>new PartnersCoupang.G({g});</script></div>'
             f'<p class="ad-note">{AD_NOTE}</p></aside>\n')
@@ -134,7 +123,8 @@ def main():
                    f'      <h1>{e(p["title"])}</h1>\n      <p class="meta"><time datetime="{p["date"]}">'
                    f'{p["when"].year}년 {p["when"].month}월 {p["when"].day}일</time></p>\n'
                    f'{p["html"]}\n    </article>\n'
-                   + inline_ad() + side_ad("side-left") + side_ad("side-right"))
+                   + side_ad("side-left", 300) + side_ad("side-right", 300)
+                   + side_ad("side-left-outer", 160) + side_ad("side-right-outer", 160))
         target = OUT / p["slug"] / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(page(f'{p["title"]} | {BLOG_NAME}', p["description"], p["url"], content, "article", ld))
@@ -149,12 +139,10 @@ def main():
 
     rss_items = "\n".join(
         f"    <item><title>{e(p['title'])}</title><link>{p['url']}</link><guid>{p['url']}</guid>"
-        f"<pubDate>{format_datetime(p['when'])}</pubDate><description>{e(p['description'])}</description>"
-        # Full article for feed readers and 네이버 서치어드바이저, which asks for the whole body.
-        f"<content:encoded><![CDATA[{p['html'].replace(']]>', ']]]]><![CDATA[>')}]]></content:encoded></item>"
+        f"<pubDate>{format_datetime(p['when'])}</pubDate><description>{e(p['description'])}</description></item>"
         for p in posts)
     (OUT / "rss.xml").write_text(
-        '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">\n  <channel>\n'
+        '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n'
         f"    <title>{BLOG_NAME} | 그땐 얼마?</title>\n    <link>{SITE}/blog/</link>\n"
         f"    <description>{e(BLOG_DESC)}</description>\n    <language>ko</language>\n{rss_items}\n"
         "  </channel>\n</rss>\n")
