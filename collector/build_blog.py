@@ -39,6 +39,7 @@ CSS_VERSION = "4"
 COUPANG_TRACKING = "AF8973032"
 COUPANG_BANNER_ID = 1037758
 BANNER_INNER_LEFT = 1045614  # 블로그_안쪽1_가전디지털 (전용 발급, 2026-11-01)
+BANNER_INNER_RIGHT = 1045618  # 블로그_안쪽2_고객관심기반추천 (전용 발급, 2026-11-02)
 AD_NOTE = "이 게시물은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
 
@@ -125,7 +126,7 @@ def main():
                    f'{p["when"].year}년 {p["when"].month}월 {p["when"].day}일</time></p>\n'
                    f'{p["html"]}\n    </article>\n'
                    + side_ad("side-left", 300, BANNER_INNER_LEFT)
-                   + side_ad("side-right", 300, COUPANG_BANNER_ID)
+                   + side_ad("side-right", 300, BANNER_INNER_RIGHT)
                    + side_ad("side-left-outer", 160, COUPANG_BANNER_ID)
                    + side_ad("side-right-outer", 160, COUPANG_BANNER_ID))
         target = OUT / p["slug"] / "index.html"
