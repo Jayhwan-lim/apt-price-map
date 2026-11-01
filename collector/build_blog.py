@@ -168,10 +168,12 @@ def main():
 
     rss_items = "\n".join(
         f"    <item><title>{e(p['title'])}</title><link>{p['url']}</link><guid>{p['url']}</guid>"
-        f"<pubDate>{format_datetime(p['when'])}</pubDate><description>{e(p['description'])}</description></item>"
+        f"<pubDate>{format_datetime(p['when'])}</pubDate><description>{e(p['description'])}</description>"
+        # Full article for feed readers and 네이버 서치어드바이저, which asks for the whole body.
+        f"<content:encoded><![CDATA[{p['html'].replace(']]>', ']]]]><![CDATA[>')}]]></content:encoded></item>"
         for p in posts)
     (OUT / "rss.xml").write_text(
-        '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n'
+        '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">\n  <channel>\n'
         f"    <title>{BLOG_NAME} | 그땐 얼마?</title>\n    <link>{SITE}/blog/</link>\n"
         f"    <description>{e(BLOG_DESC)}</description>\n    <language>ko</language>\n{rss_items}\n"
         "  </channel>\n</rss>\n")
