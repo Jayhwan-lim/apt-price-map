@@ -74,6 +74,13 @@ def read_post(path):
     return meta
 
 
+def side_rails():
+    """The four Coupang side rails, shared by post pages and the list page."""
+    return (side_ad("side-left", 300, BANNER_INNER_LEFT)
+            + side_ad("side-right", 300, BANNER_INNER_RIGHT)
+            + side_ad("side-left-outer", 160, BANNER_OUTER_LEFT)
+            + side_ad("side-right-outer", 160, BANNER_OUTER_RIGHT))
+
 def page(title, description, canonical, content, kind="website", extra_head=""):
     e = html.escape
     return f"""<!doctype html>
@@ -127,10 +134,7 @@ def main():
                    f'      <h1>{e(p["title"])}</h1>\n      <p class="meta"><time datetime="{p["date"]}">'
                    f'{p["when"].year}년 {p["when"].month}월 {p["when"].day}일</time></p>\n'
                    f'{p["html"]}\n    </article>\n'
-                   + side_ad("side-left", 300, BANNER_INNER_LEFT)
-                   + side_ad("side-right", 300, BANNER_INNER_RIGHT)
-                   + side_ad("side-left-outer", 160, BANNER_OUTER_LEFT)
-                   + side_ad("side-right-outer", 160, BANNER_OUTER_RIGHT))
+                   + side_rails())
         target = OUT / p["slug"] / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(page(f'{p["title"]} | {BLOG_NAME}', p["description"], p["url"], content, "article", ld))
@@ -141,7 +145,7 @@ def main():
         f'<p>{e(p["description"])}</p></li>' for p in posts)
     index = (f'    <section class="list">\n      <h1>{BLOG_NAME}</h1>\n      <p class="lead">{e(BLOG_DESC)}</p>\n'
              f'      <ul class="posts">\n{items}\n      </ul>\n    </section>')
-    (OUT / "index.html").write_text(page(f"{BLOG_NAME} | 그땐 얼마?", BLOG_DESC, f"{SITE}/blog/", index))
+    (OUT / "index.html").write_text(page(f"{BLOG_NAME} | 그땐 얼마?", BLOG_DESC, f"{SITE}/blog/", index + side_rails()))
 
     rss_items = "\n".join(
         f"    <item><title>{e(p['title'])}</title><link>{p['url']}</link><guid>{p['url']}</guid>"
