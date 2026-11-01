@@ -551,3 +551,7 @@ html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; ove
   .mf-label { padding-top: 0; }
   .map-metric-control { top: 52px; max-height: calc(100% - 60px); overflow-y: auto; }
 }
+
+/* Link to the 단지분석 blog next to the site name */
+.brand h1 .blog-link { margin-left: 8px; padding: 2px 9px; border: 1px solid #ccd6df; border-radius: 12px; font-size: 12px; font-weight: 600; color: #2a78d6; text-decoration: none; vertical-align: middle; }
+.brand h1 .blog-link:hover { border-color: #2a78d6; }

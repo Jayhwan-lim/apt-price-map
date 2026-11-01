@@ -1,0 +1,39 @@
+/* 단지분석 blog: plain, readable article pages in the site's colours. */
+:root {
+  --ink: #14202b; --muted: #5b6875; --line: #e3e9ee; --plane: #ffffff; --soft: #f4f7fa;
+  --accent: #2a78d6; --accent-ink: #174a78; --down: #1f6fd1; --font: "IBM Plex Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ink: #e6edf3; --muted: #9aa7b3; --line: #2a3542; --plane: #0f161d; --soft: #16202a; --accent: #6aa8f0; --accent-ink: #a9cdf6; }
+}
+:root[data-theme="dark"] { --ink: #e6edf3; --muted: #9aa7b3; --line: #2a3542; --plane: #0f161d; --soft: #16202a; --accent: #6aa8f0; --accent-ink: #a9cdf6; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--plane); color: var(--ink); font: 400 16px/1.75 var(--font); -webkit-text-size-adjust: 100%; word-break: keep-all; overflow-wrap: anywhere; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.site-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 860px; margin: 0 auto; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.site-head .home { font-weight: 700; color: var(--ink); font-size: 17px; }
+.site-head nav { display: flex; gap: 14px; font-size: 14px; }
+main { max-width: 860px; margin: 0 auto; padding: 8px 16px 40px; }
+h1 { font-size: 28px; line-height: 1.35; margin: 18px 0 6px; letter-spacing: -0.01em; }
+h2 { font-size: 21px; line-height: 1.4; margin: 36px 0 10px; padding-top: 6px; border-top: 1px solid var(--line); }
+.post h2:first-of-type { border-top: 0; }
+p, li { font-size: 16px; }
+.meta { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+.crumb { margin: 18px 0 0; font-size: 14px; }
+.lead { color: var(--muted); }
+ul.posts { list-style: none; padding: 0; margin: 20px 0; }
+ul.posts li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+ul.posts h2 { border: 0; margin: 0 0 4px; padding: 0; font-size: 20px; }
+ul.posts .meta { margin: 0 0 6px; }
+.table-wrap { overflow-x: auto; margin: 14px 0 18px; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; text-align: left; }
+th { background: var(--soft); font-weight: 600; color: var(--muted); font-size: 13px; }
+td:first-child { white-space: normal; min-width: 9em; }
+tr:last-child td { border-bottom: 0; }
+td strong { color: var(--down); }
+em { color: var(--muted); }
+.site-foot { max-width: 860px; margin: 0 auto; padding: 18px 16px 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.site-foot p { margin: 4px 0; font-size: 13px; }
+@media (max-width: 600px) { h1 { font-size: 23px; } h2 { font-size: 19px; } body { font-size: 15.5px; } }

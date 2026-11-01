@@ -1,14 +1,14 @@
-/* 그땐 얼마? service worker — release tag: 20261031e (keep in step with the
+/* 그땐 얼마? service worker — release tag: 20261101a (keep in step with the
  * ?v= tags in index.html; bump both together on every release). */
-const CACHE = "geuttaen-20261031e";
+const CACHE = "geuttaen-20261101a";
 const EXT_CACHE = "geuttaen-ext-v1"; // Kakao tiles + SDK: the heavy half of a cold open
 const SHELL = [
   "./",
   "index.html",
-  "style.css?v=20261031e",
-  "config.js?v=20261031e",
-  "app.js?v=20261031e",
-  "map-metrics.js?v=20261031e",
+  "style.css?v=20261101a",
+  "config.js?v=20261101a",
+  "app.js?v=20261101a",
+  "map-metrics.js?v=20261101a",
   "manifest.webmanifest",
 ];
 
@@ -83,7 +83,10 @@ self.addEventListener("fetch", (e) => {
   // Page navigations: fresh HTML first so releases show up. Only the app
   // page itself is kept for offline use (not 404s or other pages).
   if (req.mode === "navigate") {
-    const isApp = url.origin === location.origin && /\/(index\.html)?$/.test(url.pathname);
+    // Only the app page at the worker's scope: /blog/ and other folders
+    // also end in "/" and must never replace the cached app.
+    const scope = new URL(self.registration.scope).pathname;
+    const isApp = url.origin === location.origin && (url.pathname === scope || url.pathname === scope + "index.html");
     e.respondWith(
       fetch(req)
         .then((r) => {
