@@ -1,14 +1,14 @@
-/* 그땐 얼마? service worker — release tag: 20261101a (keep in step with the
+/* 그땐 얼마? service worker — release tag: 20261102a (keep in step with the
  * ?v= tags in index.html; bump both together on every release). */
-const CACHE = "geuttaen-20261101a";
+const CACHE = "geuttaen-20261102a";
 const EXT_CACHE = "geuttaen-ext-v1"; // Kakao tiles + SDK: the heavy half of a cold open
 const SHELL = [
   "./",
   "index.html",
-  "style.css?v=20261101a",
-  "config.js?v=20261101a",
-  "app.js?v=20261101a",
-  "map-metrics.js?v=20261101a",
+  "style.css?v=20261102a",
+  "config.js?v=20261102a",
+  "app.js?v=20261102a",
+  "map-metrics.js?v=20261102a",
   "manifest.webmanifest",
 ];
 
