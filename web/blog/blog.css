@@ -41,10 +41,18 @@ em { color: var(--muted); }
 /* Coupang side rails on post pages: fixed beside the 860px column and
    shown only when the viewport can hold column + both rails. */
 .side-ad { display: none; }
+/* Narrower screens get one banner under the article instead. */
+.inline-ad { margin: 28px auto 8px; max-width: 400px; text-align: center; }
+.inline-ad .ad-slot-body iframe { max-width: 100%; }
+.inline-ad .ad-note { margin: 6px 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
 @media (min-width: 1280px) {
-  .side-ad { display: block; position: fixed; top: 96px; width: 160px; z-index: 5; }
+  .inline-ad { display: none; }
+  /* Scroll with the page on short screens (1366x768 laptops) so the
+     disclosure under the 600px banner is never cut off. */
+  .side-ad { display: block; position: absolute; top: 96px; width: 160px; z-index: 5; }
   .side-ad.side-left { right: calc(50% + 446px); }
   .side-ad.side-right { left: calc(50% + 446px); }
   .side-ad .ad-slot-body iframe { max-width: 100%; }
   .side-ad .ad-note { margin-top: 6px; font-size: 11px; line-height: 1.5; color: var(--muted); }
 }
+@media (min-width: 1280px) and (min-height: 820px) { .side-ad { position: fixed; } }
