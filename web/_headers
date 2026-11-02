@@ -1,0 +1,11 @@
+# Cloudflare Pages response headers for every path.
+# HSTS: browsers use https only for 180 days (no preload list yet).
+# frame-ancestors / X-Frame-Options: no other site may frame these pages.
+# Permissions-Policy: the site never needs these device features.
+/*
+  Strict-Transport-Security: max-age=15552000; includeSubDomains
+  Content-Security-Policy: frame-ancestors 'self'
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
