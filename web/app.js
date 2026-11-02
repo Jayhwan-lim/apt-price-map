@@ -1899,9 +1899,13 @@
       }
       perf.sdkReadyMs = Math.round(performance.now() - perf.startedAt);
       el.note.dataset.sdkReadyMs = String(Math.round(performance.now()));
+      const phoneStart = document.documentElement.classList.contains("phone-ui");
       kmap = new kakao.maps.Map(document.getElementById("map"), {
-        center: new kakao.maps.LatLng(37.505, 127.005),
-        level: 3, // Kakao's 50 m scale on the initial map
+        // Kakao's 50 m scale on the initial map. Phones get one step wider,
+        // centred a little west on Banpo's complexes: their short map pane
+        // would otherwise show only the bus terminal and no complex at all.
+        center: phoneStart ? new kakao.maps.LatLng(37.5045, 126.9985) : new kakao.maps.LatLng(37.505, 127.005),
+        level: phoneStart ? 4 : 3,
       });
       kmap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
       clusterer = new kakao.maps.MarkerClusterer({
