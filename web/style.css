@@ -552,6 +552,16 @@ html.phone-ui body.sheet-open .panel-body { overflow-y: auto; min-height: 0; ove
   .map-metric-control { top: 52px; max-height: calc(100% - 60px); overflow-y: auto; }
 }
 
+/* Phones: the display control folds into one chip so it does not cover the map. */
+.mm-toggle { display: none; }
+html.phone-ui .mm-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 12px; border: 1px solid #ccd6df; border-radius: 17px; background: #fff; color: #14202b; font: inherit; font-weight: 600; box-shadow: 0 2px 8px #0002; cursor: pointer; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.phone-ui .mm-toggle::after { content: "▾"; color: #536477; }
+html.phone-ui .map-metric-control:not(.open) { padding: 0; border: 0; background: transparent; box-shadow: none; overflow: visible; }
+html.phone-ui .map-metric-control:not(.open) > :not(.mm-toggle) { display: none; }
+html.phone-ui .map-metric-control.open .mm-toggle { display: flex; margin-bottom: 8px; box-shadow: none; }
+html.phone-ui .map-metric-control label[for="map-metric-select"] { display: none; }
+html.phone-ui .map-metric-control.open .mm-toggle::after { content: "▴"; }
+
 /* Link to the 단지분석 blog next to the site name */
 .brand h1 .blog-link { display: inline-block; white-space: nowrap; margin-left: 8px; padding: 2px 9px; border: 1px solid #ccd6df; border-radius: 12px; font-size: 12px; font-weight: 600; color: #2a78d6; text-decoration: none; vertical-align: middle; }
 .brand h1 .blog-link:hover { border-color: #2a78d6; }

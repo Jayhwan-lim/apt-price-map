@@ -1553,6 +1553,26 @@
       if (rank.value !== "off") loadMapFacts();
       map.refresh();
     });
+
+    // Phones fold the control into one chip showing the current choice.
+    const box = select.closest(".map-metric-control");
+    const toggle = document.getElementById("map-metric-toggle");
+    function setOpen(open) {
+      box.classList.toggle("open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+    }
+    function label() {
+      const metric = select.options[select.selectedIndex]?.textContent || "";
+      const order = rank.value === "off" ? "" : ` · ${rank.options[rank.selectedIndex].textContent} 순위`;
+      toggle.textContent = `표시: ${metric}${order}`;
+    }
+    toggle.addEventListener("click", () => setOpen(!box.classList.contains("open")));
+    select.addEventListener("change", () => { label(); setOpen(false); });
+    rank.addEventListener("change", () => { label(); setOpen(false); });
+    document.addEventListener("pointerdown", (e) => {
+      if (box.classList.contains("open") && !e.composedPath().includes(box)) setOpen(false);
+    }, true);
+    label();
   }
 
   // ---------- map filter (show/hide complexes by attributes) ----------
