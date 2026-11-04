@@ -1,1 +1,1 @@
-{"calls":6259,"generated":"2026-11-04T09:35:43+09:00","lots":17107,"phases":{"hub":{"done":1,"failed":0,"queued":1,"stopped":null},"supply":{"done":1051,"failed":0,"queued":1051,"stopped":null}},"stopped":null,"throttled":0}
+{"calls":6234,"generated":"2026-11-05T01:13:48+09:00","lots":17107,"phases":{"hub":{"done":0,"failed":0,"queued":0,"stopped":null},"supply":{"done":1039,"failed":0,"queued":1039,"stopped":null}},"stopped":null,"throttled":0}
