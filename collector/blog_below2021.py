@@ -20,7 +20,7 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://geuttaeneolma.com/"
-W12 = ("20251106", "20261106")  # last 12 months of reports
+W12 = ("20251108", "20261108")  # last 12 months of reports
 MIN_N = 5  # min trades per window for a unit-type median
 W3 = "20260801"  # last three months, for the "still falling?" check
 BIG = 1000  # households for the "large complex" list
