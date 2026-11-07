@@ -313,15 +313,19 @@ def fetch_supply(session, key, budget, lot, ranges, max_pages):
     scan = SupplyScan(pages_total)
     scan.add_page(1, items_of(body))
     read = 1
+    unreadable = False
     for page in spread_order(pages_total)[1:]:
         table = scan.table()
-        if covered(table, ranges) or read >= max_pages or (read >= 6 and not table):
-            break  # done, page cap, or a register this rule cannot read
+        if read >= 6 and not table:
+            unreadable = True  # a register this rule cannot read: rereading it daily only burns quota
+            break
+        if covered(table, ranges) or read >= max_pages:
+            break  # done or page cap
         scan.add_page(page, items_of(get_body(session, url, {**params, "pageNo": str(page)}, key, budget)))
         read += 1
     table = scan.table()
-    return {"a": table, "rows": total, "pg": read, "done": read >= pages_total or covered(table, ranges),
-            "f": TODAY}
+    return {"a": table, "rows": total, "pg": read,
+            "done": unreadable or read >= pages_total or covered(table, ranges), "f": TODAY}
 
 
 # ---------- K-apt ----------
@@ -515,8 +519,11 @@ def main():
                 continue
             ranges = [r for k in keys for r in types.get(k, [])]
             rec = supply.get(code, lid)
+            # Six pages without one readable unit means the register cannot be
+            # read by this rule; such lots wait for the yearly refresh.
+            unreadable = rec.get("pg", 0) >= 6 and not rec.get("a")
             if ranges and (stale(rec, REFRESH_DAYS["supply"]) or not covered(rec.get("a", {}), ranges, 1)
-                           and rec.get("pg", 0) < max_pages and not rec.get("done")):
+                           and rec.get("pg", 0) < max_pages and not rec.get("done") and not unreadable):
                 jobs.append((activity, lid, (session, key, budget, lid, ranges, max_pages)))
         jobs = [(lid, args) for _a, lid, args in sorted(jobs, key=lambda j: -j[0])]
         status["phases"]["supply"] = run_parallel(
