@@ -11,6 +11,18 @@ back to the build year) is in 1996-1998, i.e. that reach 30 years in
     price per pyeong of land share,
 and summaries by year and by gu, plus the same FAR summary for complexes
 built in 1980-1989 (the current reconstruction generation) for contrast.
+
+Three indicators for comparing reconstruction prospects (not a valuation):
+  1. price per pyeong of land share (what a buyer pays for the land),
+  2. floor area per household that could still be added if the complex
+     were rebuilt at FAR 300% (3rd-class residential legal cap) or 360%
+     (1.2x the cap, Seoul's incentive for dense 1980s-90s complexes),
+     i.e. land share x (target FAR - current FAR),
+  3. the complex's price per pyeong as a share of the median for new
+     builds (completed NEW_FROM or later, MIN_UNITS+ households, 3+ trades
+     in 12 months) in the same gu.
+A complex "passes" an indicator at: 1 <= the list median, 2 >= GOOD_HEAD
+pyeong at 300%, 3 <= GOOD_RATIO.
 Prints JSON plus the markdown tables the post uses.
 """
 
@@ -27,6 +39,10 @@ W12 = ("20251108", "20261108")  # last 12 months of reports
 MIN_UNITS = 300  # households
 MIN_N = 3  # trades for a 12-month median
 MIN_FAR_EST = 100  # estimated FAR below this is treated as unknown
+NEW_FROM = 2016  # new-build reference: completed in the last ten years
+TODAY = (2026, 11)  # complexes whose 30th year-month is on or before this are due
+GOOD_HEAD = 5.0  # pyeong per household at FAR 300%
+GOOD_RATIO = 0.70  # price per pyeong vs same-gu new builds
 
 
 def clean(r):
@@ -101,6 +117,15 @@ def main():
     metrics = json.loads((ROOT / "web/data/map-metrics.json").read_text())["complexes"]
     trades_by_code = {}
 
+    new_ppm = defaultdict(list)
+    for c in cxs:
+        m = metrics.get(c["key"], {})
+        y, _ = completion(c, m)
+        if (y and y >= NEW_FROM and m.get("ppm") and (m.get("units") or 0) >= MIN_UNITS
+                and (m.get("trades12") or [0])[0] >= 3):
+            new_ppm[c["sgg"]].append(m["ppm"])
+    new_ref = {gu: st.median(v) for gu, v in new_ppm.items() if len(v) >= 3}
+
     rows, eighties = [], []
     for c in cxs:
         m = metrics.get(c["key"], {})
@@ -142,6 +167,8 @@ def main():
             "land_py": land_py, "landEst": land_est,
             "ppy_land": med / land_py if med and land_py else None,
             "sub": (m.get("sub") or [None])[0],
+            "ppm": m.get("ppm") if (m.get("trades12") or [0])[0] >= 3 else None,
+            "new_ref": new_ref.get(c["sgg"]),
         })
 
     rows = dedupe(rows)
@@ -156,6 +183,18 @@ def main():
         # FAR above 500% is a mixed-use tower, not a typical apartment
         # complex; keep it in the list but out of the FAR statistics.
         r["mixed"] = bool(r["far"] and r["far"] > MIXED_FAR)
+        ok = r["land_py"] and r["far"] and not r["mixed"]
+        r["head300"] = r["land_py"] * max(0, 300 - r["far"]) / 100 if ok else None
+        r["head360"] = r["land_py"] * max(0, 360 - r["far"]) / 100 if ok else None
+        r["ratio"] = r["ppm"] / r["new_ref"] if r["ppm"] and r["new_ref"] else None
+        r["due"] = (r["year"] + 30, r["month"] or 12) <= TODAY
+    land_med = st.median(r["ppy_land"] for r in rows if r["ppy_land"])
+    for r in rows:
+        r["pass"] = [
+            r["ppy_land"] is not None and r["ppy_land"] <= land_med,
+            r["head300"] is not None and r["head300"] >= GOOD_HEAD,
+            r["ratio"] is not None and r["ratio"] <= GOOD_RATIO,
+        ]
     rows.sort(key=lambda r: (r["gu"], r["year"], r["month"] or 0, r["name"]))
     total_units = sum(r["units"] for r in rows)
     fars = [r["far"] for r in rows if r["far"] and not r["mixed"]]
@@ -213,13 +252,43 @@ def main():
         print(f"| {link(r)} | {r['gu'][:-1]} {r['umd']} | {r['turns30']} | {r['units']:,} | {far_s(r)} | "
               f"{r['area']:.0f}㎡ | {land_s(r)} | {med_s(r)} | {ppl_s(r)} |")
 
+    # --- three indicators -------------------------------------------------
+    full3 = [r for r in rows if r["ppy_land"] and r["head300"] is not None and r["ratio"]]
+    heads300 = [r["head300"] for r in full3]
+    print(f"\nindicators: complete {len(full3)}; land-price median {eok(land_med)}; "
+          f"head300>0 {sum(h > 0 for h in heads300)}, >=GOOD {sum(h >= GOOD_HEAD for h in heads300)}; "
+          f"head360 median {st.median(r['head360'] for r in full3):.1f}py; "
+          f"ratio median {st.median(r['ratio'] for r in full3) * 100:.0f}%, "
+          f">=100% {sum(r['ratio'] >= 1 for r in full3)}; "
+          f"pass all 3 {sum(all(r['pass']) for r in rows)}, pass 2 {sum(sum(r['pass']) == 2 for r in rows)}; "
+          f"new-build ref gus {sum(1 for r in rows if r['new_ref'])}/{len(rows)}")
+
+    def mark(ok, text):
+        return f"**{text}**" if ok else text
+
+    big = [r for r in rows if r["units"] >= 500 and not r["mixed"] and r["ppy_land"] and r["ratio"]]
+    big.sort(key=lambda r: (-sum(r["pass"]), -(r["head360"] or 0)))
+    print("\n| 단지 | 구·동 | 세대수 | 용적률 | ① 대지지분 1평 | ② 여유 300% / 360% | ③ 신축 대비 | 충족 |"
+          "\n|---|---|---:|---:|---:|---:|---:|:---:|")
+    for r in big:
+        p1, p2, p3 = r["pass"]
+        print(f"| {link(r)} | {r['gu'][:-1]} {r['umd']} | {r['units']:,} | {far_s(r)} | "
+              f"{mark(p1, ppl_s(r))} | {mark(p2, f'{r['head300']:.1f}평')} / {r['head360']:.1f}평 | "
+              f"{mark(p3, f'{r['ratio'] * 100:.0f}%')} | {sum(r['pass'])}/3 |")
+
+    due = [r for r in rows if r["due"]]
+    print(f"\ndue by {TODAY[0]}.{TODAY[1]:02d}: {len(due)} complexes, {sum(r['units'] for r in due):,} households")
+
     print("\n## full list by gu")
     for gu, g in sorted(by_gu.items()):
-        print(f"\n### {gu} ({len(g)}곳)\n\n| 단지 | 동 | 30년 | 세대수 | 용적률 | 대지지분 | 최근 1년 |\n|---|---|---:|---:|---:|---:|---:|")
+        print(f"\n### {gu} ({len(g)}곳)\n\n| 단지 | 동 | 30년 | 세대수 | 용적률 | 대지지분 (대표 평형) | 최근 1년 (건수) | 지표 충족 |"
+              "\n|---|---|---:|---:|---:|---:|---:|:---:|")
         for r in sorted(g, key=lambda r: (r["year"], r["month"] or 0, r["name"])):
-            print(f"| {link(r)} | {r['umd']} | {r['turns30']} | {r['units']:,} | {far_s(r)} | {land_s(r)} "
-                  f"({r['area']:.0f}㎡) | {med_s(r)} |" if r["area"] else
-                  f"| {link(r)} | {r['umd']} | {r['turns30']} | {r['units']:,} | {far_s(r)} | - | - |")
+            when = f"**{r['turns30']} 도래**" if r["due"] else r["turns30"]
+            land = f"{land_s(r)} ({r['area']:.0f}㎡)" if r["area"] else "-"
+            score = f"{sum(r['pass'])}/3" if r["ppy_land"] and r["ratio"] else "-"
+            print(f"| {link(r)} | {r['umd']} | {when} | {r['units']:,} | {far_s(r)} | {land} | "
+                  f"{med_s(r) if r['area'] else '-'} | {score} |")
 
     print("\nJSON " + json.dumps({"rows": rows}, ensure_ascii=False))
 

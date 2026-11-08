@@ -5,9 +5,9 @@
     <link>https://geuttaeneolma.com/blog/</link>
     <description>그땐 얼마?의 서울·경기 아파트 실거래가 데이터로 단지를 들여다보는 글</description>
     <language>ko</language>
-    <item><title>재건축 연한 채우는 서울 아파트 135곳, 용적률부터 봤다</title><link>https://geuttaeneolma.com/blog/2026-11-rebuild-30/</link><guid>https://geuttaeneolma.com/blog/2026-11-rebuild-30/</guid><pubDate>Mon, 09 Nov 2026 00:00:00 +0900</pubDate><description>2026~2028년에 준공 30년을 채우는 서울 300세대 이상 아파트 135곳을 모았다. 용적률 중앙값은 296%로, 이미 연한을 채운 1980년대 단지(262%)보다 높았다. 구별·단지별 전체 목록도 붙였다.</description><content:encoded><![CDATA[<p>서울에서 아파트 재건축 연한은 준공 후 30년이다. 그리고 2025년 6월부터는 30년이 지난 단지가 재건축진단(옛 안전진단) 없이 추진을 시작할 수 있게 됐다. 진단은 사업시행계획인가 전까지만 통과하면 된다. 그래서 "우리 아파트는 언제 30년이 되나"를 묻는 사람이 늘었다.</p>
+    <item><title>재건축 연한 채우는 서울 아파트 135곳, 용적률부터 봤다</title><link>https://geuttaeneolma.com/blog/2026-11-rebuild-30/</link><guid>https://geuttaeneolma.com/blog/2026-11-rebuild-30/</guid><pubDate>Mon, 09 Nov 2026 00:00:00 +0900</pubDate><description>2026~2028년 준공 30년을 채우는 서울 300세대 이상 아파트 135곳을 모아 용적률, 대지지분 1평 가격, 더 지을 여유, 신축 대비 가격까지 비교했다. 용적률 중앙값은 296%였다.</description><content:encoded><![CDATA[<p>서울에서 아파트 재건축 연한은 준공 후 30년이다. 그리고 2025년 6월부터는 30년이 지난 단지가 재건축진단(옛 안전진단) 없이 추진을 시작할 수 있게 됐다. 진단은 사업시행계획인가 전까지만 통과하면 된다. 그래서 "우리 아파트는 언제 30년이 되나"를 묻는 사람이 늘었다.</p>
 <p>궁금했던 건 그다음이었다. 연한이 차는 건 달력이 해결해 준다. 그런데 재건축을 실제로 굴러가게 하는 건 사업성이고, 사업성의 첫 단서는 용적률과 대지지분이다. 그래서 2026~2028년에 30년이 되는 서울 아파트를 전부 모아 놓고 그 두 숫자부터 봤다.</p>
-<p>결론부터 쓰면, 300세대 이상 단지만 <strong>135곳, 약 9만 9천 세대</strong>였다. 그리고 이 단지들의 <strong>용적률 중앙값은 296%</strong>였다. 이미 연한을 채워 재건축 이야기가 오가는 1980년대 단지들(262%)보다 높다.</p>
+<p>결론부터 쓰면, 300세대 이상 단지만 <strong>135곳, 약 9만 9천 세대</strong>였다. 이 중 <strong>32곳(약 2만 2천 세대)은 올해 11월까지 이미 30년을 채웠다.</strong> 그리고 135곳의 <strong>용적률 중앙값은 296%</strong>였다. 이미 연한을 채워 재건축 이야기가 오가는 1980년대 단지들(262%)보다 높다.</p>
 <h2>어떻게 셌나</h2>
 <ul>
 <li>단지 목록은 그땐 얼마? 지도에 있는 서울 아파트다. 준공 시점은 건축물대장·공동주택관리정보의 사용승인(입주) 연월로 잡았다. 1996~1998년에 준공한 단지가 2026~2028년에 30년을 채운다.</li>
@@ -227,202 +227,308 @@
 </table></div>
 <p>노원(17곳)과 중랑(13곳)이 가장 많았다. 둘 다 용적률 중앙값이 250~266%로 이 목록 전체 중앙값(296%)보다 낮다. 대지지분도 9평 안팎으로 넉넉한 편이다.</p>
 <p>반대로 구로(359%), 용산(358%), 영등포(342%), 강동(335%), 광진(329%)은 용적률 중앙값이 높았다. 대지지분도 6~8평대에 머문다. 같은 30년이라도 출발선이 다르다.</p>
-<h2>용적률 낮은 500세대 이상 단지 15곳</h2>
-<p>500세대 이상 중에서 용적률이 낮은 순으로 15곳을 뽑았다. 마지막 칸은 최근 1년 대표 평형 가격을 대지지분으로 나눈 값, 즉 대지지분 1평에 얼마를 내고 있는지다.</p>
+<h2>대지지분 1평 가격만으로는 부족했다</h2>
+<p>처음엔 대지지분 1평에 얼마를 내는지로 줄을 세우면 될 줄 알았다. 같은 땅을 싸게 사는 단지가 낫지 않을까 싶어서다. 그런데 숫자를 펼쳐 보니 그 하나로는 자꾸 이상한 답이 나왔다.</p>
+<p>땅이 싸도 이미 300% 넘게 지어져 있으면, 재건축 때 그 땅 위에 더 올릴 게 없다. 재건축 수익은 결국 더 지어서 일반분양하는 면적에서 나온다. 그 면적이 신축이 됐을 때 얼마에 팔리는지도 지역마다 다르다. 실제로 대지지분 1평 가격이 비싼 단지일수록 더 지을 여유는 적은 편이었다.</p>
+<p>그래서 세 숫자를 같이 봤다.</p>
+<ol>
+<li><strong>① 대지지분 1평 가격</strong>: 최근 1년 대표 평형 가격을 그 평형의 대지지분으로 나눴다. 땅을 얼마에 사는지다. 이 목록 중앙값(1.14억) 이하면 굵게 표시했다.</li>
+<li><strong>② 세대당 여유 면적</strong>: 대지지분 × (목표 용적률 − 지금 용적률)이다. 재건축하면 한 세대 몫으로 더 지을 수 있는 바닥 면적을 대략 잡은 값이다. 목표는 3종 일반주거지역 법적상한인 300%와, 그 1.2배인 360% 두 가지로 놓았다. 300% 기준 5평 이상이면 굵게 표시했다.</li>
+<li><strong>③ 신축 대비 가격</strong>: 이 단지 평당가가 같은 구의 2016년 이후 준공 300세대 이상 단지 평당가 중앙값의 몇 %인지다. 신축이 되면 얼마나 오를 여지가 있는지를 보는 값이다. 70% 이하면 굵게 표시했다.</li>
+</ol>
+<p>결과는 이랬다. 300% 기준으로 여유 면적이 조금이라도 있는 곳은 122곳 중 61곳, 5평 이상은 24곳뿐이었다. 360%까지 받는다고 가정해야 중앙값이 5.5평이 된다. 신축 대비 가격은 중앙값 70%였고, 이미 같은 구 신축보다 비싼 단지도 11곳 있었다.</p>
+<p>아래는 500세대 이상 중 세 지표 가운데 둘 이상을 충족한 26곳이다. 충족 개수, 그다음 360% 기준 여유 면적 순으로 놓았다.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
 <th>단지</th>
 <th>구·동</th>
-<th style="text-align: right;">30년</th>
 <th style="text-align: right;">세대수</th>
 <th style="text-align: right;">용적률</th>
-<th style="text-align: right;">대표 평형</th>
-<th style="text-align: right;">대지지분</th>
-<th style="text-align: right;">최근 1년 (건수)</th>
-<th style="text-align: right;">대지지분 1평당</th>
+<th style="text-align: right;">① 대지지분 1평</th>
+<th style="text-align: right;">② 여유 300% / 360%</th>
+<th style="text-align: right;">③ 신축 대비</th>
+<th style="text-align: center;">충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C650">신내6대주</a></td>
-<td>중랑 신내동</td>
-<td style="text-align: right;">2026.03</td>
-<td style="text-align: right;">1,609</td>
-<td style="text-align: right;">187%</td>
-<td style="text-align: right;">50㎡</td>
-<td style="text-align: right;">10.9평</td>
-<td style="text-align: right;">5.65억 (39)</td>
-<td style="text-align: right;">0.52억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11260%7C%EB%AC%B5%EB%8F%99%7C13">신내</a></td>
-<td>중랑 묵동</td>
-<td style="text-align: right;">2026.06</td>
-<td style="text-align: right;">1,070</td>
-<td style="text-align: right;">191%</td>
-<td style="text-align: right;">40㎡</td>
-<td style="text-align: right;">8.2평</td>
-<td style="text-align: right;">3.95억 (35)</td>
-<td style="text-align: right;">0.48억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C360-2">청구3</a></td>
-<td>노원 중계동</td>
-<td style="text-align: right;">2026.07</td>
-<td style="text-align: right;">780</td>
-<td style="text-align: right;">195%</td>
-<td style="text-align: right;">85㎡</td>
-<td style="text-align: right;">16.7평</td>
-<td style="text-align: right;">13.50억 (35)</td>
-<td style="text-align: right;">0.81억</td>
-</tr>
-<tr>
 <td><a href="https://geuttaeneolma.com/#k=11500%7C%ED%99%94%EA%B3%A1%EB%8F%99%7C1139">초록</a></td>
 <td>강서 화곡동</td>
-<td style="text-align: right;">2028.11</td>
 <td style="text-align: right;">626</td>
 <td style="text-align: right;">198%</td>
-<td style="text-align: right;">59㎡</td>
-<td style="text-align: right;">11.7평</td>
-<td style="text-align: right;">8.20억 (13)</td>
-<td style="text-align: right;">0.70억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11350%7C%ED%95%98%EA%B3%84%EB%8F%99%7C251">하계1청구</a></td>
-<td>노원 하계동</td>
-<td style="text-align: right;">2027.06</td>
-<td style="text-align: right;">700</td>
-<td style="text-align: right;">198%</td>
-<td style="text-align: right;">85㎡</td>
-<td style="text-align: right;">15.9평</td>
-<td style="text-align: right;">9.37억 (24)</td>
-<td style="text-align: right;">0.59억</td>
+<td style="text-align: right;"><strong>0.70억</strong></td>
+<td style="text-align: right;"><strong>11.9평</strong> / 18.9평</td>
+<td style="text-align: right;"><strong>64%</strong></td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C661">신내11대명</a></td>
 <td>중랑 신내동</td>
-<td style="text-align: right;">2026.03</td>
 <td style="text-align: right;">804</td>
 <td style="text-align: right;">207%</td>
-<td style="text-align: right;">50㎡</td>
-<td style="text-align: right;">10.4평</td>
-<td style="text-align: right;">5.00억 (25)</td>
-<td style="text-align: right;">0.48억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11320%7C%EC%B0%BD%EB%8F%99%7C810">신창</a></td>
-<td>도봉 창동</td>
-<td style="text-align: right;">2028.07</td>
-<td style="text-align: right;">609</td>
-<td style="text-align: right;">208%</td>
-<td style="text-align: right;">59㎡</td>
-<td style="text-align: right;">11.6평</td>
-<td style="text-align: right;">4.27억 (14)</td>
-<td style="text-align: right;">0.37억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11680%7C%EC%88%98%EC%84%9C%EB%8F%99%7C747">삼성</a></td>
-<td>강남 수서동</td>
-<td style="text-align: right;">2027.11</td>
-<td style="text-align: right;">680</td>
-<td style="text-align: right;">211%</td>
-<td style="text-align: right;">85㎡</td>
-<td style="text-align: right;">14.7평</td>
-<td style="text-align: right;">25.00억 (11)</td>
-<td style="text-align: right;">1.70억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11440%7C%EC%97%BC%EB%A6%AC%EB%8F%99%7C515-1">상록</a></td>
-<td>마포 염리동</td>
-<td style="text-align: right;">2027.08</td>
-<td style="text-align: right;">678</td>
-<td style="text-align: right;">217%</td>
-<td style="text-align: right;">59㎡</td>
-<td style="text-align: right;">11.2평</td>
-<td style="text-align: right;">12.88억 (12)</td>
-<td style="text-align: right;">1.15억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C924">초안2</a></td>
-<td>노원 월계동</td>
-<td style="text-align: right;">2027.11</td>
-<td style="text-align: right;">571</td>
-<td style="text-align: right;">226%</td>
-<td style="text-align: right;">40㎡</td>
-<td style="text-align: right;">7.3평</td>
-<td style="text-align: right;">2.75억 (11)</td>
-<td style="text-align: right;">0.37억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11440%7C%EC%B0%BD%EC%A0%84%EB%8F%99%7C437">창전래미안</a></td>
-<td>마포 창전동</td>
-<td style="text-align: right;">2028.06</td>
-<td style="text-align: right;">951</td>
-<td style="text-align: right;">234%</td>
-<td style="text-align: right;">60㎡</td>
-<td style="text-align: right;">≈9.6평</td>
-<td style="text-align: right;">14.45억 (7)</td>
-<td style="text-align: right;">≈1.51억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11470%7C%EB%AA%A9%EB%8F%99%7C929">목동청구한신아파트</a></td>
-<td>양천 목동</td>
-<td style="text-align: right;">2027.12</td>
-<td style="text-align: right;">1,512</td>
-<td style="text-align: right;">234%</td>
-<td style="text-align: right;">85㎡</td>
-<td style="text-align: right;">13.0평</td>
-<td style="text-align: right;">20.75억 (37)</td>
-<td style="text-align: right;">1.60억</td>
-</tr>
-<tr>
-<td><a href="https://geuttaeneolma.com/#k=11710%7C%EA%B1%B0%EC%97%AC%EB%8F%99%7C293">거여4단지</a></td>
-<td>송파 거여동</td>
-<td style="text-align: right;">2027.07</td>
-<td style="text-align: right;">546</td>
-<td style="text-align: right;">241%</td>
-<td style="text-align: right;">50㎡</td>
-<td style="text-align: right;">8.6평</td>
-<td style="text-align: right;">10.80억 (13)</td>
-<td style="text-align: right;">1.25억</td>
+<td style="text-align: right;"><strong>0.48억</strong></td>
+<td style="text-align: right;"><strong>9.7평</strong> / 15.9평</td>
+<td style="text-align: right;"><strong>68%</strong></td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C479">중앙하이츠</a></td>
 <td>중랑 신내동</td>
-<td style="text-align: right;">2026.03</td>
 <td style="text-align: right;">704</td>
 <td style="text-align: right;">≈242%</td>
-<td style="text-align: right;">85㎡</td>
-<td style="text-align: right;">12.0평</td>
-<td style="text-align: right;">6.79억 (28)</td>
-<td style="text-align: right;">0.57억</td>
+<td style="text-align: right;"><strong>0.57억</strong></td>
+<td style="text-align: right;"><strong>7.0평</strong> / 14.2평</td>
+<td style="text-align: right;"><strong>54%</strong></td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
-<td><a href="https://geuttaeneolma.com/#k=11680%7C%EB%85%BC%ED%98%84%EB%8F%99%7C22">신동아</a></td>
-<td>강남 논현동</td>
-<td style="text-align: right;">2027.07</td>
-<td style="text-align: right;">644</td>
-<td style="text-align: right;">246%</td>
-<td style="text-align: right;">36㎡</td>
-<td style="text-align: right;">5.5평</td>
-<td style="text-align: right;">13.20억 (23)</td>
-<td style="text-align: right;">2.40억</td>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%ED%99%8D%EC%9D%80%EB%8F%99%7C455">홍은동벽산</a></td>
+<td>서대문 홍은동</td>
+<td style="text-align: right;">1,509</td>
+<td style="text-align: right;">253%</td>
+<td style="text-align: right;"><strong>0.66억</strong></td>
+<td style="text-align: right;"><strong>5.6평</strong> / 12.7평</td>
+<td style="text-align: right;"><strong>49%</strong></td>
+<td style="text-align: center;">3/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%83%81%EB%B4%89%EB%8F%99%7C484">엘지·쌍용</a></td>
+<td>중랑 상봉동</td>
+<td style="text-align: right;">858</td>
+<td style="text-align: right;">250%</td>
+<td style="text-align: right;"><strong>0.62억</strong></td>
+<td style="text-align: right;"><strong>5.3평</strong> / 11.5평</td>
+<td style="text-align: right;"><strong>66%</strong></td>
+<td style="text-align: center;">3/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%83%81%EA%B3%84%EB%8F%99%7C1255">은빛1단지</a></td>
+<td>노원 상계동</td>
+<td style="text-align: right;">1,391</td>
+<td style="text-align: right;">248%</td>
+<td style="text-align: right;"><strong>0.55억</strong></td>
+<td style="text-align: right;"><strong>5.0평</strong> / 10.8평</td>
+<td style="text-align: right;"><strong>63%</strong></td>
+<td style="text-align: center;">3/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C924">초안2</a></td>
+<td>노원 월계동</td>
+<td style="text-align: right;">571</td>
+<td style="text-align: right;">226%</td>
+<td style="text-align: right;"><strong>0.37억</strong></td>
+<td style="text-align: right;"><strong>5.5평</strong> / 9.9평</td>
+<td style="text-align: right;"><strong>51%</strong></td>
+<td style="text-align: center;">3/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C360-2">청구3</a></td>
+<td>노원 중계동</td>
+<td style="text-align: right;">780</td>
+<td style="text-align: right;">195%</td>
+<td style="text-align: right;"><strong>0.81억</strong></td>
+<td style="text-align: right;"><strong>17.5평</strong> / 27.5평</td>
+<td style="text-align: right;">113%</td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%ED%95%98%EA%B3%84%EB%8F%99%7C251">하계1청구</a></td>
+<td>노원 하계동</td>
+<td style="text-align: right;">700</td>
+<td style="text-align: right;">198%</td>
+<td style="text-align: right;"><strong>0.59억</strong></td>
+<td style="text-align: right;"><strong>16.2평</strong> / 25.8평</td>
+<td style="text-align: right;">79%</td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C650">신내6대주</a></td>
+<td>중랑 신내동</td>
+<td style="text-align: right;">1,609</td>
+<td style="text-align: right;">187%</td>
+<td style="text-align: right;"><strong>0.52억</strong></td>
+<td style="text-align: right;"><strong>12.2평</strong> / 18.8평</td>
+<td style="text-align: right;">76%</td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EB%AC%B5%EB%8F%99%7C13">신내</a></td>
+<td>중랑 묵동</td>
+<td style="text-align: right;">1,070</td>
+<td style="text-align: right;">191%</td>
+<td style="text-align: right;"><strong>0.48억</strong></td>
+<td style="text-align: right;"><strong>9.0평</strong> / 14.0평</td>
+<td style="text-align: right;">70%</td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%ED%95%98%EA%B3%84%EB%8F%99%7C288">하계2현대</a></td>
+<td>노원 하계동</td>
+<td style="text-align: right;">730</td>
+<td style="text-align: right;">252%</td>
+<td style="text-align: right;"><strong>0.76억</strong></td>
+<td style="text-align: right;"><strong>5.8평</strong> / 13.1평</td>
+<td style="text-align: right;">78%</td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11200%7C%ED%95%98%EC%99%95%EC%8B%AD%EB%A6%AC%EB%8F%99%7C258">벽산</a></td>
+<td>성동 하왕십리동</td>
+<td style="text-align: right;">822</td>
+<td style="text-align: right;">268%</td>
+<td style="text-align: right;"><strong>1.11억</strong></td>
+<td style="text-align: right;">4.4평 / 12.5평</td>
+<td style="text-align: right;"><strong>52%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C781">청백4</a></td>
+<td>노원 월계동</td>
+<td style="text-align: right;">520</td>
+<td style="text-align: right;">249%</td>
+<td style="text-align: right;"><strong>0.47억</strong></td>
+<td style="text-align: right;">4.7평 / 10.3평</td>
+<td style="text-align: right;"><strong>54%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11620%7C%EC%8B%A0%EB%A6%BC%EB%8F%99%7C1703-1">LIG대학마을(건영아파트3차)</a></td>
+<td>관악 신림동</td>
+<td style="text-align: right;">783</td>
+<td style="text-align: right;">250%</td>
+<td style="text-align: right;"><strong>0.64억</strong></td>
+<td style="text-align: right;">4.3평 / 9.6평</td>
+<td style="text-align: right;"><strong>51%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11290%7C%EB%8F%88%EC%95%94%EB%8F%99%7C609-1%2311290-20">한신·한진</a></td>
+<td>성북 돈암동</td>
+<td style="text-align: right;">3,929</td>
+<td style="text-align: right;">276%</td>
+<td style="text-align: right;"><strong>≈0.74억</strong></td>
+<td style="text-align: right;">2.6평 / 9.1평</td>
+<td style="text-align: right;"><strong>68%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%83%81%EA%B3%84%EB%8F%99%7C1256">은빛2단지</a></td>
+<td>노원 상계동</td>
+<td style="text-align: right;">1,313</td>
+<td style="text-align: right;">260%</td>
+<td style="text-align: right;"><strong>0.60억</strong></td>
+<td style="text-align: right;">3.6평 / 9.0평</td>
+<td style="text-align: right;"><strong>65%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11530%7C%EC%98%A4%EB%A5%98%EB%8F%99%7C338">동부골든</a></td>
+<td>구로 오류동</td>
+<td style="text-align: right;">932</td>
+<td style="text-align: right;">300%</td>
+<td style="text-align: right;"><strong>0.41억</strong></td>
+<td style="text-align: right;">0.0평 / 8.9평</td>
+<td style="text-align: right;"><strong>67%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%EB%B6%81%EA%B0%80%EC%A2%8C%EB%8F%99%7C449">북가좌삼호</a></td>
+<td>서대문 북가좌동</td>
+<td style="text-align: right;">616</td>
+<td style="text-align: right;">≈292%</td>
+<td style="text-align: right;"><strong>0.73억</strong></td>
+<td style="text-align: right;">1.0평 / 8.3평</td>
+<td style="text-align: right;"><strong>54%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11545%7C%EA%B0%80%EC%82%B0%EB%8F%99%7C769">두산</a></td>
+<td>금천 가산동</td>
+<td style="text-align: right;">1,495</td>
+<td style="text-align: right;">288%</td>
+<td style="text-align: right;"><strong>0.89억</strong></td>
+<td style="text-align: right;">0.9평 / 5.5평</td>
+<td style="text-align: right;"><strong>68%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%83%81%EB%B4%89%EB%8F%99%7C63">건영2차아파트</a></td>
+<td>중랑 상봉동</td>
+<td style="text-align: right;">1,113</td>
+<td style="text-align: right;">303%</td>
+<td style="text-align: right;"><strong>0.85억</strong></td>
+<td style="text-align: right;">0.0평 / 5.4평</td>
+<td style="text-align: right;"><strong>66%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11230%7C%EC%B2%AD%EB%9F%89%EB%A6%AC%EB%8F%99%7C60">한신</a></td>
+<td>동대문 청량리동</td>
+<td style="text-align: right;">960</td>
+<td style="text-align: right;">≈323%</td>
+<td style="text-align: right;"><strong>0.82억</strong></td>
+<td style="text-align: right;">0.0평 / 4.2평</td>
+<td style="text-align: right;"><strong>51%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C618">동성3</a></td>
+<td>중랑 신내동</td>
+<td style="text-align: right;">800</td>
+<td style="text-align: right;">321%</td>
+<td style="text-align: right;"><strong>0.78억</strong></td>
+<td style="text-align: right;">0.0평 / 2.6평</td>
+<td style="text-align: right;"><strong>57%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11290%7C%EA%B8%B8%EC%9D%8C%EB%8F%99%7C1276">삼부컨비니언</a></td>
+<td>성북 길음동</td>
+<td style="text-align: right;">684</td>
+<td style="text-align: right;">350%</td>
+<td style="text-align: right;"><strong>≈1.10억</strong></td>
+<td style="text-align: right;">0.0평 / 0.7평</td>
+<td style="text-align: right;"><strong>64%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C795">새한</a></td>
+<td>중랑 신내동</td>
+<td style="text-align: right;">532</td>
+<td style="text-align: right;">353%</td>
+<td style="text-align: right;"><strong>0.69억</strong></td>
+<td style="text-align: right;">0.0평 / 0.6평</td>
+<td style="text-align: right;"><strong>52%</strong></td>
+<td style="text-align: center;">2/3</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C445">염광</a></td>
+<td>노원 중계동</td>
+<td style="text-align: right;">791</td>
+<td style="text-align: right;">385%</td>
+<td style="text-align: right;"><strong>1.02억</strong></td>
+<td style="text-align: right;">0.0평 / 0.0평</td>
+<td style="text-align: right;"><strong>68%</strong></td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
-<p>맨 위 세 곳이 용적률 200% 아래다. 중랑 신내동 신내6대주는 1,609세대에 187%, 묵동 신내는 191%, 노원 중계동 청구3은 195%였다. 청구3은 85㎡에 대지지분이 16.7평이나 됐다.</p>
-<p>대지지분 1평당 가격도 함께 보면 갈린다. 중랑·노원·도봉 단지들은 대지지분 1평에 0.37~0.81억이었다. 강남 논현동 신동아는 2.40억, 수서동 삼성은 1.70억, 목동 청구한신은 1.60억이었다. 같은 땅 1평을 사는 데 다섯 배 넘게 차이가 났다.</p>
+<p>세 지표를 모두 충족한 500세대 이상 단지는 7곳이었다. 화곡동 초록, 신내동 신내11대명과 중앙하이츠, 홍은동 벽산, 상봉동 엘지·쌍용, 상계동 은빛1단지, 월계동 초안2다. 300세대 이상으로 넓히면 13곳이다.</p>
+<p>눈여겨본 건 둘을 충족한 단지들이었다. 중계동 청구3과 하계동 하계1청구는 용적률이 200% 아래이고 300% 기준 여유 면적이 16평이 넘는다. 이 목록에서 가장 넉넉하다. 그런데 신축 대비 가격이 각각 113%, 79%였다. 땅과 여유는 좋은데, 가격이 이미 그 기대를 상당 부분 담고 있다는 뜻으로 읽혔다.</p>
+<p>반대로 표 아래쪽의 신내동 새한, 중계동 염광처럼 용적률이 350%를 넘는 단지도 땅값이 싸고 신축 대비 가격이 낮아 2개를 충족했다. 하지만 360%를 받아도 더 지을 여유가 1평이 안 된다. 싸다는 이유만으로 고르면 안 되는 사례다.</p>
 <h2>감안할 것</h2>
 <ol>
-<li><strong>용적률만으로 사업성이 정해지지 않는다.</strong> 일반분양 가격, 공사비, 기부채납, 종 상향 여부가 함께 움직인다. 용적률이 높아도 분양가가 높은 지역은 사업이 될 수 있고, 낮아도 분양가가 낮으면 어렵다.</li>
+<li><strong>세 지표는 사업성을 가늠하는 출발점이지 결론이 아니다.</strong> 일반분양 가격, 공사비, 기부채납, 종 상향 여부가 함께 움직인다. 용적률이 높아도 분양가가 높은 지역은 사업이 될 수 있고, 낮아도 분양가가 낮으면 어렵다.</li>
+<li><strong>분담금은 계산하지 않았다.</strong> 공사비와 분양가를 어떻게 잡느냐에 따라 세대당 수억 원씩 흔들리는 숫자라, 이 글의 숫자만으로 추정하지 않는 게 낫다.</li>
+<li><strong>② 여유 면적은 단순 가정이다.</strong> 300%나 360%를 실제로 받을 수 있는지는 단지의 용도지역, 정비계획, 서울시 인센티브 적용 여부에 달렸다. 임대주택 의무 비율과 공공기여도 빠져 있다.</li>
+<li><strong>③ 신축 대비 가격이 낮은 건 기회일 수도, 입지 차이일 수도 있다.</strong> 같은 구 안에서도 신축 단지가 역세권이나 학군지에 몰려 있으면 오래된 단지는 원래 낮게 나온다.</li>
 <li><strong>30년은 시작 조건일 뿐이다.</strong> 재건축진단, 정비계획, 조합 설립, 사업시행인가를 거쳐야 한다. 30년이 됐다고 바로 재건축되는 게 아니다.</li>
-<li><strong>준공 연월은 대장 기준이다.</strong> 동마다 사용승인일이 다르면 단지 대표 값과 실제 연한이 몇 달 어긋날 수 있다.</li>
-<li><strong>대지지분은 대표 평형 하나의 값이다.</strong> 같은 단지라도 평형마다 다르다. 대장 값과 용적률이 서로 맞지 않는 2곳은 대지지분을 비워 뒀다.</li>
+<li><strong>준공 연월과 대지지분은 대장 기준이다.</strong> 동마다 사용승인일이 다르면 실제 연한이 몇 달 어긋날 수 있다. 대지지분은 대표 평형 하나의 값이고, 대장 값과 용적률이 서로 맞지 않는 2곳은 비워 뒀다.</li>
 <li><strong>리모델링을 택한 단지도 섞여 있을 수 있다.</strong> 추진 현황은 이 표에 없다.</li>
 </ol>
 <h2>전체 목록 (구별, 30년 되는 순)</h2>
-<p>대지지분 칸의 괄호는 대표 평형(전용면적)이다. 단지 이름을 누르면 지도에서 평형별 실거래와 대지지분을 바로 볼 수 있다.</p>
+<p>"도래"는 2026년 11월까지 이미 30년을 채운 단지다. 대지지분 칸의 괄호는 대표 평형(전용면적)이고, 마지막 칸은 위 세 지표 중 몇 개를 충족했는지다. 단지 이름을 누르면 지도에서 평형별 실거래와 대지지분을 바로 볼 수 있다.</p>
 <h3>강남구 (3곳)</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -434,6 +540,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -445,6 +552,7 @@
 <td style="text-align: right;">246%</td>
 <td style="text-align: right;">5.5평 (36㎡)</td>
 <td style="text-align: right;">13.20억 (23)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11680%7C%EC%88%98%EC%84%9C%EB%8F%99%7C747">삼성</a></td>
@@ -454,6 +562,7 @@
 <td style="text-align: right;">211%</td>
 <td style="text-align: right;">14.7평 (85㎡)</td>
 <td style="text-align: right;">25.00억 (11)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11680%7C%EC%82%BC%EC%84%B1%EB%8F%99%7C2">서광아파트</a></td>
@@ -463,6 +572,7 @@
 <td style="text-align: right;">≈289%</td>
 <td style="text-align: right;">≈7.8평 (60㎡)</td>
 <td style="text-align: right;">25.00억 (7)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -477,17 +587,19 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11740%7C%EA%B3%A0%EB%8D%95%EB%8F%99%7C486">아남1</a></td>
 <td>고덕동</td>
-<td style="text-align: right;">2026.03</td>
+<td style="text-align: right;"><strong>2026.03 도래</strong></td>
 <td style="text-align: right;">807</td>
 <td style="text-align: right;">297%</td>
 <td style="text-align: right;">10.2평 (85㎡)</td>
 <td style="text-align: right;">15.15억 (41)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11740%7C%EC%B2%9C%ED%98%B8%EB%8F%99%7C528">천호동삼성아파트</a></td>
@@ -497,6 +609,7 @@
 <td style="text-align: right;">335%</td>
 <td style="text-align: right;">8.4평 (60㎡)</td>
 <td style="text-align: right;">10.12억 (6)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11740%7C%EB%91%94%EC%B4%8C%EB%8F%99%7C546">신성둔촌미소지움1</a></td>
@@ -506,6 +619,7 @@
 <td style="text-align: right;">387%</td>
 <td style="text-align: right;">6.0평 (60㎡)</td>
 <td style="text-align: right;">13.50억 (19)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -520,6 +634,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -531,6 +646,7 @@
 <td style="text-align: right;">319%</td>
 <td style="text-align: right;">6.9평 (60㎡)</td>
 <td style="text-align: right;">9.74억 (10)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11500%7C%EB%93%B1%EC%B4%8C%EB%8F%99%7C628-15">등촌라인(조합)</a></td>
@@ -540,6 +656,7 @@
 <td style="text-align: right;">309%</td>
 <td style="text-align: right;">7.5평 (60㎡)</td>
 <td style="text-align: right;">9.00억 (9)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11500%7C%EC%97%BC%EC%B0%BD%EB%8F%99%7C292">동아</a></td>
@@ -549,6 +666,7 @@
 <td style="text-align: right;">315%</td>
 <td style="text-align: right;">7.2평 (60㎡)</td>
 <td style="text-align: right;">10.00억 (26)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11500%7C%ED%99%94%EA%B3%A1%EB%8F%99%7C1139">초록</a></td>
@@ -558,6 +676,7 @@
 <td style="text-align: right;">198%</td>
 <td style="text-align: right;">11.7평 (59㎡)</td>
 <td style="text-align: right;">8.20억 (13)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -572,26 +691,29 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11620%7C%EB%B4%89%EC%B2%9C%EB%8F%99%7C1698-1">보라매삼성</a></td>
 <td>봉천동</td>
-<td style="text-align: right;">2026.04</td>
+<td style="text-align: right;"><strong>2026.04 도래</strong></td>
 <td style="text-align: right;">710</td>
 <td style="text-align: right;">268%</td>
 <td style="text-align: right;">11.6평 (85㎡)</td>
 <td style="text-align: right;">10.62억 (30)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11620%7C%EC%8B%A0%EB%A6%BC%EB%8F%99%7C1703-1">LIG대학마을(건영아파트3차)</a></td>
 <td>신림동</td>
-<td style="text-align: right;">2026.06</td>
+<td style="text-align: right;"><strong>2026.06 도래</strong></td>
 <td style="text-align: right;">783</td>
 <td style="text-align: right;">250%</td>
 <td style="text-align: right;">8.7평 (59㎡)</td>
 <td style="text-align: right;">5.60억 (27)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11620%7C%EC%8B%A0%EB%A6%BC%EB%8F%99%7C1686">신림동쌍용아파트</a></td>
@@ -601,6 +723,7 @@
 <td style="text-align: right;">329%</td>
 <td style="text-align: right;">7.1평 (59㎡)</td>
 <td style="text-align: right;">5.10억 (9)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -615,44 +738,49 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EA%B5%B0%EC%9E%90%EB%8F%99%7C99">일성파크</a></td>
 <td>군자동</td>
-<td style="text-align: right;">2026.03</td>
+<td style="text-align: right;"><strong>2026.03 도래</strong></td>
 <td style="text-align: right;">357</td>
 <td style="text-align: right;">≈319%</td>
 <td style="text-align: right;">5.3평 (60㎡)</td>
 <td style="text-align: right;">8.90억 (9)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EA%B4%91%EC%9E%A5%EB%8F%99%7C567">광나루현대</a></td>
 <td>광장동</td>
-<td style="text-align: right;">2026.04</td>
+<td style="text-align: right;"><strong>2026.04 도래</strong></td>
 <td style="text-align: right;">380</td>
 <td style="text-align: right;">303%</td>
 <td style="text-align: right;">10.2평 (85㎡)</td>
 <td style="text-align: right;">17.40억 (9)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EA%B4%91%EC%9E%A5%EB%8F%99%7C566">청구</a></td>
 <td>광장동</td>
-<td style="text-align: right;">2026.07</td>
+<td style="text-align: right;"><strong>2026.07 도래</strong></td>
 <td style="text-align: right;">654</td>
 <td style="text-align: right;">398%</td>
 <td style="text-align: right;">6.0평 (60㎡)</td>
 <td style="text-align: right;">16.05억 (11)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EC%9E%90%EC%96%91%EB%8F%99%7C762">한라아파트</a></td>
 <td>자양동</td>
-<td style="text-align: right;">2026.08</td>
+<td style="text-align: right;"><strong>2026.08 도래</strong></td>
 <td style="text-align: right;">329</td>
 <td style="text-align: right;">302%</td>
 <td style="text-align: right;">11.6평 (85㎡)</td>
 <td style="text-align: right;">16.25억 (5)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EA%B5%AC%EC%9D%98%EB%8F%99%7C611">구의현대2단지</a></td>
@@ -662,6 +790,7 @@
 <td style="text-align: right;">307%</td>
 <td style="text-align: right;">10.2평 (85㎡)</td>
 <td style="text-align: right;">21.25억 (27)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EC%9E%90%EC%96%91%EB%8F%99%7C670">현대3</a></td>
@@ -671,6 +800,7 @@
 <td style="text-align: right;">358%</td>
 <td style="text-align: right;">8.8평 (85㎡)</td>
 <td style="text-align: right;">16.10억 (6)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EA%B5%AC%EC%9D%98%EB%8F%99%7C631-1">현대프라임</a></td>
@@ -680,6 +810,7 @@
 <td style="text-align: right;">399%</td>
 <td style="text-align: right;">5.7평 (60㎡)</td>
 <td style="text-align: right;">17.05억 (24)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11215%7C%EC%9E%90%EC%96%91%EB%8F%99%7C783-1">자양우성7</a></td>
@@ -689,6 +820,7 @@
 <td style="text-align: right;">339%</td>
 <td style="text-align: right;">6.8평 (60㎡)</td>
 <td style="text-align: right;">15.68억 (10)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -703,6 +835,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -714,6 +847,7 @@
 <td style="text-align: right;">398%</td>
 <td style="text-align: right;">7.9평 (85㎡)</td>
 <td style="text-align: right;">7.30억 (13)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EA%B0%9C%EB%B4%89%EB%8F%99%7C472">두산</a></td>
@@ -723,6 +857,7 @@
 <td style="text-align: right;">370%</td>
 <td style="text-align: right;">6.0평 (60㎡)</td>
 <td style="text-align: right;">5.65억 (29)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EA%B5%AC%EB%A1%9C%EB%8F%99%7C1259">구일우성</a></td>
@@ -732,6 +867,7 @@
 <td style="text-align: right;">358%</td>
 <td style="text-align: right;">6.2평 (59㎡)</td>
 <td style="text-align: right;">5.69억 (36)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EA%B5%AC%EB%A1%9C%EB%8F%99%7C1260">이화우성</a></td>
@@ -741,6 +877,7 @@
 <td style="text-align: right;">359%</td>
 <td style="text-align: right;">6.3평 (60㎡)</td>
 <td style="text-align: right;">6.42억 (16)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EA%B0%9C%EB%B4%89%EB%8F%99%7C475">영화</a></td>
@@ -750,6 +887,7 @@
 <td style="text-align: right;">363%</td>
 <td style="text-align: right;">8.8평 (85㎡)</td>
 <td style="text-align: right;">7.70억 (10)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EA%B5%AC%EB%A1%9C%EB%8F%99%7C1265">구로두산</a></td>
@@ -759,6 +897,7 @@
 <td style="text-align: right;">354%</td>
 <td style="text-align: right;">5.2평 (45㎡)</td>
 <td style="text-align: right;">5.65억 (80)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EA%B5%AC%EB%A1%9C%EB%8F%99%7C1266">구로두산(201동)</a></td>
@@ -768,6 +907,7 @@
 <td style="text-align: right;">368%</td>
 <td style="text-align: right;">3.2평 (28㎡)</td>
 <td style="text-align: right;">-</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EC%98%A4%EB%A5%98%EB%8F%99%7C340">삼천리</a></td>
@@ -777,6 +917,7 @@
 <td style="text-align: right;">304%</td>
 <td style="text-align: right;">7.3평 (60㎡)</td>
 <td style="text-align: right;">5.99억 (13)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11530%7C%EC%98%A4%EB%A5%98%EB%8F%99%7C338">동부골든</a></td>
@@ -786,6 +927,7 @@
 <td style="text-align: right;">300%</td>
 <td style="text-align: right;">14.8평 (105㎡)</td>
 <td style="text-align: right;">6.08억 (15)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -800,6 +942,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -811,6 +954,7 @@
 <td style="text-align: right;">288%</td>
 <td style="text-align: right;">7.6평 (60㎡)</td>
 <td style="text-align: right;">6.78억 (42)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -825,35 +969,39 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C580">성원1</a></td>
 <td>중계동</td>
-<td style="text-align: right;">2026.01</td>
+<td style="text-align: right;"><strong>2026.01 도래</strong></td>
 <td style="text-align: right;">402</td>
 <td style="text-align: right;">369%</td>
 <td style="text-align: right;">6.0평 (60㎡)</td>
 <td style="text-align: right;">7.80억 (11)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C445">염광</a></td>
 <td>중계동</td>
-<td style="text-align: right;">2026.06</td>
+<td style="text-align: right;"><strong>2026.06 도래</strong></td>
 <td style="text-align: right;">791</td>
 <td style="text-align: right;">385%</td>
 <td style="text-align: right;">5.8평 (59㎡)</td>
 <td style="text-align: right;">5.93억 (18)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C360-2">청구3</a></td>
 <td>중계동</td>
-<td style="text-align: right;">2026.07</td>
+<td style="text-align: right;"><strong>2026.07 도래</strong></td>
 <td style="text-align: right;">780</td>
 <td style="text-align: right;">195%</td>
 <td style="text-align: right;">16.7평 (85㎡)</td>
 <td style="text-align: right;">13.50억 (35)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C583">금호타운</a></td>
@@ -863,6 +1011,7 @@
 <td style="text-align: right;">356%</td>
 <td style="text-align: right;">8.9평 (85㎡)</td>
 <td style="text-align: right;">7.85억 (11)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%ED%95%98%EA%B3%84%EB%8F%99%7C251">하계1청구</a></td>
@@ -872,6 +1021,7 @@
 <td style="text-align: right;">198%</td>
 <td style="text-align: right;">15.9평 (85㎡)</td>
 <td style="text-align: right;">9.37억 (24)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%ED%95%98%EA%B3%84%EB%8F%99%7C288">하계2현대</a></td>
@@ -881,6 +1031,7 @@
 <td style="text-align: right;">252%</td>
 <td style="text-align: right;">12.2평 (85㎡)</td>
 <td style="text-align: right;">9.20억 (35)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%83%81%EA%B3%84%EB%8F%99%7C1279">상계1차중앙하이츠</a></td>
@@ -890,6 +1041,7 @@
 <td style="text-align: right;">297%</td>
 <td style="text-align: right;">7.4평 (60㎡)</td>
 <td style="text-align: right;">6.20억 (10)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C924">초안2</a></td>
@@ -899,6 +1051,7 @@
 <td style="text-align: right;">226%</td>
 <td style="text-align: right;">7.3평 (40㎡)</td>
 <td style="text-align: right;">2.75억 (11)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C923">초안1</a></td>
@@ -908,6 +1061,7 @@
 <td style="text-align: right;">266%</td>
 <td style="text-align: right;">6.2평 (40㎡)</td>
 <td style="text-align: right;">2.62억 (11)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C161-1%2311350-122">중앙하이츠</a></td>
@@ -917,6 +1071,7 @@
 <td style="text-align: right;">293%</td>
 <td style="text-align: right;">≈10.3평 (84㎡)</td>
 <td style="text-align: right;">7.04억 (13)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C775">대우</a></td>
@@ -926,6 +1081,7 @@
 <td style="text-align: right;">270%</td>
 <td style="text-align: right;">12.9평 (100㎡)</td>
 <td style="text-align: right;">7.38억 (8)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C780">청백3</a></td>
@@ -935,6 +1091,7 @@
 <td style="text-align: right;">257%</td>
 <td style="text-align: right;">7.7평 (50㎡)</td>
 <td style="text-align: right;">3.79억 (20)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%9B%94%EA%B3%84%EB%8F%99%7C781">청백4</a></td>
@@ -944,6 +1101,7 @@
 <td style="text-align: right;">249%</td>
 <td style="text-align: right;">9.3평 (59㎡)</td>
 <td style="text-align: right;">4.38억 (10)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%83%81%EA%B3%84%EB%8F%99%7C1282">상계2차중앙하이츠</a></td>
@@ -953,6 +1111,7 @@
 <td style="text-align: right;">379%</td>
 <td style="text-align: right;">5.9평 (60㎡)</td>
 <td style="text-align: right;">6.20억 (28)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%83%81%EA%B3%84%EB%8F%99%7C1256">은빛2단지</a></td>
@@ -962,6 +1121,7 @@
 <td style="text-align: right;">260%</td>
 <td style="text-align: right;">9.0평 (60㎡)</td>
 <td style="text-align: right;">5.45억 (44)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%83%81%EA%B3%84%EB%8F%99%7C1255">은빛1단지</a></td>
@@ -971,6 +1131,7 @@
 <td style="text-align: right;">248%</td>
 <td style="text-align: right;">9.7평 (60㎡)</td>
 <td style="text-align: right;">5.30억 (41)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11350%7C%EC%A4%91%EA%B3%84%EB%8F%99%7C587">양지마을(대림)1</a></td>
@@ -980,6 +1141,7 @@
 <td style="text-align: right;">328%</td>
 <td style="text-align: right;">9.4평 (85㎡)</td>
 <td style="text-align: right;">10.15억 (15)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -994,44 +1156,49 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EB%B0%A9%ED%95%99%EB%8F%99%7C731">한화성원아파트</a></td>
 <td>방학동</td>
-<td style="text-align: right;">2026.04</td>
+<td style="text-align: right;"><strong>2026.04 도래</strong></td>
 <td style="text-align: right;">336</td>
 <td style="text-align: right;">237%</td>
 <td style="text-align: right;">9.9평 (60㎡)</td>
 <td style="text-align: right;">3.75억 (11)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EC%8C%8D%EB%AC%B8%EB%8F%99%7C721">극동아파트</a></td>
 <td>쌍문동</td>
-<td style="text-align: right;">2026.08</td>
+<td style="text-align: right;"><strong>2026.08 도래</strong></td>
 <td style="text-align: right;">315</td>
 <td style="text-align: right;">255%</td>
 <td style="text-align: right;">11.9평 (85㎡)</td>
 <td style="text-align: right;">4.97억 (8)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EB%8F%84%EB%B4%89%EB%8F%99%7C641">서원</a></td>
 <td>도봉동</td>
-<td style="text-align: right;">2026.10</td>
+<td style="text-align: right;"><strong>2026.10 도래</strong></td>
 <td style="text-align: right;">1,716</td>
 <td style="text-align: right;">247%</td>
 <td style="text-align: right;">10.0평 (50㎡)</td>
 <td style="text-align: right;">3.58억 (85)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EC%B0%BD%EB%8F%99%7C805">동아그린</a></td>
 <td>창동</td>
-<td style="text-align: right;">2026.11</td>
+<td style="text-align: right;"><strong>2026.11 도래</strong></td>
 <td style="text-align: right;">449</td>
 <td style="text-align: right;">285%</td>
 <td style="text-align: right;">7.8평 (60㎡)</td>
 <td style="text-align: right;">7.00억 (11)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EC%B0%BD%EB%8F%99%7C807">쌍용</a></td>
@@ -1041,6 +1208,7 @@
 <td style="text-align: right;">≈285%</td>
 <td style="text-align: right;">7.2평 (60㎡)</td>
 <td style="text-align: right;">8.00억 (23)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EC%B0%BD%EB%8F%99%7C808">동아청솔</a></td>
@@ -1050,6 +1218,7 @@
 <td style="text-align: right;">≈285%</td>
 <td style="text-align: right;">8.8평 (60㎡)</td>
 <td style="text-align: right;">8.20억 (48)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EB%B0%A9%ED%95%99%EB%8F%99%7C496">벽산아파트2</a></td>
@@ -1059,6 +1228,7 @@
 <td style="text-align: right;">335%</td>
 <td style="text-align: right;">6.7평 (60㎡)</td>
 <td style="text-align: right;">4.22억 (10)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11320%7C%EC%B0%BD%EB%8F%99%7C810">신창</a></td>
@@ -1068,6 +1238,7 @@
 <td style="text-align: right;">208%</td>
 <td style="text-align: right;">11.6평 (59㎡)</td>
 <td style="text-align: right;">4.27억 (14)</td>
+<td style="text-align: center;">-</td>
 </tr>
 </tbody>
 </table></div>
@@ -1082,17 +1253,19 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11230%7C%EC%9E%A5%EC%95%88%EB%8F%99%7C555-1">한신아파트</a></td>
 <td>장안동</td>
-<td style="text-align: right;">2026.06</td>
+<td style="text-align: right;"><strong>2026.06 도래</strong></td>
 <td style="text-align: right;">300</td>
 <td style="text-align: right;">323%</td>
 <td style="text-align: right;">9.8평 (85㎡)</td>
 <td style="text-align: right;">7.55억 (13)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11230%7C%EB%8B%B5%EC%8B%AD%EB%A6%AC%EB%8F%99%7C989-1">우성그린</a></td>
@@ -1102,6 +1275,7 @@
 <td style="text-align: right;">276%</td>
 <td style="text-align: right;">11.4평 (85㎡)</td>
 <td style="text-align: right;">8.45억 (13)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11230%7C%EC%A0%84%EB%86%8D%EB%8F%99%7C645-2">동아</a></td>
@@ -1111,6 +1285,7 @@
 <td style="text-align: right;">398%</td>
 <td style="text-align: right;">7.3평 (58㎡)</td>
 <td style="text-align: right;">9.50억 (19)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11230%7C%EC%9D%B4%EB%AC%B8%EB%8F%99%7C73">삼익</a></td>
@@ -1120,6 +1295,7 @@
 <td style="text-align: right;">412%</td>
 <td style="text-align: right;">7.6평 (85㎡)</td>
 <td style="text-align: right;">8.80억 (15)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11230%7C%EC%B2%AD%EB%9F%89%EB%A6%AC%EB%8F%99%7C60">한신</a></td>
@@ -1129,6 +1305,7 @@
 <td style="text-align: right;">≈323%</td>
 <td style="text-align: right;">11.5평 (85㎡)</td>
 <td style="text-align: right;">9.50억 (16)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1143,26 +1320,29 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%8B%A0%EB%8C%80%EB%B0%A9%EB%8F%99%7C707">현대</a></td>
 <td>신대방동</td>
-<td style="text-align: right;">2026.02</td>
+<td style="text-align: right;"><strong>2026.02 도래</strong></td>
 <td style="text-align: right;">880</td>
 <td style="text-align: right;">325%</td>
 <td style="text-align: right;">9.9평 (85㎡)</td>
 <td style="text-align: right;">12.30억 (20)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%8B%A0%EB%8C%80%EB%B0%A9%EB%8F%99%7C708">해태보라매타워</a></td>
 <td>신대방동</td>
-<td style="text-align: right;">2026.10</td>
+<td style="text-align: right;"><strong>2026.10 도래</strong></td>
 <td style="text-align: right;">387</td>
 <td style="text-align: right;">774% (주상복합)</td>
 <td style="text-align: right;">4.0평 (60㎡)</td>
 <td style="text-align: right;">6.85억 (7)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%82%AC%EB%8B%B9%EB%8F%99%7C1134">경남아너스빌1차</a></td>
@@ -1172,6 +1352,7 @@
 <td style="text-align: right;">287%</td>
 <td style="text-align: right;">7.9평 (60㎡)</td>
 <td style="text-align: right;">9.88억 (8)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%83%81%EB%8F%84%EB%8F%99%7C414">건영</a></td>
@@ -1181,6 +1362,7 @@
 <td style="text-align: right;">298%</td>
 <td style="text-align: right;">- (33㎡)</td>
 <td style="text-align: right;">7.40억 (18)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%EB%85%B8%EB%9F%89%EC%A7%84%EB%8F%99%7C324">건영(103동-106동)</a></td>
@@ -1190,6 +1372,7 @@
 <td style="text-align: right;">≈275%</td>
 <td style="text-align: right;">≈11.2평 (85㎡)</td>
 <td style="text-align: right;">14.80억 (18)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%ED%9D%91%EC%84%9D%EB%8F%99%7C327">청호</a></td>
@@ -1199,6 +1382,7 @@
 <td style="text-align: right;">132%</td>
 <td style="text-align: right;">18.3평 (60㎡)</td>
 <td style="text-align: right;">11.00억 (9)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%EB%85%B8%EB%9F%89%EC%A7%84%EB%8F%99%7C323">우성</a></td>
@@ -1208,6 +1392,7 @@
 <td style="text-align: right;">275%</td>
 <td style="text-align: right;">8.1평 (60㎡)</td>
 <td style="text-align: right;">14.00억 (17)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%82%AC%EB%8B%B9%EB%8F%99%7C1137">신동아5</a></td>
@@ -1217,6 +1402,7 @@
 <td style="text-align: right;">234%</td>
 <td style="text-align: right;">15.3평 (115㎡)</td>
 <td style="text-align: right;">14.90억 (3)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1231,17 +1417,19 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11440%7C%EB%8F%84%ED%99%94%EB%8F%99%7C357">도화동현대</a></td>
 <td>도화동</td>
-<td style="text-align: right;">2026.09</td>
+<td style="text-align: right;"><strong>2026.09 도래</strong></td>
 <td style="text-align: right;">1,021</td>
 <td style="text-align: right;">267%</td>
 <td style="text-align: right;">10.1평 (68㎡)</td>
 <td style="text-align: right;">16.10억 (12)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11440%7C%EC%8B%A0%EC%88%98%EB%8F%99%7C450">신촌삼익</a></td>
@@ -1251,6 +1439,7 @@
 <td style="text-align: right;">354%</td>
 <td style="text-align: right;">6.3평 (60㎡)</td>
 <td style="text-align: right;">13.88억 (6)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11440%7C%EB%8F%84%ED%99%94%EB%8F%99%7C550%2311440-15">삼성</a></td>
@@ -1260,6 +1449,7 @@
 <td style="text-align: right;">278%</td>
 <td style="text-align: right;">≈10.6평 (85㎡)</td>
 <td style="text-align: right;">20.07억 (10)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11440%7C%EC%97%BC%EB%A6%AC%EB%8F%99%7C515-1">상록</a></td>
@@ -1269,6 +1459,7 @@
 <td style="text-align: right;">217%</td>
 <td style="text-align: right;">11.2평 (59㎡)</td>
 <td style="text-align: right;">12.88억 (12)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11440%7C%ED%86%A0%EC%A0%95%EB%8F%99%7C138">한강삼성</a></td>
@@ -1278,6 +1469,7 @@
 <td style="text-align: right;">388%</td>
 <td style="text-align: right;">5.9평 (60㎡)</td>
 <td style="text-align: right;">17.65억 (6)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11440%7C%EC%B0%BD%EC%A0%84%EB%8F%99%7C437">창전래미안</a></td>
@@ -1287,6 +1479,7 @@
 <td style="text-align: right;">234%</td>
 <td style="text-align: right;">≈9.6평 (60㎡)</td>
 <td style="text-align: right;">14.45억 (7)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1301,17 +1494,19 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11410%7C%EB%B6%81%EA%B0%80%EC%A2%8C%EB%8F%99%7C449">북가좌삼호</a></td>
 <td>북가좌동</td>
-<td style="text-align: right;">2026.02</td>
+<td style="text-align: right;"><strong>2026.02 도래</strong></td>
 <td style="text-align: right;">616</td>
 <td style="text-align: right;">≈292%</td>
 <td style="text-align: right;">12.2평 (85㎡)</td>
 <td style="text-align: right;">8.88억 (14)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11410%7C%ED%99%8D%EC%9D%80%EB%8F%99%7C455">홍은동벽산</a></td>
@@ -1321,6 +1516,7 @@
 <td style="text-align: right;">253%</td>
 <td style="text-align: right;">11.9평 (85㎡)</td>
 <td style="text-align: right;">7.85억 (33)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11410%7C%ED%98%84%EC%A0%80%EB%8F%99%7C200">독립문극동</a></td>
@@ -1330,6 +1526,7 @@
 <td style="text-align: right;">316%</td>
 <td style="text-align: right;">7.0평 (60㎡)</td>
 <td style="text-align: right;">12.75억 (18)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1344,6 +1541,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -1355,6 +1553,7 @@
 <td style="text-align: right;">329%</td>
 <td style="text-align: right;">6.7평 (60㎡)</td>
 <td style="text-align: right;">28.00억 (5)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11650%7C%EC%84%9C%EC%B4%88%EB%8F%99%7C1326-17">우성아파트</a></td>
@@ -1364,6 +1563,7 @@
 <td style="text-align: right;">296%</td>
 <td style="text-align: right;">7.3평 (60㎡)</td>
 <td style="text-align: right;">22.80억 (7)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1378,26 +1578,29 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11200%7C%EC%9D%91%EB%B4%89%EB%8F%99%7C275">신동아</a></td>
 <td>응봉동</td>
-<td style="text-align: right;">2026.04</td>
+<td style="text-align: right;"><strong>2026.04 도래</strong></td>
 <td style="text-align: right;">434</td>
 <td style="text-align: right;">283%</td>
 <td style="text-align: right;">8.3평 (60㎡)</td>
 <td style="text-align: right;">13.00억 (13)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11200%7C%ED%95%98%EC%99%95%EC%8B%AD%EB%A6%AC%EB%8F%99%7C258">벽산</a></td>
 <td>하왕십리동</td>
-<td style="text-align: right;">2026.06</td>
+<td style="text-align: right;"><strong>2026.06 도래</strong></td>
 <td style="text-align: right;">822</td>
 <td style="text-align: right;">268%</td>
 <td style="text-align: right;">13.6평 (85㎡)</td>
 <td style="text-align: right;">15.00억 (13)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11200%7C%EB%A7%88%EC%9E%A5%EB%8F%99%7C817">왕십리삼성아파트</a></td>
@@ -1407,6 +1610,7 @@
 <td style="text-align: right;">241%</td>
 <td style="text-align: right;">13.3평 (85㎡)</td>
 <td style="text-align: right;">15.07억 (6)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11200%7C%EC%98%A5%EC%88%98%EB%8F%99%7C436%2311200-39">극동그린</a></td>
@@ -1416,6 +1620,7 @@
 <td style="text-align: right;">292%</td>
 <td style="text-align: right;">≈10.4평 (85㎡)</td>
 <td style="text-align: right;">15.95억 (8)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11200%7C%EC%84%B1%EC%88%98%EB%8F%991%EA%B0%80%7C706">쌍용</a></td>
@@ -1425,6 +1630,7 @@
 <td style="text-align: right;">≈296%</td>
 <td style="text-align: right;">≈10.2평 (85㎡)</td>
 <td style="text-align: right;">21.50억 (5)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11200%7C%EB%A7%88%EC%9E%A5%EB%8F%99%7C818">현대</a></td>
@@ -1434,6 +1640,7 @@
 <td style="text-align: right;">335%</td>
 <td style="text-align: right;">6.8평 (60㎡)</td>
 <td style="text-align: right;">12.70억 (19)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11200%7C%ED%96%89%EB%8B%B9%EB%8F%99%7C147">서울숲삼부아파트</a></td>
@@ -1443,6 +1650,7 @@
 <td style="text-align: right;">254%</td>
 <td style="text-align: right;">17.4평 (122㎡)</td>
 <td style="text-align: right;">23.40억 (5)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1457,6 +1665,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -1468,6 +1677,7 @@
 <td style="text-align: right;">350%</td>
 <td style="text-align: right;">≈6.7평 (60㎡)</td>
 <td style="text-align: right;">7.30억 (19)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11290%7C%EC%84%9D%EA%B4%80%EB%8F%99%7C10">두산</a></td>
@@ -1477,6 +1687,7 @@
 <td style="text-align: right;">278%</td>
 <td style="text-align: right;">7.8평 (60㎡)</td>
 <td style="text-align: right;">8.95억 (43)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11290%7C%EB%8F%99%EC%86%8C%EB%AC%B8%EB%8F%994%EA%B0%80%7C279">송산아파트</a></td>
@@ -1486,6 +1697,7 @@
 <td style="text-align: right;">252%</td>
 <td style="text-align: right;">8.9평 (59㎡)</td>
 <td style="text-align: right;">6.65억 (10)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11290%7C%ED%95%98%EC%9B%94%EA%B3%A1%EB%8F%99%7C219">동신</a></td>
@@ -1495,6 +1707,7 @@
 <td style="text-align: right;">395%</td>
 <td style="text-align: right;">5.7평 (60㎡)</td>
 <td style="text-align: right;">7.80억 (23)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11290%7C%EB%8F%88%EC%95%94%EB%8F%99%7C609-1%2311290-20">한신·한진</a></td>
@@ -1504,6 +1717,7 @@
 <td style="text-align: right;">276%</td>
 <td style="text-align: right;">≈10.8평 (60㎡)</td>
 <td style="text-align: right;">7.99억 (62)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11290%7C%EB%8F%88%EC%95%94%EB%8F%99%7C609-1%2311290-3639">한진임대아파트(301동)</a></td>
@@ -1513,6 +1727,7 @@
 <td style="text-align: right;">≈250%</td>
 <td style="text-align: right;">≈6.9평 (32㎡)</td>
 <td style="text-align: right;">-</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11290%7C%EB%8F%88%EC%95%94%EB%8F%99%7C631">범양</a></td>
@@ -1522,6 +1737,7 @@
 <td style="text-align: right;">285%</td>
 <td style="text-align: right;">7.8평 (60㎡)</td>
 <td style="text-align: right;">7.66억 (14)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1536,17 +1752,19 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%EB%AC%B8%EC%A0%95%EB%8F%99%7C72-3">건영1</a></td>
 <td>문정동</td>
-<td style="text-align: right;">2026.10</td>
+<td style="text-align: right;"><strong>2026.10 도래</strong></td>
 <td style="text-align: right;">545</td>
 <td style="text-align: right;">≈308%</td>
 <td style="text-align: right;">11.9평 (85㎡)</td>
 <td style="text-align: right;">17.45억 (19)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%EA%B1%B0%EC%97%AC%EB%8F%99%7C291%2311710-134">거여2단지효성아파트</a></td>
@@ -1556,6 +1774,7 @@
 <td style="text-align: right;">235%</td>
 <td style="text-align: right;">≈19.1평 (135㎡)</td>
 <td style="text-align: right;">15.25억 (7)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%EA%B0%80%EB%9D%BD%EB%8F%99%7C140">가락(1차)쌍용아파트</a></td>
@@ -1565,6 +1784,7 @@
 <td style="text-align: right;">343%</td>
 <td style="text-align: right;">6.8평 (60㎡)</td>
 <td style="text-align: right;">18.73억 (44)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%EA%B1%B0%EC%97%AC%EB%8F%99%7C293">거여4단지</a></td>
@@ -1574,6 +1794,7 @@
 <td style="text-align: right;">241%</td>
 <td style="text-align: right;">8.6평 (50㎡)</td>
 <td style="text-align: right;">10.80억 (13)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%EA%B1%B0%EC%97%AC%EB%8F%99%7C294">거여5단지</a></td>
@@ -1583,6 +1804,7 @@
 <td style="text-align: right;">344%</td>
 <td style="text-align: right;">6.9평 (60㎡)</td>
 <td style="text-align: right;">12.35억 (33)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%EA%B0%80%EB%9D%BD%EB%8F%99%7C95-1">가락금호아파트</a></td>
@@ -1592,6 +1814,7 @@
 <td style="text-align: right;">398%</td>
 <td style="text-align: right;">5.6평 (60㎡)</td>
 <td style="text-align: right;">18.15억 (19)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%EA%B1%B0%EC%97%AC%EB%8F%99%7C290">거여1단지</a></td>
@@ -1601,6 +1824,7 @@
 <td style="text-align: right;">276%</td>
 <td style="text-align: right;">5.8평 (40㎡)</td>
 <td style="text-align: right;">8.98억 (38)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11710%7C%ED%92%8D%EB%82%A9%EB%8F%99%7C509">씨티극동1</a></td>
@@ -1610,6 +1834,7 @@
 <td style="text-align: right;">283%</td>
 <td style="text-align: right;">8.0평 (60㎡)</td>
 <td style="text-align: right;">11.57억 (12)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1624,17 +1849,19 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11470%7C%EC%8B%A0%EC%A0%95%EB%8F%99%7C1278">목동삼성</a></td>
 <td>신정동</td>
-<td style="text-align: right;">2026.09</td>
+<td style="text-align: right;"><strong>2026.09 도래</strong></td>
 <td style="text-align: right;">420</td>
 <td style="text-align: right;">287%</td>
 <td style="text-align: right;">10.7평 (85㎡)</td>
 <td style="text-align: right;">15.82억 (6)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11470%7C%EC%8B%A0%EC%A0%95%EB%8F%99%7C1279">목동현대3차</a></td>
@@ -1644,6 +1871,7 @@
 <td style="text-align: right;">293%</td>
 <td style="text-align: right;">10.3평 (85㎡)</td>
 <td style="text-align: right;">17.62억 (8)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11470%7C%EB%AA%A9%EB%8F%99%7C929">목동청구한신아파트</a></td>
@@ -1653,6 +1881,7 @@
 <td style="text-align: right;">234%</td>
 <td style="text-align: right;">13.0평 (85㎡)</td>
 <td style="text-align: right;">20.75억 (37)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1667,17 +1896,19 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%96%91%ED%8F%89%EB%8F%995%EA%B0%80%7C76">양평한신</a></td>
 <td>양평동5가</td>
-<td style="text-align: right;">2026.04</td>
+<td style="text-align: right;"><strong>2026.04 도래</strong></td>
 <td style="text-align: right;">1,215</td>
 <td style="text-align: right;">283%</td>
 <td style="text-align: right;">8.4평 (60㎡)</td>
 <td style="text-align: right;">13.40억 (33)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EB%AC%B8%EB%9E%98%EB%8F%996%EA%B0%80%7C38-1">문래베어스타운</a></td>
@@ -1687,6 +1918,7 @@
 <td style="text-align: right;">332%</td>
 <td style="text-align: right;">9.6평 (85㎡)</td>
 <td style="text-align: right;">11.38억 (6)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%8B%A0%EA%B8%B8%EB%8F%99%7C897-1">삼환</a></td>
@@ -1696,6 +1928,7 @@
 <td style="text-align: right;">247%</td>
 <td style="text-align: right;">8.9평 (60㎡)</td>
 <td style="text-align: right;">12.45억 (26)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%8B%A0%EA%B8%B8%EB%8F%99%7C769-1">한성</a></td>
@@ -1705,6 +1938,7 @@
 <td style="text-align: right;">252%</td>
 <td style="text-align: right;">8.9평 (60㎡)</td>
 <td style="text-align: right;">11.95억 (7)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EB%8B%B9%EC%82%B0%EB%8F%991%EA%B0%80%7C16-1">진로</a></td>
@@ -1714,6 +1948,7 @@
 <td style="text-align: right;">354%</td>
 <td style="text-align: right;">6.3평 (59㎡)</td>
 <td style="text-align: right;">12.80억 (7)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EB%8B%B9%EC%82%B0%EB%8F%994%EA%B0%80%7C94-1">당산삼성2차</a></td>
@@ -1723,6 +1958,7 @@
 <td style="text-align: right;">393%</td>
 <td style="text-align: right;">8.7평 (85㎡)</td>
 <td style="text-align: right;">15.25억 (7)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EB%8C%80%EB%A6%BC%EB%8F%99%7C608-1">현대3차</a></td>
@@ -1732,6 +1968,7 @@
 <td style="text-align: right;">326%</td>
 <td style="text-align: right;">5.3평 (44㎡)</td>
 <td style="text-align: right;">7.49억 (25)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%96%91%ED%8F%89%EB%8F%992%EA%B0%80%7C38-1">삼성래미안</a></td>
@@ -1741,6 +1978,7 @@
 <td style="text-align: right;">361%</td>
 <td style="text-align: right;">6.1평 (59㎡)</td>
 <td style="text-align: right;">11.00억 (11)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EB%8C%80%EB%A6%BC%EB%8F%99%7C607-1">코오롱</a></td>
@@ -1750,6 +1988,7 @@
 <td style="text-align: right;">353%</td>
 <td style="text-align: right;">6.2평 (60㎡)</td>
 <td style="text-align: right;">10.49억 (18)</td>
+<td style="text-align: center;">1/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%98%81%EB%93%B1%ED%8F%AC%EB%8F%997%EA%B0%80%7C46-1">경남아너스빌</a></td>
@@ -1759,6 +1998,7 @@
 <td style="text-align: right;">360%</td>
 <td style="text-align: right;">6.1평 (60㎡)</td>
 <td style="text-align: right;">13.62억 (4)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1773,6 +2013,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -1784,6 +2025,7 @@
 <td style="text-align: right;">383%</td>
 <td style="text-align: right;">8.1평 (85㎡)</td>
 <td style="text-align: right;">24.90억 (4)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11170%7C%EC%9D%B4%EC%B4%8C%EB%8F%99%7C402">강촌</a></td>
@@ -1793,6 +2035,7 @@
 <td style="text-align: right;">339%</td>
 <td style="text-align: right;">≈6.9평 (59㎡)</td>
 <td style="text-align: right;">23.50억 (9)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11170%7C%EC%9D%B4%EC%B4%8C%EB%8F%99%7C404">한가람</a></td>
@@ -1802,6 +2045,7 @@
 <td style="text-align: right;">358%</td>
 <td style="text-align: right;">6.2평 (60㎡)</td>
 <td style="text-align: right;">24.25억 (24)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1816,6 +2060,7 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
@@ -1827,6 +2072,7 @@
 <td style="text-align: right;">243%</td>
 <td style="text-align: right;">12.3평 (84㎡)</td>
 <td style="text-align: right;">6.00억 (25)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11380%7C%EB%8C%80%EC%A1%B0%EB%8F%99%7C231">삼성타운</a></td>
@@ -1836,6 +2082,7 @@
 <td style="text-align: right;">340%</td>
 <td style="text-align: right;">7.5평 (59㎡)</td>
 <td style="text-align: right;">6.45억 (17)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11380%7C%EC%9D%91%EC%95%94%EB%8F%99%7C739">응암동금호</a></td>
@@ -1845,6 +2092,7 @@
 <td style="text-align: right;">334%</td>
 <td style="text-align: right;">9.8평 (85㎡)</td>
 <td style="text-align: right;">7.30억 (9)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11380%7C%EA%B5%AC%EC%82%B0%EB%8F%99%7C382">갈현현대</a></td>
@@ -1854,6 +2102,7 @@
 <td style="text-align: right;">307%</td>
 <td style="text-align: right;">10.4평 (85㎡)</td>
 <td style="text-align: right;">5.60억 (13)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
@@ -1868,80 +2117,89 @@
 <th style="text-align: right;">용적률</th>
 <th style="text-align: right;">대지지분 (대표 평형)</th>
 <th style="text-align: right;">최근 1년 (건수)</th>
+<th style="text-align: center;">지표 충족</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C661">신내11대명</a></td>
 <td>신내동</td>
-<td style="text-align: right;">2026.03</td>
+<td style="text-align: right;"><strong>2026.03 도래</strong></td>
 <td style="text-align: right;">804</td>
 <td style="text-align: right;">207%</td>
 <td style="text-align: right;">10.4평 (50㎡)</td>
 <td style="text-align: right;">5.00억 (25)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C650">신내6대주</a></td>
 <td>신내동</td>
-<td style="text-align: right;">2026.03</td>
+<td style="text-align: right;"><strong>2026.03 도래</strong></td>
 <td style="text-align: right;">1,609</td>
 <td style="text-align: right;">187%</td>
 <td style="text-align: right;">10.9평 (50㎡)</td>
 <td style="text-align: right;">5.65억 (39)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
-<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%83%81%EB%B4%89%EB%8F%99%7C484">엘지,쌍용아파트</a></td>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%83%81%EB%B4%89%EB%8F%99%7C484">엘지·쌍용</a></td>
 <td>상봉동</td>
-<td style="text-align: right;">2026.03</td>
+<td style="text-align: right;"><strong>2026.03 도래</strong></td>
 <td style="text-align: right;">858</td>
 <td style="text-align: right;">250%</td>
 <td style="text-align: right;">10.4평 (68㎡)</td>
 <td style="text-align: right;">6.50억 (47)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C479">중앙하이츠</a></td>
 <td>신내동</td>
-<td style="text-align: right;">2026.03</td>
+<td style="text-align: right;"><strong>2026.03 도래</strong></td>
 <td style="text-align: right;">704</td>
 <td style="text-align: right;">≈242%</td>
 <td style="text-align: right;">12.0평 (85㎡)</td>
 <td style="text-align: right;">6.79억 (28)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EB%AC%B5%EB%8F%99%7C13">신내</a></td>
 <td>묵동</td>
-<td style="text-align: right;">2026.06</td>
+<td style="text-align: right;"><strong>2026.06 도래</strong></td>
 <td style="text-align: right;">1,070</td>
 <td style="text-align: right;">191%</td>
 <td style="text-align: right;">8.2평 (40㎡)</td>
 <td style="text-align: right;">3.95억 (35)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C657">신내9진흥</a></td>
 <td>신내동</td>
-<td style="text-align: right;">2026.06</td>
+<td style="text-align: right;"><strong>2026.06 도래</strong></td>
 <td style="text-align: right;">335</td>
 <td style="text-align: right;">188%</td>
 <td style="text-align: right;">- (33㎡)</td>
 <td style="text-align: right;">3.15억 (39)</td>
+<td style="text-align: center;">-</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C785">건영2차</a></td>
 <td>신내동</td>
-<td style="text-align: right;">2026.11</td>
+<td style="text-align: right;"><strong>2026.11 도래</strong></td>
 <td style="text-align: right;">397</td>
 <td style="text-align: right;">≈242%</td>
 <td style="text-align: right;">≈8.7평 (57㎡)</td>
 <td style="text-align: right;">6.27억 (13)</td>
+<td style="text-align: center;">3/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%83%81%EB%B4%89%EB%8F%99%7C63">건영2차아파트</a></td>
 <td>상봉동</td>
-<td style="text-align: right;">2026.11</td>
+<td style="text-align: right;"><strong>2026.11 도래</strong></td>
 <td style="text-align: right;">1,113</td>
 <td style="text-align: right;">303%</td>
 <td style="text-align: right;">9.4평 (85㎡)</td>
 <td style="text-align: right;">8.00억 (21)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C618">동성3</a></td>
@@ -1951,6 +2209,7 @@
 <td style="text-align: right;">321%</td>
 <td style="text-align: right;">6.8평 (59㎡)</td>
 <td style="text-align: right;">5.35억 (18)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C591">동성아파트</a></td>
@@ -1960,6 +2219,7 @@
 <td style="text-align: right;">313%</td>
 <td style="text-align: right;">7.0평 (59㎡)</td>
 <td style="text-align: right;">5.40억 (7)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%83%81%EB%B4%89%EB%8F%99%7C1">건영1</a></td>
@@ -1969,6 +2229,7 @@
 <td style="text-align: right;">303%</td>
 <td style="text-align: right;">10.4평 (85㎡)</td>
 <td style="text-align: right;">7.20억 (19)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%A4%91%ED%99%94%EB%8F%99%7C450">한신아파트상가동유치원동(103~109)</a></td>
@@ -1978,6 +2239,7 @@
 <td style="text-align: right;">376%</td>
 <td style="text-align: right;">6.3평 (60㎡)</td>
 <td style="text-align: right;">8.35억 (44)</td>
+<td style="text-align: center;">0/3</td>
 </tr>
 <tr>
 <td><a href="https://geuttaeneolma.com/#k=11260%7C%EC%8B%A0%EB%82%B4%EB%8F%99%7C795">새한</a></td>
@@ -1987,10 +2249,11 @@
 <td style="text-align: right;">353%</td>
 <td style="text-align: right;">8.8평 (84㎡)</td>
 <td style="text-align: right;">6.10억 (11)</td>
+<td style="text-align: center;">2/3</td>
 </tr>
 </tbody>
 </table></div>
-<p>목록을 다 만들고 보니, 2026~2028년 서울 재건축 이야기의 무게중심은 강남보다 노원·중랑·도봉 쪽에 있었다. 단지 수도 많고, 용적률도 상대적으로 낮다. 반대로 한강변과 도심 가까운 1990년대 후반 단지들은 이미 300%를 훌쩍 넘겨 지어졌다. 이 단지들이 실제로 재건축으로 갈지, 리모델링으로 갈지, 그냥 오래 버틸지는 앞으로 몇 년 동안 지켜볼 만한 이야기다.</p>
+<p>목록을 다 만들고 보니, 2026~2028년 서울 재건축 이야기의 무게중심은 강남보다 노원·중랑·도봉 쪽에 있었다. 단지 수도 많고, 용적률도 상대적으로 낮고, 세 지표를 모두 충족한 단지도 대부분 그쪽이다. 반대로 한강변과 도심 가까운 1990년대 후반 단지들은 이미 300%를 훌쩍 넘겨 지어졌다. 이 단지들이 실제로 재건축으로 갈지, 리모델링으로 갈지, 그냥 오래 버틸지는 앞으로 몇 년 동안 지켜볼 만한 이야기다.</p>
 <p><em>공개된 실거래·건축물대장 자료를 정리한 글이며 투자 권유가 아니다. 재건축 가능 여부와 조건은 단지별 정비계획과 관할 구청에서 직접 확인하자.</em></p>]]></content:encoded></item>
     <item><title>2021년 고점을 아직 못 넘은 서울 단지는?</title><link>https://geuttaeneolma.com/blog/2026-11-below-2021/</link><guid>https://geuttaeneolma.com/blog/2026-11-below-2021/</guid><pubDate>Sun, 08 Nov 2026 00:00:00 +0900</pubDate><description>서울 1,287개 단지 1,967개 평형의 최근 1년 실거래 중앙값을 2021년과 비교했다. 35%가 아직 2021년 아래였고, 도봉·금천·노원은 열에 여덟 이상이었다. 그런데 여름 이후 흐름은 달랐다.</description><content:encoded><![CDATA[<p>"서울 집값이 2021년 고점을 넘었다"는 말을 요즘 자주 듣는다. 강남과 한강변만 보면 맞는 말이다. 그런데 서울 전체가 정말 그런지 궁금했다. 그래서 단지별, 평형별로 하나씩 2021년과 지금을 맞대 봤다.</p>
 <p>결론부터 쓰면, 비교할 수 있는 서울 평형 1,967개 중 <strong>688개(35%)가 아직 2021년 중앙값 아래</strong>였다. 단지로는 477곳이다. 그리고 그 688개는 서울에 골고루 흩어져 있지 않았다.</p>
