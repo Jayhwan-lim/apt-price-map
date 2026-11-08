@@ -33,8 +33,8 @@ CSS_VERSION = "5"
 
 # Coupang Partners banners on post pages, all on the map panel's partner
 # account: inner 300x600 rails (>=1520px), outer 160x600 rails (>=1880px),
-# and below 1520px one 400x100 banner inside the article after its first
-# table (phones, tablets, laptops). Banner ids per slot are below.
+# and below 1520px one 400x100 banner at the end of the article's intro
+# and under the list page's intro (phones, tablets, laptops). Banner ids per slot are below.
 COUPANG_TRACKING = "AF8973032"
 COUPANG_BANNER_ID = 1037758
 BANNER_INNER_LEFT = 1045614  # 블로그_안쪽1_가전디지털 (전용 발급, 2026-11-01)
@@ -69,9 +69,16 @@ def inline_ad():
 
 
 def with_inline_ad(body):
-    mark = "</table></div>"
-    if mark in body:
-        return body.replace(mark, mark + "\n" + inline_ad(), 1)
+    """Put the banner at the end of the intro, right before the first
+    section heading, so phone readers meet it within the first screen or
+    two. Posts whose first table sat deep in the text had the banner three
+    to four screens down, where most phone readers never saw it."""
+    for mark, before in (("<h2", True), ("</table></div>", False)):
+        i = body.find(mark)
+        if i > 0:
+            if not before:
+                i += len(mark)
+            return body[:i] + inline_ad() + "\n" + body[i:]
     return body + "\n" + inline_ad()
 
 
@@ -162,7 +169,10 @@ def main():
         f'      <li><a href="/blog/{p["slug"]}/"><h2>{e(p["title"])}</h2></a>'
         f'<p class="meta"><time datetime="{p["date"]}">{p["date"].replace("-", ".")}</time></p>'
         f'<p>{e(p["description"])}</p></li>' for p in posts)
+    # The list page gets the same phone/laptop banner under its intro;
+    # before this it only had the side rails, which hide below 1520px.
     index = (f'    <section class="list">\n      <h1>{BLOG_NAME}</h1>\n      <p class="lead">{e(BLOG_DESC)}</p>\n'
+             f'      {inline_ad()}\n'
              f'      <ul class="posts">\n{items}\n      </ul>\n    </section>')
     (OUT / "index.html").write_text(page(f"{BLOG_NAME} | 그땐 얼마?", BLOG_DESC, f"{SITE}/blog/", index + side_rails()))
 
