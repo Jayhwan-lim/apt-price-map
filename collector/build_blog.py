@@ -29,12 +29,13 @@ SITE = "https://geuttaeneolma.com"
 BLOG_NAME = "단지분석"
 BLOG_DESC = "그땐 얼마?의 서울·경기 아파트 실거래가 데이터로 단지를 들여다보는 글"
 KST = ZoneInfo("Asia/Seoul")
-CSS_VERSION = "5"
+CSS_VERSION = "6"
 
 # Coupang Partners banners on post pages, all on the map panel's partner
 # account: inner 300x600 rails (>=1520px), outer 160x600 rails (>=1880px),
-# and below 1520px one 400x100 banner at the end of the article's intro
-# and under the list page's intro (phones, tablets, laptops). Banner ids per slot are below.
+# and below 1520px in-content banners (phones, tablets, laptops): a 400x100
+# one at the end of the intro, 360x300 cards mid-article and at the end,
+# and the same pair above and below the list page's post list. Banner ids per slot are below.
 COUPANG_TRACKING = "AF8973032"
 COUPANG_BANNER_ID = 1037758
 BANNER_INNER_LEFT = 1045614  # 블로그_안쪽1_가전디지털 (전용 발급, 2026-11-01)
@@ -55,31 +56,47 @@ def side_ad(cls, width, banner_id):
             f'<p class="ad-note">{AD_NOTE}</p></aside>\n')
 
 
-def inline_ad():
-    """Banner inside the article for screens without side rails (the map
-    panel's 400x100 carousel). Placed after the first table, where far
-    more readers still are than at the end of a long post."""
+def inline_ad(banner_id=COUPANG_BANNER_ID, width=400, height=100, cls="inline-ad"):
+    """Banner inside the content for screens without side rails (below
+    1520px: phones, tablets, laptops). The default is the map panel's
+    400x100 carousel; the larger 360x300 card is used further down."""
     g = ('{"id":%d,"template":"carousel","trackingCode":"%s",'
-         '"width":"400","height":"100","tsource":""}'
-         % (COUPANG_BANNER_ID, COUPANG_TRACKING))
-    return ('<aside class="inline-ad" aria-label="광고"><div class="ad-slot-body">'
+         '"width":"%d","height":"%d","tsource":""}'
+         % (banner_id, COUPANG_TRACKING, width, height))
+    return (f'<aside class="{cls}" aria-label="광고"><div class="ad-slot-body">'
             '<script src="https://ads-partners.coupang.com/g.js"></script>'
             f'<script>new PartnersCoupang.G({g});</script></div>'
             f'<p class="ad-note">{AD_NOTE}</p></aside>')
 
 
+def big_ad(banner_id):
+    """360x300 product card: a large photo that phone readers notice."""
+    return inline_ad(banner_id, 360, 300, "inline-ad inline-ad-big")
+
+
 def with_inline_ad(body):
-    """Put the banner at the end of the intro, right before the first
-    section heading, so phone readers meet it within the first screen or
-    two. Posts whose first table sat deep in the text had the banner three
-    to four screens down, where most phone readers never saw it."""
-    for mark, before in (("<h2", True), ("</table></div>", False)):
-        i = body.find(mark)
-        if i > 0:
-            if not before:
-                i += len(mark)
-            return body[:i] + inline_ad() + "\n" + body[i:]
-    return body + "\n" + inline_ad()
+    """Three banners for screens without side rails:
+    1. 400x100 at the end of the intro, right before the first section
+       heading, so phone readers meet it within the first screen or two;
+    2. a 360x300 card before the middle section heading;
+    3. a 360x300 card at the end of the article.
+    Banner 2 is skipped when the post has fewer than three sections, so
+    short posts do not stack banners close together."""
+    heads = [m.start() for m in re.finditer(r"<h2", body)]
+    if not heads:
+        i = body.find("</table></div>")
+        i = i + len("</table></div>") if i >= 0 else len(body)
+        return body[:i] + inline_ad() + "\n" + body[i:] + "\n" + big_ad(BANNER_INNER_RIGHT)
+    cuts = [(heads[0], inline_ad())]
+    if len(heads) >= 3:
+        # The later heading nearest the middle of the text, not the middle
+        # heading by count: posts with several short early sections would
+        # otherwise get it a fifth of the way down.
+        mid = min(heads[1:], key=lambda h: abs(h - len(body) / 2))
+        cuts.append((mid, big_ad(BANNER_INNER_RIGHT)))
+    for i, ad in reversed(cuts):
+        body = body[:i] + ad + "\n" + body[i:]
+    return body + "\n" + big_ad(COUPANG_BANNER_ID)
 
 
 def read_post(path):
@@ -173,7 +190,7 @@ def main():
     # before this it only had the side rails, which hide below 1520px.
     index = (f'    <section class="list">\n      <h1>{BLOG_NAME}</h1>\n      <p class="lead">{e(BLOG_DESC)}</p>\n'
              f'      {inline_ad()}\n'
-             f'      <ul class="posts">\n{items}\n      </ul>\n    </section>')
+             f'      <ul class="posts">\n{items}\n      </ul>\n      {big_ad(COUPANG_BANNER_ID)}\n    </section>')
     (OUT / "index.html").write_text(page(f"{BLOG_NAME} | 그땐 얼마?", BLOG_DESC, f"{SITE}/blog/", index + side_rails()))
 
     rss_items = "\n".join(

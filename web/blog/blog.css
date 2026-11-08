@@ -58,8 +58,11 @@ em { color: var(--muted); }
   .side-ad.side-right-outer { left: calc(50% + 762px); }
 }
 
-/* Below 1520px (no side rails): one banner inside the article. */
+/* Below 1520px (no side rails): banners inside the content. The 360x300
+   cards get a little more room around them so they read as separate from
+   the text. */
 .inline-ad { margin: 8px auto 22px; max-width: 400px; text-align: center; }
+.inline-ad-big { max-width: 360px; margin: 26px auto 30px; }
 .inline-ad .ad-slot-body iframe { max-width: 100%; }
 .inline-ad .ad-note { margin: 6px 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
 @media (min-width: 1520px) { .inline-ad { display: none; } }
