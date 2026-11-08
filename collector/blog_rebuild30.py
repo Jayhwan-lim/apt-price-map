@@ -168,6 +168,10 @@ def main():
             "ppy_land": med / land_py if med and land_py else None,
             "sub": (m.get("sub") or [None])[0],
             "ppm": m.get("ppm") if (m.get("trades12") or [0])[0] >= 3 else None,
+            # every unit type with enough trades, for the land-share fallback
+            "alts": {b: [len(v), st.median(v), areas.get(b), ((m.get("land") or {}).get(b) or [None, None])[1],
+                         is_est(m.get("landEst"), b)]
+                     for b, v in prices.items() if len(v) >= MIN_N and b != band},
             "new_ref": new_ref.get(c["sgg"]),
         })
 
@@ -176,10 +180,19 @@ def main():
         # Land share that does not fit the FAR (unit area x ~1.3 for common
         # space over land share should land near the FAR) is a register
         # mismatch; show it as unknown.
-        if r["land_py"] and r["area"] and r["far"]:
-            implied = r["area"] * 1.3 / (r["land_py"] * 3.3058) * 100
-            if not 0.55 * r["far"] <= implied <= 1.8 * r["far"]:
-                r["land_py"] = r["ppy_land"] = None
+        def fits(area, land_py):
+            implied = area * 1.3 / (land_py * 3.3058) * 100
+            return 0.55 * r["far"] <= implied <= 1.8 * r["far"]
+        r["land_bad"] = False
+        if r["land_py"] and r["area"] and r["far"] and not fits(r["area"], r["land_py"]):
+            r["land_py"] = r["ppy_land"] = None
+            r["land_bad"] = True
+            # Fall back to the next most-traded unit type whose land share fits.
+            for b, (n, med, area, land_py, est) in sorted(r["alts"].items(), key=lambda kv: -kv[1][0]):
+                if area and land_py and fits(area, land_py):
+                    r.update(band=b, area=area, n12=n, med12=med, land_py=land_py, landEst=est,
+                             ppy_land=med / land_py, land_bad=False)
+                    break
         # FAR above 500% is a mixed-use tower, not a typical apartment
         # complex; keep it in the list but out of the FAR statistics.
         r["mixed"] = bool(r["far"] and r["far"] > MIXED_FAR)
@@ -243,7 +256,11 @@ def main():
         return f"{eok(r['med12'])} ({r['n12']})" if r["med12"] else "-"
 
     def ppl_s(r):
-        return ("≈" if r["landEst"] else "") + eok(r["ppy_land"]) if r["ppy_land"] else "-"
+        if r["ppy_land"]:
+            return ("≈" if r["landEst"] else "") + eok(r["ppy_land"])
+        if r["land_bad"]:
+            return "대장 값 불일치"
+        return "매매 거래 없음" if r["n12"] == 0 else "-"
 
     lowfar = sorted([r for r in rows if r["far"] and not r["mixed"] and r["units"] >= 500], key=lambda r: r["far"])[:15]
     print("\n| 단지 | 구·동 | 30년 | 세대수 | 용적률 | 대표 평형 | 대지지분 | 최근 1년 (건수) | 대지지분 1평당 |"
@@ -281,14 +298,14 @@ def main():
 
     print("\n## full list by gu")
     for gu, g in sorted(by_gu.items()):
-        print(f"\n### {gu} ({len(g)}곳)\n\n| 단지 | 동 | 30년 | 세대수 | 용적률 | 대지지분 (대표 평형) | 최근 1년 (건수) | 지표 충족 |"
-              "\n|---|---|---:|---:|---:|---:|---:|:---:|")
+        print(f"\n### {gu} ({len(g)}곳)\n\n| 단지 | 동 | 30년 | 세대수 | 용적률 | 대지지분 (대표 평형) | 최근 1년 (건수) "
+              f"| 대지지분 1평당 | 지표 충족 |\n|---|---|---:|---:|---:|---:|---:|---:|:---:|")
         for r in sorted(g, key=lambda r: (r["year"], r["month"] or 0, r["name"])):
             when = f"**{r['turns30']} 도래**" if r["due"] else r["turns30"]
             land = f"{land_s(r)} ({r['area']:.0f}㎡)" if r["area"] else "-"
             score = f"{sum(r['pass'])}/3" if r["ppy_land"] and r["ratio"] else "-"
             print(f"| {link(r)} | {r['umd']} | {when} | {r['units']:,} | {far_s(r)} | {land} | "
-                  f"{med_s(r) if r['area'] else '-'} | {score} |")
+                  f"{med_s(r) if r['area'] else '-'} | {ppl_s(r)} | {score} |")
 
     print("\nJSON " + json.dumps({"rows": rows}, ensure_ascii=False))
 
