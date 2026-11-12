@@ -18,8 +18,13 @@ dong, households and FAR under two names) are merged, keeping the one with
 the most trades.
 
 Also reported: the same gap by household tier, by completion decade, with
-the subway walk bucket held equal, the 2019 gap for the same pairs, and
-trade turnover (arm's-length trades in 12 months per 100 households).
+the subway walk bucket held equal, the 2019 gap for the same pairs, trade
+turnover (arm's-length trades in 12 months per 100 households), the gap on
+a supply-area basis (register exclusive + residential common area per unit
+type, estimates included), the jeonse gap for the same pairs (median
+jeonse deposit per pyeong of exclusive area over 50-100 m2 unit types with
+MIN_RENT+ contracts), and the small complexes priced above their big
+neighbours.
 Prints the markdown tables the post uses.
 """
 
@@ -31,12 +36,13 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://geuttaeneolma.com/"
-W12 = ("20251112", "20261112")
+W12 = ("20251113", "20261113")
 Y2019 = ("20190101", "20200101")
 PY = 3.3058
 AREA = (50, 100)  # exclusive m2 range used for per-area prices
 MIN_N = 5  # trades for a 12-month median
 MIN_N19 = 3  # trades for the 2019 median
+MIN_RENT = 3  # jeonse contracts per unit type
 SMALL = 300
 BIG = 1000
 AGE_TOL = 5
@@ -74,7 +80,8 @@ def load():
         if c["code"] not in trades:
             trades[c["code"]] = json.loads(
                 (ROOT / f"web/data/trades/{c['code']}.json").read_text())["complexes"]
-        now, y19, n_all = [], [], 0
+        now, y19, n_all, sup = [], [], 0, []
+        areas, supply = m.get("areas") or {}, m.get("supply") or {}
         for r in trades[c["code"]].get(str(c["id"]), []):
             if not clean(r) or not r[1]:
                 continue
@@ -85,8 +92,13 @@ def load():
             v = r[3] / r[1] * PY
             if W12[0] <= r[0] < W12[1]:
                 now.append(v)
+                b = min(areas, key=lambda k: abs(areas[k] - r[1])) if areas else None
+                if b and abs(areas[b] - r[1]) <= 2 and supply.get(b):
+                    sup.append(r[3] / supply[b] * PY)
             elif Y2019[0] <= r[0] < Y2019[1]:
                 y19.append(v)
+        rent = [dep / areas[b] * PY for b, (dep, n) in (m.get("rent") or {}).items()
+                if b in areas and AREA[0] <= areas[b] <= AREA[1] and n >= MIN_RENT and dep]
         occ = m.get("occ") or ""
         year = int(occ[:4]) if occ[:4].isdigit() else c.get("by")
         rows.append({
@@ -95,6 +107,8 @@ def load():
             "sub": (m.get("sub") or [None])[0], "n": len(now), "n_all": n_all,
             "ppy": st.median(now) if len(now) >= MIN_N else None,
             "ppy19": st.median(y19) if len(y19) >= MIN_N19 else None,
+            "ppy_sup": st.median(sup) if len(sup) >= MIN_N else None,
+            "jeonse": st.median(rent) if rent else None,
         })
     return dedupe(rows)
 
@@ -154,7 +168,7 @@ def main():
     print(f"window {W12[0]}~{W12[1]}, {AREA[0]}-{AREA[1]} m2, min {MIN_N} trades, age ±{AGE_TOL}y\n")
 
     print("## headline (small <300 vs big 1000+, same dong, age-matched)")
-    print("| 지역 | 비교한 소단지 | 동 | 중앙값 차이 | 대단지보다 싼 비율 | 가운데 절반 |")
+    print("| 지역 | 비교한 소단지 | 동 | 중앙값 차이 | 대단지보다 싼 비율 | 중간 50% 범위 |")
     print("|---|---:|---:|---:|---:|---:|")
     head = {}
     for sido in ("서울", "경기"):
@@ -222,6 +236,28 @@ def main():
         b, nb = turnover(rows, "경기", lo, hi)
         print(f"| {lab} | {a:.1f}건 ({na:,}곳) | {b:.1f}건 ({nb:,}곳) |")
 
+    print("\n## supply-area basis (same pairs, both sides with supply-based price)")
+    for sido in ("서울", "경기"):
+        g = [gap(s, bs, "ppy_sup") for s, bs in pairs(rows, sido)]
+        g = [x for x in g if x is not None]
+        print(sido, len(g), pct(st.median(g)))
+
+    print("\n## jeonse vs sale gap, same pairs (both sides with jeonse data)")
+    print("| 지역 | 쌍 | 매매 차이 | 전세 차이 | 소단지 전세가율 | 대단지 전세가율 |")
+    print("|---|---:|---:|---:|---:|---:|")
+    for sido in ("서울", "경기"):
+        gs, gj, rs, rb = [], [], [], []
+        for s, bs in pairs(rows, sido):
+            bj = [b for b in bs if b["jeonse"]]
+            if not s["jeonse"] or not bj:
+                continue
+            gs.append(gap(s, bj))
+            gj.append(gap(s, bj, "jeonse"))
+            rs.append(s["jeonse"] / s["ppy"])
+            rb.append(st.median(b["jeonse"] / b["ppy"] for b in bj))
+        print(f"| {sido} | {len(gs)} | {pct(st.median(gs))} | {pct(st.median(gj))} "
+              f"| {st.median(rs) * 100:.0f}% | {st.median(rb) * 100:.0f}% |")
+
     print("\n## Seoul dongs with the most compared small complexes")
     print("| 구·동 | 가장 큰 대단지 (세대, 준공) | 비교 대단지 평당 | 소단지 | 소단지 평당 | 차이 |")
     print("|---|---|---:|---:|---:|---:|")
@@ -243,6 +279,15 @@ def main():
     for g, s, bs in above[:15]:
         print(pct(g), link(s), s["nm"], s["sgg"], s["umd"], s["units"], s["year"], s["sub"], s["n"],
               "| big:", ", ".join(f"{b['nm']}({b['units']},{b['year']},{b['sub']})" for b in bs))
+    order = ["5분이내", "5~10분이내", "10~15분이내", "15~20분이내", "20분초과"]
+    closer = sum(1 for _, s, bs in above[:15] if s["sub"] in order and all(
+        b["sub"] in order and order.index(s["sub"]) < order.index(b["sub"]) for b in bs))
+    print(f"top 15: small closer to a station than every matched big complex: {closer}")
+    print("\n| 소단지 | 구·동 | 세대 | 준공 | 역까지 | 비교 대단지 (역까지) | 대단지 대비 |\n|---|---|---:|---:|---|---|---:|")
+    for g, s, bs in above[:8]:
+        big = max(bs, key=lambda b: b["units"])
+        print(f"| {link(s)} | {s['sgg']} {s['umd']} | {s['units']} | {s['year']} | {s['sub'] or '-'} | "
+              f"{link(big)} ({big['sub'] or '-'}) | {pct(g)} |")
     print(len(above), "of", len(pairs(rows, "서울")))
 
 
