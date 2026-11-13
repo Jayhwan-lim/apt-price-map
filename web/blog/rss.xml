@@ -5,6 +5,398 @@
     <link>https://geuttaeneolma.com/blog/</link>
     <description>그땐 얼마?의 서울·경기 아파트 실거래가 데이터로 단지를 들여다보는 글</description>
     <language>ko</language>
+    <item><title>1층은 얼마나 싸나, 35만 건을 층별로 맞대 봤다</title><link>https://geuttaeneolma.com/blog/2026-11-first-floor/</link><guid>https://geuttaeneolma.com/blog/2026-11-first-floor/</guid><pubDate>Fri, 13 Nov 2026 00:00:00 +0900</pubDate><description>같은 단지, 같은 평형, 비슷한 시기의 중간층 거래와 비교해 층별 가격 차이를 쟀다. 1층은 서울 7.2%, 경기 8.3% 쌌고, 차이는 5층 아래에서 계단처럼 줄어들었다. 집값이 달아오른 해에는 1층 할인도 줄었다.</description><content:encoded><![CDATA[<p>집을 보러 가면 "1층이라 좀 싸요"라는 말을 꼭 듣는다. 그런데 "좀"이 얼마인지는 사람마다 다르게 말한다. 5%라는 사람도 있고 15%라는 사람도 있다. 그래서 그땐 얼마? 실거래로 직접 쟀다.</p>
+<p>결론부터 쓰면, <strong>1층은 같은 단지 같은 평형의 중간층보다 서울 7.2%, 경기 8.3% 쌌다.</strong> 금액으로는 서울 6,300만 원, 경기 3,750만 원이다. 그리고 그 차이는 1층에서 끝나지 않았다. 2층, 3층, 4층으로 올라가며 계단처럼 줄어들다가 5층쯤에서 사라졌다.</p>
+<h2>어떻게 비교했나</h2>
+<ul>
+<li>대상은 서울·경기 아파트의 최근 2년(2024년 11월 13일~2026년 11월 12일 계약분) 실거래다. 직거래와 해제된 거래는 뺐다. 1층 거래는 생각보다 적어서 1년으로는 단지별 숫자가 잘 안 나와 2년을 썼다.</li>
+<li>거래 한 건마다 <strong>같은 단지, 같은 평형(전용 ±2㎡), 계약일 앞뒤 6개월 안의 5층 이상 거래</strong>를 모아 중앙값을 냈다. 이걸 그 거래의 "기준가"로 봤다. 기준가를 낼 거래가 3건 미만이면 뺐다. 단지의 최상층 거래는 기준가에서 뺐다. 탑층은 따로 값이 갈리기 때문이다.</li>
+<li>지금까지 거래된 층 중 가장 높은 층이 10층 미만인 저층 단지는 뺐다. 비교할 5층 이상 거래가 없어서다.</li>
+<li>이렇게 비교할 수 있었던 거래가 <strong>35만 3천 건</strong>(서울 10만 4천, 경기 24만 9천), 단지로는 7,525곳이었다.</li>
+</ul>
+<h2>층별로 보면</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>층</th>
+<th style="text-align: right;">서울 거래</th>
+<th style="text-align: right;">서울 차이</th>
+<th style="text-align: right;">경기 거래</th>
+<th style="text-align: right;">경기 차이</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1층</td>
+<td style="text-align: right;">5,060</td>
+<td style="text-align: right;">-7.2%</td>
+<td style="text-align: right;">10,213</td>
+<td style="text-align: right;">-8.3%</td>
+</tr>
+<tr>
+<td>2층</td>
+<td style="text-align: right;">5,833</td>
+<td style="text-align: right;">-3.9%</td>
+<td style="text-align: right;">12,380</td>
+<td style="text-align: right;">-5.0%</td>
+</tr>
+<tr>
+<td>3층</td>
+<td style="text-align: right;">6,176</td>
+<td style="text-align: right;">-2.3%</td>
+<td style="text-align: right;">13,098</td>
+<td style="text-align: right;">-3.1%</td>
+</tr>
+<tr>
+<td>4층</td>
+<td style="text-align: right;">6,216</td>
+<td style="text-align: right;">-1.4%</td>
+<td style="text-align: right;">13,324</td>
+<td style="text-align: right;">-2.1%</td>
+</tr>
+<tr>
+<td>5~9층</td>
+<td style="text-align: right;">30,893</td>
+<td style="text-align: right;">+0.0%</td>
+<td style="text-align: right;">67,169</td>
+<td style="text-align: right;">-0.4%</td>
+</tr>
+<tr>
+<td>10~14층</td>
+<td style="text-align: right;">26,965</td>
+<td style="text-align: right;">+0.4%</td>
+<td style="text-align: right;">62,407</td>
+<td style="text-align: right;">+0.2%</td>
+</tr>
+<tr>
+<td>15~19층</td>
+<td style="text-align: right;">12,226</td>
+<td style="text-align: right;">+0.8%</td>
+<td style="text-align: right;">38,148</td>
+<td style="text-align: right;">+0.4%</td>
+</tr>
+<tr>
+<td>20층 이상</td>
+<td style="text-align: right;">7,534</td>
+<td style="text-align: right;">+1.2%</td>
+<td style="text-align: right;">25,846</td>
+<td style="text-align: right;">+0.8%</td>
+</tr>
+<tr>
+<td>최상층</td>
+<td style="text-align: right;">3,513</td>
+<td style="text-align: right;">+0.0%</td>
+<td style="text-align: right;">6,370</td>
+<td style="text-align: right;">-0.3%</td>
+</tr>
+</tbody>
+</table></div>
+<p>1층은 서울에서 7.2%, 경기에서 8.3% 쌌다. 서울 1층 거래의 87%, 경기의 90%가 기준가보다 낮았다. 1층이 싸다는 건 예외 없는 규칙에 가까웠다.</p>
+<p>내가 더 흥미롭게 본 건 2~4층이었다. 2층도 서울 3.9%, 경기 5.0% 쌌다. 3층은 2~3%, 4층은 1~2%다. 5층을 넘으면 거의 기준가와 같고, 20층 이상이 1% 안팎 더 받는 정도였다. 층에 따른 값 차이는 대부분 "아래 4개 층"에서 생겼다.</p>
+<p>최상층도 따로 봤다. 서울 0.0%, 경기 -0.3%로 중간층과 거의 같았다. 탑층은 조망과 층간소음 걱정이 없다는 장점과, 여름 더위와 누수 걱정이라는 단점이 서로 상쇄되는 모양이다. 이건 짐작이고, 데이터로 확인한 건 숫자가 같다는 것까지다.</p>
+<h2>비싼 집일수록 1층 할인이 작았다</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th style="text-align: right;">서울 (1층 거래)</th>
+<th style="text-align: right;">경기 (1층 거래)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5억 미만</td>
+<td style="text-align: right;">-8.5% (371)</td>
+<td style="text-align: right;">-8.9% (4,944)</td>
+</tr>
+<tr>
+<td>5억~10억</td>
+<td style="text-align: right;">-7.4% (2,273)</td>
+<td style="text-align: right;">-7.8% (4,236)</td>
+</tr>
+<tr>
+<td>10억~20억</td>
+<td style="text-align: right;">-7.0% (1,940)</td>
+<td style="text-align: right;">-7.0% (975)</td>
+</tr>
+<tr>
+<td>20억 이상</td>
+<td style="text-align: right;">-4.6% (476)</td>
+<td style="text-align: right;">-5.9% (58)</td>
+</tr>
+</tbody>
+</table></div>
+<p>기준가 5억 미만 아파트의 1층은 서울 8.5%, 경기 8.9% 쌌다. 20억 이상인 서울 아파트는 4.6%였다. 비싼 단지일수록 1층도 덜 깎였다.</p>
+<p>비싼 동네에는 재건축을 바라보는 오래된 단지가 많다. 재건축 단지에서는 몇 층이냐보다 대지지분과 조합원 자격이 값을 정한다. 실제로 1990년 이전에 지은 단지의 1층 할인은 5.3%로 가장 작았다.</p>
+<h2>연식별로 보면</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th style="text-align: right;">서울 (1층 거래)</th>
+<th style="text-align: right;">경기 (1층 거래)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1990년 이전</td>
+<td style="text-align: right;">-5.3% (1,055)</td>
+<td style="text-align: right;">-5.3% (181)</td>
+</tr>
+<tr>
+<td>1990년대</td>
+<td style="text-align: right;">-8.3% (1,797)</td>
+<td style="text-align: right;">-9.2% (3,559)</td>
+</tr>
+<tr>
+<td>2000년대</td>
+<td style="text-align: right;">-7.7% (1,420)</td>
+<td style="text-align: right;">-8.4% (3,420)</td>
+</tr>
+<tr>
+<td>2010~2014년</td>
+<td style="text-align: right;">-6.1% (352)</td>
+<td style="text-align: right;">-7.8% (753)</td>
+</tr>
+<tr>
+<td>2015년 이후</td>
+<td style="text-align: right;">-6.3% (436)</td>
+<td style="text-align: right;">-7.2% (2,300)</td>
+</tr>
+</tbody>
+</table></div>
+<p>1990년대에 지은 단지가 1층 할인이 가장 컸다(서울 8.3%, 경기 9.2%). 2015년 이후 신축은 서울 6.3%, 경기 7.2%로 조금 작았다. 요즘 아파트는 1층을 필로티로 띄우거나 1층 세대에 정원을 붙이는 경우가 많아서 그런 것 같다. 다만 신축이라고 1층 할인이 사라지지는 않았다.</p>
+<p>건물 높이로 나눠 봐도 큰 차이는 없었다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th style="text-align: right;">서울 (1층 거래)</th>
+<th style="text-align: right;">경기 (1층 거래)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10~15층</td>
+<td style="text-align: right;">-6.7% (2,480)</td>
+<td style="text-align: right;">-8.6% (2,890)</td>
+</tr>
+<tr>
+<td>16~25층</td>
+<td style="text-align: right;">-7.5% (2,203)</td>
+<td style="text-align: right;">-8.4% (5,858)</td>
+</tr>
+<tr>
+<td>26층 이상</td>
+<td style="text-align: right;">-7.5% (377)</td>
+<td style="text-align: right;">-7.4% (1,465)</td>
+</tr>
+</tbody>
+</table></div>
+<p>평형별로는 작은 집일수록 1층 할인이 조금 컸다(경기 60㎡ 이하 9.3%, 85㎡ 초과 6.6%).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th style="text-align: right;">서울 (1층 거래)</th>
+<th style="text-align: right;">경기 (1층 거래)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>60㎡ 이하</td>
+<td style="text-align: right;">-7.4% (2,283)</td>
+<td style="text-align: right;">-9.3% (4,135)</td>
+</tr>
+<tr>
+<td>60~85㎡</td>
+<td style="text-align: right;">-7.0% (2,220)</td>
+<td style="text-align: right;">-7.8% (4,932)</td>
+</tr>
+<tr>
+<td>85㎡ 초과</td>
+<td style="text-align: right;">-7.0% (557)</td>
+<td style="text-align: right;">-6.6% (1,146)</td>
+</tr>
+</tbody>
+</table></div>
+<h2>집값이 달아오르면 1층 할인이 줄었다</h2>
+<p>같은 방식으로 해마다 1층 할인을 쟀다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>연도</th>
+<th style="text-align: right;">서울</th>
+<th style="text-align: right;">경기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2016</td>
+<td style="text-align: right;">-8.5% (4,746)</td>
+<td style="text-align: right;">-8.3% (8,466)</td>
+</tr>
+<tr>
+<td>2017</td>
+<td style="text-align: right;">-8.3% (4,488)</td>
+<td style="text-align: right;">-8.0% (6,915)</td>
+</tr>
+<tr>
+<td>2018</td>
+<td style="text-align: right;">-6.5% (3,506)</td>
+<td style="text-align: right;">-7.8% (6,195)</td>
+</tr>
+<tr>
+<td>2019</td>
+<td style="text-align: right;">-8.8% (2,657)</td>
+<td style="text-align: right;">-9.4% (5,456)</td>
+</tr>
+<tr>
+<td>2020</td>
+<td style="text-align: right;">-6.8% (3,296)</td>
+<td style="text-align: right;">-8.6% (11,262)</td>
+</tr>
+<tr>
+<td>2021</td>
+<td style="text-align: right;">-4.5% (1,294)</td>
+<td style="text-align: right;">-5.3% (7,048)</td>
+</tr>
+<tr>
+<td>2022</td>
+<td style="text-align: right;">-6.5% (93)</td>
+<td style="text-align: right;">-7.3% (1,373)</td>
+</tr>
+<tr>
+<td>2023</td>
+<td style="text-align: right;">-7.6% (814)</td>
+<td style="text-align: right;">-8.2% (3,243)</td>
+</tr>
+<tr>
+<td>2024</td>
+<td style="text-align: right;">-7.5% (1,719)</td>
+<td style="text-align: right;">-8.3% (4,187)</td>
+</tr>
+<tr>
+<td>2025</td>
+<td style="text-align: right;">-7.8% (2,811)</td>
+<td style="text-align: right;">-8.7% (4,652)</td>
+</tr>
+<tr>
+<td>2026</td>
+<td style="text-align: right;">-6.2% (2,110)</td>
+<td style="text-align: right;">-7.8% (5,176)</td>
+</tr>
+</tbody>
+</table></div>
+<p>대부분의 해에 서울 1층 할인은 6.5~8.8% 사이에 있었다. 눈에 띄는 해는 2021년이다. 서울 4.5%, 경기 5.3%로 할인이 확 줄었다. 집값이 가장 뜨거웠던 해다. 매물이 귀해지자 1층도 덜 깎고 사야 했던 것으로 읽었다. 2022년 서울은 1층 거래가 93건뿐이라 숫자를 믿기 어렵다.</p>
+<p>올해 서울은 6.2%로 작년(7.8%)보다 할인이 줄었다. 2021년만큼은 아니지만, 서울 매수세가 다시 붙은 흐름과 방향이 같다.</p>
+<h2>1층 할인이 가장 컸던 단지</h2>
+<p>1층 거래가 5건 이상인 1,065개 단지 중 1층 할인이 가장 컸던 10곳이다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단지</th>
+<th>구·동</th>
+<th style="text-align: right;">준공</th>
+<th style="text-align: right;">최고층</th>
+<th style="text-align: right;">1층 거래</th>
+<th style="text-align: right;">1층 차이</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41117%7C%EC%98%81%ED%86%B5%EB%8F%99%7C970-3">벽적골9단지주공</a></td>
+<td>수원시 영통동</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">-23.5%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41117%7C%EC%98%81%ED%86%B5%EB%8F%99%7C963-2%2341117-50">신나무실신안</a></td>
+<td>수원시 영통동</td>
+<td style="text-align: right;">1997</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">-20.5%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41111%7C%EC%A0%95%EC%9E%90%EB%8F%99%7C887-1">화서역 우방 센트럴파크</a></td>
+<td>수원시 정자동</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-20.3%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41390%7C%EC%A0%95%EC%99%95%EB%8F%99%7C1873-2">영남2</a></td>
+<td>시흥시 정왕동</td>
+<td style="text-align: right;">1996</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-20.0%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41117%7C%EC%98%81%ED%86%B5%EB%8F%99%7C955-1">황골마을주공1</a></td>
+<td>수원시 영통동</td>
+<td style="text-align: right;">1997</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">-19.5%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41117%7C%EC%98%81%ED%86%B5%EB%8F%99%7C948-4">영통센트럴파크뷰</a></td>
+<td>수원시 영통동</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">-19.4%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41111%7C%EC%B2%9C%EC%B2%9C%EB%8F%99%7C565">삼호진덕</a></td>
+<td>수원시 천천동</td>
+<td style="text-align: right;">1998</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-19.0%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41390%7C%EC%A0%95%EC%99%95%EB%8F%99%7C1942-1">계룡2</a></td>
+<td>시흥시 정왕동</td>
+<td style="text-align: right;">1998</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">-18.7%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41111%7C%EC%A0%95%EC%9E%90%EB%8F%99%7C886-1">화서역현대벽산</a></td>
+<td>수원시 정자동</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">-18.5%</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=41111%7C%EC%A0%95%EC%9E%90%EB%8F%99%7C919">청솔마을한라</a></td>
+<td>수원시 정자동</td>
+<td style="text-align: right;">2001</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-18.5%</td>
+</tr>
+</tbody>
+</table></div>
+<p>10곳이 모두 경기였고, 그중 8곳이 수원 영통·정자·천천동 단지였다. 수원 8곳은 모두 1997~2001년에 15~24층으로 높게 지은 단지라는 공통점이 있다. 이런 단지에서는 1층에 볕이 덜 들고, 지나가는 사람과 눈높이가 맞는다는 단점이 더 크게 느껴지는 것 같다.</p>
+<p>반대로 1층이 오히려 비싸게 팔린 단지도 있었다. 다만 그런 곳은 1층 거래가 5~8건뿐이라, 정원이 딸린 특별한 세대가 몇 건 섞이면 숫자가 쉽게 뒤집힌다. 그래서 목록은 싣지 않았다.</p>
+<h2>감안할 것</h2>
+<ol>
+<li><strong>기준가는 이 글의 계산이다.</strong> 같은 단지·평형의 5층 이상 거래 중앙값이라, 동 위치(앞동·뒷동), 향, 조망, 수리 상태 차이는 반영되지 않았다.</li>
+<li><strong>1층에도 종류가 있다.</strong> 필로티 위의 1층(실제로는 2층 높이), 정원이 딸린 1층, 상가 위 1층이 실거래 자료에서는 모두 "1층"이다.</li>
+<li><strong>저층 단지는 빠졌다.</strong> 최고층이 10층 미만인 단지는 비교 기준이 없어 넣지 않았다. 5층짜리 재건축 단지의 1층은 이 숫자와 다를 수 있다.</li>
+<li><strong>할인이 곧 손해라는 뜻은 아니다.</strong> 1층은 싸게 사서 싸게 판다. 같은 비율로 오르고 내린다면 투자 수익률은 비슷할 수 있다. 아이가 있거나 엘리베이터를 덜 기다리고 싶다면, 7%로 살 수 있는 편의이기도 하다.</li>
+</ol>
+<p>정리하면 1층은 7~8% 싸고, 2층은 4~5%, 3층은 2~3%, 4층은 1~2% 싸다. 5층부터는 몇 층이든 값이 거의 같다. "몇 층이에요?"라는 질문은 생각보다 아래쪽에서만 값이 달라졌다.</p>
+<p><em>공개된 실거래 자료를 정리한 글이며 투자 권유가 아니다.</em></p>]]></content:encoded></item>
     <item><title>같은 동네 대단지 vs 나홀로 아파트, 서울은 27% 쌌다</title><link>https://geuttaeneolma.com/blog/2026-11-big-vs-small/</link><guid>https://geuttaeneolma.com/blog/2026-11-big-vs-small/</guid><pubDate>Thu, 12 Nov 2026 00:00:00 +0900</pubDate><description>같은 동, 비슷한 연식의 300세대 미만 소단지와 1,000세대 이상 대단지 실거래가를 맞대 봤다. 서울 소단지는 27% 쌌고 그 차이는 2019년보다 벌어졌다. 전세로 보면 차이는 절반이었다.</description><content:encoded><![CDATA[<p>집을 보러 다니면 꼭 듣는 말이 있다. "같은 동네면 무조건 대단지로 가라." 나홀로 아파트는 싸게 사서 싸게 팔게 된다는 얘기다. 맞는 말 같기는 한데, 실제로 얼마나 차이가 나는지는 숫자로 본 적이 없었다.</p>
 <p>그래서 그땐 얼마? 실거래로 직접 맞대 봤다. 같은 법정동 안에서, 준공 연도가 5년 이내로 비슷한 단지끼리만 비교했다. <strong>서울에서 300세대 미만 소단지는 1,000세대 이상 대단지보다 전용 3.3㎡당 27.2% 쌌다.</strong> 비교한 309곳 중 92%가 옆 대단지보다 쌌다. 경기도는 차이가 18.2%로 조금 작았다.</p>
 <p>84㎡ 대단지가 10억이라면, 같은 동네 비슷한 연식의 소단지 84㎡는 7억 3천만 원 안팎이라는 뜻이다.</p>
