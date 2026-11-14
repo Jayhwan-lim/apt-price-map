@@ -565,3 +565,32 @@ html.phone-ui .map-metric-control.open .mm-toggle::after { content: "▴"; }
 /* Link to the 단지분석 blog next to the site name */
 .brand h1 .blog-link { display: inline-block; white-space: nowrap; margin-left: 8px; padding: 2px 9px; border: 1px solid #ccd6df; border-radius: 12px; font-size: 12px; font-weight: 600; color: #2a78d6; text-decoration: none; vertical-align: middle; }
 .brand h1 .blog-link:hover { border-color: #2a78d6; }
+/* 2026-11: quiet map cards with clear numeric hierarchy; same collision footprint. */
+.pin, .pin.bg {
+  width:130px; border:1px solid #b7c5d3; border-radius:10px;
+  background:#fff; box-shadow:0 3px 10px #17324d22,0 1px 2px #17324d15;
+  transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease;
+}
+.pin .n, .pin.bg .n {
+  padding:5px 9px 1px; font-size:11px; line-height:16px;
+  font-weight:500; letter-spacing:-.2px; color:#52677d;
+  border-radius:9px 9px 0 0;
+}
+.pin .v, .pin.bg .v {
+  padding:1px 7px 5px; line-height:18px; font-size:12px; font-weight:700;
+  color:#183e65; background:transparent; border-radius:0 0 9px 9px;
+  letter-spacing:-.25px; font-variant-numeric:tabular-nums;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.pin::after { bottom:-6px; border-width:6px; border-bottom:0; }
+.pin.ref { background:#173f66; border-color:#173f66; box-shadow:0 4px 14px #173f664d,0 0 0 2px #fff; }
+.pin.ref .n { color:#d0e4f5; }
+.pin.ref .v { background:transparent; color:#fff; }
+.pin.cmp { border:2px solid var(--c); box-shadow:0 3px 10px #17324d22; }
+.pin.cmp .v { color:var(--c); }
+.pin.sim { border:1px dashed #6e8ca7; background:#f7fafc; }
+.pin:hover { transform:translateY(-2px); box-shadow:0 5px 15px #17324d38; }
+.pin:focus-visible, .mini-pin:focus-visible { outline:3px solid #f3aa49; outline-offset:3px; }
+.pin .rk { border:2px solid white; box-shadow:0 2px 5px #17324d33; font-variant-numeric:tabular-nums; }
+.mini-pin { padding:2px 6px; border-color:#b4c3d1; background:#fffffff5; color:#52677d; box-shadow:0 2px 5px #17324d18; }
+@media (prefers-reduced-motion: reduce) { .pin { transition:none; } .pin:hover { transform:none; } }
