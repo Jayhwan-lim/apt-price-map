@@ -311,7 +311,10 @@ button, input, select { font: inherit; color: inherit; }
 .trades tr.cancelled td { color: var(--muted); text-decoration: line-through; }
 
 /* Map labels (Kakao CustomOverlay content) */
-.pin-wrap { padding-bottom: 6px; touch-action: manipulation; }
+/* The wrapper's padding (room for the arrow) must not catch clicks meant for
+   a neighbouring card; only the card itself is interactive. */
+.pin-wrap { padding-bottom: 6px; touch-action: manipulation; pointer-events: none; }
+.pin-wrap > .pin { pointer-events: auto; }
 .pin {
   touch-action: manipulation;
   display: grid; gap: 0; padding: 3px 8px 4px; cursor: pointer;
