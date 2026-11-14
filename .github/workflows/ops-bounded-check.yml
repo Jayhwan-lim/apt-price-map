@@ -1,0 +1,46 @@
+name: Operations bounded audit
+on:
+  push:
+    branches: [verify/ops-pins-20261114]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Exercise supply queue with one API call and no repository writes
+        env:
+          DATA_GO_KR_HUB_KEY: ${{ secrets.DATA_GO_KR_HUB_KEY }}
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          PHASES: supply
+          MAX_CALLS: '1'
+          MAX_MINUTES: '1'
+          SUPPLY_PAGES: '12'
+          WORKERS: '1'
+        run: python collector/building_facts.py
+      - name: Public site and data health
+        run: |
+          python - <<'PY'
+          import urllib.request,json
+          base='https://geuttaeneolma.com/'
+          def get(path):
+              r=urllib.request.urlopen(urllib.request.Request(base+path,headers={'User-Agent':'Mozilla/5.0'}),timeout=40)
+              assert r.status==200
+              return r.read().decode()
+          html=get('')
+          assert 'map-metric-select' in html
+          data=json.loads(get('data/complexes.json'))
+          facts=json.loads(get('data/map-metrics.json'))
+          assert len(data['complexes'])>10000
+          assert len(facts['complexes'])>10000
+          print('LIVE HEALTH',json.dumps({'generated':data.get('generated'),'complexes':len(data['complexes']),'factsGenerated':facts.get('generated'),'factComplexes':len(facts['complexes'])},ensure_ascii=False))
+          for p in ['app.js','map-metrics.js','style.css','sw.js','manifest.webmanifest']:
+              assert len(get(p))>10
+          print('Public HTML, data, scripts, stylesheet, service worker and manifest: PASS')
+          PY
