@@ -20,20 +20,25 @@ jobs:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           PHASES: supply
           MAX_CALLS: '1'
-          MAX_MINUTES: '1'
+          MAX_MINUTES: '3'
           SUPPLY_PAGES: '12'
           WORKERS: '1'
         run: python collector/building_facts.py
       - name: Public site and data health
         run: |
           python - <<'PY'
-          import urllib.request,json
+          import urllib.request,json,time
           base='https://geuttaeneolma.com/'
           def get(path):
               r=urllib.request.urlopen(urllib.request.Request(base+path,headers={'User-Agent':'Mozilla/5.0'}),timeout=40)
               assert r.status==200
               return r.read().decode()
-          html=get('')
+          for attempt in range(18):
+              html=get('?release=20261114b')
+              if '20261114b' in html: break
+              time.sleep(10)
+          assert '20261114b' in html
+          assert 'quiet map cards' in get('style.css?v=20261114b')
           assert 'map-metric-select' in html
           data=json.loads(get('data/complexes.json'))
           facts=json.loads(get('data/map-metrics.json'))
