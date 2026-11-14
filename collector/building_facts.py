@@ -428,6 +428,17 @@ def complex_types():
     return out
 
 
+def supply_due(rec, ranges, max_pages):
+    """Missing shard entries are new work, not malformed response objects."""
+    rec = rec or {}
+    unreadable = rec.get("pg", 0) >= 6 and not rec.get("a")
+    return bool(ranges) and (
+        stale(rec, REFRESH_DAYS["supply"]) or
+        (not covered(rec.get("a", {}), ranges, 1)
+         and rec.get("pg", 0) < max_pages and not rec.get("done") and not unreadable)
+    )
+
+
 def main():
     key = (os.environ.get("DATA_GO_KR_HUB_KEY") or os.environ.get("DATA_GO_KR_KEY") or "").strip()
     if not key:
@@ -519,11 +530,7 @@ def main():
                 continue
             ranges = [r for k in keys for r in types.get(k, [])]
             rec = supply.get(code, lid)
-            # Six pages without one readable unit means the register cannot be
-            # read by this rule; such lots wait for the yearly refresh.
-            unreadable = rec.get("pg", 0) >= 6 and not rec.get("a")
-            if ranges and (stale(rec, REFRESH_DAYS["supply"]) or not covered(rec.get("a", {}), ranges, 1)
-                           and rec.get("pg", 0) < max_pages and not rec.get("done") and not unreadable):
+            if supply_due(rec, ranges, max_pages):
                 jobs.append((activity, lid, (session, key, budget, lid, ranges, max_pages)))
         jobs = [(lid, args) for _a, lid, args in sorted(jobs, key=lambda j: -j[0])]
         status["phases"]["supply"] = run_parallel(
