@@ -5,6 +5,578 @@
     <link>https://geuttaeneolma.com/blog/</link>
     <description>그땐 얼마?의 서울·경기 아파트 실거래가 데이터로 단지를 들여다보는 글</description>
     <language>ko</language>
+    <item><title>2016년에 5억이던 서울 아파트 304곳, 지금은 14억</title><link>https://geuttaeneolma.com/blog/2026-11-2016-5eok/</link><guid>https://geuttaeneolma.com/blog/2026-11-2016-5eok/</guid><pubDate>Thu, 19 Nov 2026 00:00:00 +0900</pubDate><description>2016년 실거래 중앙값이 5억대였던 서울 아파트 304곳을 지금 값과 맞대 봤다. 중앙값은 14.07억, 2.53배였다. 같은 5억에서 출발해 8억대에 머문 곳과 20억을 넘긴 곳이 갈린 이유를 구·연식별로 나눠 봤다.</description><content:encoded><![CDATA[<p>"그때 5억이었는데"라는 말을 자주 듣는다. 2016년 서울에서 5억은 대출을 조금 끼면 84㎡를 노려 볼 수 있는 돈이었다. 그 5억짜리 집들이 10년 뒤 어디에 가 있는지 궁금했다. 기억이나 호가 말고 실거래로 확인하고 싶었다.</p>
+<p>그래서 2016년에 실거래 중앙값이 5억대였던 서울 아파트를 전부 모아, 같은 평형의 최근 1년 중앙값과 맞대 봤다.</p>
+<p>결론부터 쓰면, <strong>304곳이었고 지금 중앙값은 14.07억, 2016년의 2.53배</strong>였다. 304곳 모두 8억을 넘겼고, <strong>90%는 10억을 넘겼다.</strong> 그런데 출발이 같았던 집들의 도착점은 <strong>8.45억부터 28.50억까지</strong> 벌어져 있었다.</p>
+<h2>어떻게 셌나</h2>
+<ul>
+<li>대상은 그땐 얼마? 지도에 있는 서울 아파트다. 단지마다 2016년(1~12월)에 거래가 3건 이상이고 최근 1년(2025년 11월 18일~2026년 11월 17일 신고분)에도 3건 이상인 평형을 골랐다. 그런 평형이 여럿이면 2016년 거래가 가장 많은 평형 하나를 그 단지의 대표로 삼았다.</li>
+<li>가격은 직거래와 해제 건을 뺀 실거래 중앙값이다. 같은 단지, 같은 평형끼리만 비교했다.</li>
+<li>전용 30㎡ 미만 초소형과 토지임대부 아파트는 뺐다. 같은 단지가 이름만 달리 두 번 잡힌 경우(같은 동·세대수·용적률)는 하나로 합쳤다.</li>
+<li>이렇게 남은 서울 단지는 <strong>2,296곳</strong>, 2016년 거래 49,518건과 최근 1년 거래 25,732건이다. 이 중 2016년 중앙값이 5.00억~5.99억인 곳이 304곳이다.</li>
+</ul>
+<h2>비쌌던 집이 더 올랐다</h2>
+<p>먼저 2016년 가격대별로 나눠 봤다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>2016년 가격</th>
+<th style="text-align: right;">단지</th>
+<th style="text-align: right;">2016 중앙값</th>
+<th style="text-align: right;">지금 중앙값</th>
+<th style="text-align: right;">배수 (중간 50%)</th>
+<th style="text-align: right;">지금 10억+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2억대</td>
+<td style="text-align: right;">352</td>
+<td style="text-align: right;">2.62억</td>
+<td style="text-align: right;">5.20억</td>
+<td style="text-align: right;">1.99배 (1.80~2.20)</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>3억대</td>
+<td style="text-align: right;">610</td>
+<td style="text-align: right;">3.55억</td>
+<td style="text-align: right;">7.36억</td>
+<td style="text-align: right;">2.08배 (1.90~2.43)</td>
+<td style="text-align: right;">13%</td>
+</tr>
+<tr>
+<td>4억대</td>
+<td style="text-align: right;">537</td>
+<td style="text-align: right;">4.45억</td>
+<td style="text-align: right;">10.00억</td>
+<td style="text-align: right;">2.22배 (1.98~2.78)</td>
+<td style="text-align: right;">50%</td>
+</tr>
+<tr>
+<td><strong>5억대</strong></td>
+<td style="text-align: right;"><strong>304</strong></td>
+<td style="text-align: right;"><strong>5.45억</strong></td>
+<td style="text-align: right;"><strong>14.07억</strong></td>
+<td style="text-align: right;"><strong>2.53배 (2.21~2.93)</strong></td>
+<td style="text-align: right;"><strong>90%</strong></td>
+</tr>
+<tr>
+<td>6억대</td>
+<td style="text-align: right;">157</td>
+<td style="text-align: right;">6.40억</td>
+<td style="text-align: right;">18.00억</td>
+<td style="text-align: right;">2.80배 (2.43~3.21)</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td>7억대</td>
+<td style="text-align: right;">83</td>
+<td style="text-align: right;">7.47억</td>
+<td style="text-align: right;">22.20억</td>
+<td style="text-align: right;">2.94배 (2.52~3.29)</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td>8억대</td>
+<td style="text-align: right;">61</td>
+<td style="text-align: right;">8.40억</td>
+<td style="text-align: right;">24.50억</td>
+<td style="text-align: right;">2.89배 (2.56~3.21)</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td>9억대</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">9.60억</td>
+<td style="text-align: right;">27.40억</td>
+<td style="text-align: right;">2.88배 (2.51~3.27)</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td>10~15억</td>
+<td style="text-align: right;">62</td>
+<td style="text-align: right;">12.07억</td>
+<td style="text-align: right;">32.85억</td>
+<td style="text-align: right;">2.78배 (2.47~3.05)</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td>15억 이상</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">17.00억</td>
+<td style="text-align: right;">51.10억</td>
+<td style="text-align: right;">2.74배 (2.39~3.37)</td>
+<td style="text-align: right;">100%</td>
+</tr>
+</tbody>
+</table></div>
+<p>서울 2,296곳 전체로는 중앙값 2.25배였다. 그런데 표를 내려가면서 배수가 계단처럼 올라갔다. 2억대는 1.99배, 5억대는 2.53배, 7억대는 2.94배다. 7억 위로는 2.8~2.9배에서 멈췄다.</p>
+<p>금액 차이로 보면 더 크게 느껴졌다. 2016년 3억대와 5억대 중앙값 차이는 1.9억이었다. 지금은 <strong>6.7억</strong>이다. 2016년에 2억을 더 보태 5억대를 산 사람과 3억대를 산 사람의 거리가 10년 만에 세 배 넘게 벌어졌다.</p>
+<p>5억대가 마침 그 경계에 걸려 있었다. 아래 가격대처럼 2배 언저리에 머문 곳도 있고, 위 가격대처럼 3배를 넘긴 곳도 있다. 그래서 5억대 안을 더 쪼개 봤다.</p>
+<h2>5억에서 출발해 어디에 도착했나</h2>
+<p>304곳의 지금 가격 분포는 이렇다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>지금 가격</th>
+<th style="text-align: right;">단지</th>
+<th style="text-align: right;">비중</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8~10억</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">10%</td>
+</tr>
+<tr>
+<td>10~12억</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">16%</td>
+</tr>
+<tr>
+<td>12~15억</td>
+<td style="text-align: right;">114</td>
+<td style="text-align: right;">38%</td>
+</tr>
+<tr>
+<td>15~20억</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">33%</td>
+</tr>
+<tr>
+<td>20억 이상</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">4%</td>
+</tr>
+</tbody>
+</table></div>
+<p>12~15억이 가장 많고, 15억 넘은 곳도 셋 중 하나였다. 반대로 열 곳 중 한 곳은 아직 10억 아래였다.</p>
+<h2>구별로 보면: 성동 3.36배, 은평 1.78배</h2>
+<p>5억대 단지가 5곳 이상인 구만 추렸다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구</th>
+<th style="text-align: right;">단지</th>
+<th style="text-align: right;">2016 중앙값</th>
+<th style="text-align: right;">지금 중앙값</th>
+<th style="text-align: right;">배수</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>성동구</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">5.40억</td>
+<td style="text-align: right;">18.50억</td>
+<td style="text-align: right;">3.36배</td>
+</tr>
+<tr>
+<td>광진구</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">5.43억</td>
+<td style="text-align: right;">17.32억</td>
+<td style="text-align: right;">3.02배</td>
+</tr>
+<tr>
+<td>송파구</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">5.55억</td>
+<td style="text-align: right;">15.28억</td>
+<td style="text-align: right;">2.90배</td>
+</tr>
+<tr>
+<td>용산구</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">5.70억</td>
+<td style="text-align: right;">16.95억</td>
+<td style="text-align: right;">2.87배</td>
+</tr>
+<tr>
+<td>강동구</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">5.40억</td>
+<td style="text-align: right;">14.97억</td>
+<td style="text-align: right;">2.75배</td>
+</tr>
+<tr>
+<td>중구</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5.60억</td>
+<td style="text-align: right;">14.75억</td>
+<td style="text-align: right;">2.72배</td>
+</tr>
+<tr>
+<td>양천구</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">5.70억</td>
+<td style="text-align: right;">15.40억</td>
+<td style="text-align: right;">2.70배</td>
+</tr>
+<tr>
+<td>동작구</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">5.47억</td>
+<td style="text-align: right;">14.90억</td>
+<td style="text-align: right;">2.64배</td>
+</tr>
+<tr>
+<td>구로구</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">5.40억</td>
+<td style="text-align: right;">13.50억</td>
+<td style="text-align: right;">2.61배</td>
+</tr>
+<tr>
+<td>영등포구</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">5.35억</td>
+<td style="text-align: right;">14.44억</td>
+<td style="text-align: right;">2.59배</td>
+</tr>
+<tr>
+<td>동대문구</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">5.30억</td>
+<td style="text-align: right;">13.40억</td>
+<td style="text-align: right;">2.48배</td>
+</tr>
+<tr>
+<td>강남구</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5.51억</td>
+<td style="text-align: right;">13.70억</td>
+<td style="text-align: right;">2.44배</td>
+</tr>
+<tr>
+<td>마포구</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">5.29억</td>
+<td style="text-align: right;">13.05억</td>
+<td style="text-align: right;">2.38배</td>
+</tr>
+<tr>
+<td>서대문구</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5.40억</td>
+<td style="text-align: right;">12.22억</td>
+<td style="text-align: right;">2.38배</td>
+</tr>
+<tr>
+<td>강서구</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">5.39억</td>
+<td style="text-align: right;">12.60억</td>
+<td style="text-align: right;">2.34배</td>
+</tr>
+<tr>
+<td>성북구</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">5.35억</td>
+<td style="text-align: right;">11.70억</td>
+<td style="text-align: right;">2.15배</td>
+</tr>
+<tr>
+<td>관악구</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">5.31억</td>
+<td style="text-align: right;">10.36억</td>
+<td style="text-align: right;">1.95배</td>
+</tr>
+<tr>
+<td>노원구</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">5.28억</td>
+<td style="text-align: right;">10.05억</td>
+<td style="text-align: right;">1.85배</td>
+</tr>
+<tr>
+<td>은평구</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">5.33억</td>
+<td style="text-align: right;">9.50억</td>
+<td style="text-align: right;">1.78배</td>
+</tr>
+</tbody>
+</table></div>
+<p>2016년엔 모두 5.3~5.7억이었다. 지금은 성동구 18.50억, 은평구 9.50억으로 9억 차이가 났다.</p>
+<p>의외였던 건 강남구였다. 2.44배로 중간 아래다. 다만 2016년 강남구에서 5억대였던 곳은 6곳뿐이다. 4곳은 200세대 미만 소단지였고, 나머지 2곳은 개포·수서의 39㎡ 소형이었다. 소단지 4곳은 1.89~2.61배, 39㎡ 2곳은 3.10배와 3.33배였다. 강남구 전체 얘기로 읽으면 안 된다.</p>
+<p>마포구가 2.38배로 낮게 나온 것도 안을 들여다보면 갈렸다. 마포구 5억대 28곳 중 상암동 월드컵파크 5곳은 1.66~2.39배, 망원동 소단지 84㎡ 5곳은 1.68~2.28배였다. 반면 공덕·용강동 59㎡ 3곳은 3.17~3.50배로 성동구 못지않았다.</p>
+<h2>같은 5억이라도, 오래된 집이 더 올랐다</h2>
+<p>연식으로 나눠 보니 차이가 더 선명했다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>준공</th>
+<th style="text-align: right;">단지</th>
+<th style="text-align: right;">대표 평형</th>
+<th style="text-align: right;">지금 중앙값</th>
+<th style="text-align: right;">배수</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1989년 이전</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">72㎡</td>
+<td style="text-align: right;">19.50억</td>
+<td style="text-align: right;">3.48배</td>
+</tr>
+<tr>
+<td>1990년대</td>
+<td style="text-align: right;">61</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">16.10억</td>
+<td style="text-align: right;">2.96배</td>
+</tr>
+<tr>
+<td>2000년대</td>
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">13.28억</td>
+<td style="text-align: right;">2.43배</td>
+</tr>
+<tr>
+<td>2010년 이후</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">12.38억</td>
+<td style="text-align: right;">2.21배</td>
+</tr>
+</tbody>
+</table></div>
+<p>2016년에 같은 5억대였다면, 그때 지은 지 30년 가까이 된 작은 집이 새 집보다 훨씬 많이 올랐다. 1989년 이전 준공 단지는 3.48배, 2010년 이후 준공 단지는 2.21배다.</p>
+<p>내 해석은 이렇다. 2016년 5억짜리 신축 84㎡는 이미 "새 집 값"을 받고 있었다. 10년이 지나 그 집은 준신축이 됐고, 프리미엄 일부가 빠졌다. 반대로 2016년 5억짜리 1980년대 소형은 재건축 기대가 아직 덜 실린 값이었다. 같은 돈이 다른 것을 사고 있었던 셈이다. 평형으로 봐도 마찬가지였다. 5억대 중 대표 평형이 70㎡ 미만인 47곳은 3.10배, 84㎡대 207곳은 2.49배였다.</p>
+<h2>많이 오른 10곳, 덜 오른 10곳</h2>
+<p>양쪽 모두 2016년과 최근 1년 거래가 5건 이상인 209곳에서 골랐다. 같은 이름의 블록이 나뉘어 잡힌 곳은 하나만 남겼다.</p>
+<p><strong>많이 오른 10곳</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단지</th>
+<th>구·동</th>
+<th style="text-align: right;">평형</th>
+<th style="text-align: right;">준공</th>
+<th style="text-align: right;">2016 (건)</th>
+<th style="text-align: right;">지금 (건)</th>
+<th style="text-align: right;">배수</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11470%7C%EB%AA%A9%EB%8F%99%7C911">목동신시가지6</a></td>
+<td>양천구 목동</td>
+<td style="text-align: right;">48㎡</td>
+<td style="text-align: right;">1986</td>
+<td style="text-align: right;">5.50억 (60)</td>
+<td style="text-align: right;">22.85억 (5)</td>
+<td style="text-align: right;">4.15배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%97%AC%EC%9D%98%EB%8F%84%EB%8F%99%7C54">진주</a></td>
+<td>영등포구 여의도동</td>
+<td style="text-align: right;">48㎡</td>
+<td style="text-align: right;">1977</td>
+<td style="text-align: right;">5.40억 (16)</td>
+<td style="text-align: right;">21.89억 (12)</td>
+<td style="text-align: right;">4.05배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11170%7C%EC%9D%B4%EC%B4%8C%EB%8F%99%7C412">이촌코오롱(A)</a></td>
+<td>용산구 이촌동</td>
+<td style="text-align: right;">60㎡</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">5.88억 (33)</td>
+<td style="text-align: right;">23.68억 (12)</td>
+<td style="text-align: right;">4.03배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11200%7C%EC%9D%91%EB%B4%89%EB%8F%99%7C100">대림(1차)</a></td>
+<td>성동구 응봉동</td>
+<td style="text-align: right;">76㎡</td>
+<td style="text-align: right;">1986</td>
+<td style="text-align: right;">5.15억 (26)</td>
+<td style="text-align: right;">20.45억 (6)</td>
+<td style="text-align: right;">3.97배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%ED%9D%91%EC%84%9D%EB%8F%99%7C28">한강현대</a></td>
+<td>동작구 흑석동</td>
+<td style="text-align: right;">66㎡</td>
+<td style="text-align: right;">1988</td>
+<td style="text-align: right;">5.50억 (38)</td>
+<td style="text-align: right;">21.80억 (7)</td>
+<td style="text-align: right;">3.96배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11710%7C%EC%86%A1%ED%8C%8C%EB%8F%99%7C119">한양아파트</a></td>
+<td>송파구 송파동</td>
+<td style="text-align: right;">64㎡</td>
+<td style="text-align: right;">1983</td>
+<td style="text-align: right;">5.36억 (11)</td>
+<td style="text-align: right;">20.85억 (12)</td>
+<td style="text-align: right;">3.89배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11200%7C%EC%98%A5%EC%88%98%EB%8F%99%7C250">옥수삼성</a></td>
+<td>성동구 옥수동</td>
+<td style="text-align: right;">60㎡</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">5.10억 (53)</td>
+<td style="text-align: right;">19.50억 (19)</td>
+<td style="text-align: right;">3.82배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11470%7C%EB%AA%A9%EB%8F%99%7C904">목동신시가지4</a></td>
+<td>양천구 목동</td>
+<td style="text-align: right;">47㎡</td>
+<td style="text-align: right;">1986</td>
+<td style="text-align: right;">5.29억 (42)</td>
+<td style="text-align: right;">19.55억 (26)</td>
+<td style="text-align: right;">3.69배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11470%7C%EC%8B%A0%EC%A0%95%EB%8F%99%7C314">목동신시가지8</a></td>
+<td>양천구 신정동</td>
+<td style="text-align: right;">55㎡</td>
+<td style="text-align: right;">1987</td>
+<td style="text-align: right;">5.05억 (49)</td>
+<td style="text-align: right;">18.45억 (23)</td>
+<td style="text-align: right;">3.65배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11200%7C%EA%B8%88%ED%98%B8%EB%8F%991%EA%B0%80%7C633">벽산</a></td>
+<td>성동구 금호동1가</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">2001</td>
+<td style="text-align: right;">5.08억 (54)</td>
+<td style="text-align: right;">17.90억 (24)</td>
+<td style="text-align: right;">3.52배</td>
+</tr>
+</tbody>
+</table></div>
+<p>10곳 중 7곳이 1990년 이전 준공이고, 목동 신시가지만 3곳이다. 재건축 기대가 실린 소형이 위를 차지했다. 1990년대 이후 준공으로 들어온 건 이촌코오롱, 옥수삼성, 금호동 벽산 세 곳인데, 모두 한강변 용산·성동이다.</p>
+<p><strong>덜 오른 10곳</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단지</th>
+<th>구·동</th>
+<th style="text-align: right;">평형</th>
+<th style="text-align: right;">준공</th>
+<th style="text-align: right;">2016 (건)</th>
+<th style="text-align: right;">지금 (건)</th>
+<th style="text-align: right;">배수</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11380%7C%EC%A7%84%EA%B4%80%EB%8F%99%7C88">우물골2단지두산위브</a></td>
+<td>은평구 진관동</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">2009</td>
+<td style="text-align: right;">5.38억 (16)</td>
+<td style="text-align: right;">8.69억 (14)</td>
+<td style="text-align: right;">1.62배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%EA%B3%B5%EB%A6%89%EB%8F%99%7C106">공릉해링턴플레이스</a></td>
+<td>노원구 공릉동</td>
+<td style="text-align: right;">100㎡</td>
+<td style="text-align: right;">2000</td>
+<td style="text-align: right;">5.28억 (26)</td>
+<td style="text-align: right;">8.82억 (16)</td>
+<td style="text-align: right;">1.67배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EB%AC%B5%EB%8F%99%7C170-1">묵동자이(2단지)</a></td>
+<td>중랑구 묵동</td>
+<td style="text-align: right;">102㎡</td>
+<td style="text-align: right;">2010</td>
+<td style="text-align: right;">5.84억 (12)</td>
+<td style="text-align: right;">9.78억 (6)</td>
+<td style="text-align: right;">1.67배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11530%7C%EC%B2%9C%EC%99%95%EB%8F%99%7C279-2">천왕이펜하우스2단지</a></td>
+<td>구로구 천왕동</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">2011</td>
+<td style="text-align: right;">5.04억 (5)</td>
+<td style="text-align: right;">8.45억 (6)</td>
+<td style="text-align: right;">1.68배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11350%7C%ED%95%98%EA%B3%84%EB%8F%99%7C255-1">삼익선경</a></td>
+<td>노원구 하계동</td>
+<td style="text-align: right;">108㎡</td>
+<td style="text-align: right;">1993</td>
+<td style="text-align: right;">5.17억 (21)</td>
+<td style="text-align: right;">8.70억 (7)</td>
+<td style="text-align: right;">1.68배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EB%AC%B5%EB%8F%99%7C164-4">묵동자이(1단지)</a></td>
+<td>중랑구 묵동</td>
+<td style="text-align: right;">112㎡</td>
+<td style="text-align: right;">2010</td>
+<td style="text-align: right;">5.80억 (5)</td>
+<td style="text-align: right;">9.98억 (7)</td>
+<td style="text-align: right;">1.72배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11620%7C%EB%B4%89%EC%B2%9C%EB%8F%99%7C1707">은천1</a></td>
+<td>관악구 봉천동</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">2001</td>
+<td style="text-align: right;">5.17억 (6)</td>
+<td style="text-align: right;">9.00억 (9)</td>
+<td style="text-align: right;">1.74배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11380%7C%EC%A7%84%EA%B4%80%EB%8F%99%7C20">상림마을8단지롯데캐슬</a></td>
+<td>은평구 진관동</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">2008</td>
+<td style="text-align: right;">5.35억 (28)</td>
+<td style="text-align: right;">9.36억 (14)</td>
+<td style="text-align: right;">1.75배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11380%7C%EC%A7%84%EA%B4%80%EB%8F%99%7C92">은평뉴타운 제각말 푸르지오(5-4단지)</a></td>
+<td>은평구 진관동</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">2010</td>
+<td style="text-align: right;">5.10억 (35)</td>
+<td style="text-align: right;">8.93억 (12)</td>
+<td style="text-align: right;">1.75배</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11380%7C%EC%A7%84%EA%B4%80%EB%8F%99%7C27">구파발10단지어울림</a></td>
+<td>은평구 진관동</td>
+<td style="text-align: right;">85㎡</td>
+<td style="text-align: right;">2010</td>
+<td style="text-align: right;">5.30억 (10)</td>
+<td style="text-align: right;">9.31억 (8)</td>
+<td style="text-align: right;">1.76배</td>
+</tr>
+</tbody>
+</table></div>
+<p>아래쪽은 그림이 반대였다. 2008~2011년 준공, 2016년 당시 지은 지 10년이 안 된 85㎡가 대부분이다. 은평뉴타운(진관동)만 4곳이다. 노원·중랑의 100㎡ 넘는 중대형도 보였다. 2016년에 5억대면 그 동네에서는 "넓고 새 집" 값이었던 곳들이다.</p>
+<p>맨 위 <a href="https://geuttaeneolma.com/#k=11470%7C%EB%AA%A9%EB%8F%99%7C911">목동신시가지6</a> 48㎡와 맨 아래 <a href="https://geuttaeneolma.com/#k=11380%7C%EC%A7%84%EA%B4%80%EB%8F%99%7C88">우물골2단지두산위브</a> 85㎡는 2016년에 1,200만 원 차이였다. 지금은 14억 넘게 차이 난다.</p>
+<h2>감안할 것</h2>
+<ol>
+<li><strong>지금 거래가 없는 단지는 빠졌다.</strong> 2016년 이후 재건축에 들어가 지금 아파트 매매 거래가 없는 단지(입주권·분양권 거래만 있는 곳)는 비교할 수 없었다. 이런 곳은 대개 많이 오른 쪽이라, 위 배수는 실제보다 조금 낮게 나왔을 수 있다.</li>
+<li><strong>대표 평형 하나만 봤다.</strong> 단지마다 2016년에 가장 많이 팔린 평형이다. 같은 단지라도 다른 평형은 배수가 다를 수 있다.</li>
+<li><strong>최근 1년 거래가 3~4건인 단지도 있다.</strong> 거래가 적으면 층·향 한두 건에 중앙값이 흔들린다. 상위·하위 표는 양쪽 5건 이상만 넣었다.</li>
+<li><strong>명목 가격이다.</strong> 물가, 그 사이 낸 보유세와 이자, 받았을 전세 보증금은 계산하지 않았다. 2.53배가 그대로 손에 남는 돈은 아니다.</li>
+<li><strong>2016년 5억대는 "그때의 기준"이다.</strong> 2016년 서울 단지 2,296곳의 중앙값은 4.20억이었다. 5억대는 그보다 조금 비싼, 당시 서울에서 위쪽 절반에 드는 집이었다. 지금 같은 위치의 집을 고르는 문제와는 다르다.</li>
+<li><strong>과거 배수가 앞으로를 말해 주지 않는다.</strong> 10년 동안 오래된 집이 더 오른 건 재건축 기대와 규제 환경이 함께 만든 결과다. 그 조건은 계속 바뀐다.</li>
+</ol>
+<p>정리하면, 2016년에 5억을 들고 서울 아파트를 샀다면 지금 중간쯤은 14억이다. 하지만 그 중간값보다 더 크게 남는 건 분포였다. 같은 5억이 8억대에도, 20억대에도 도착했다. 그 차이를 가른 건 구보다도 그때 그 5억이 무엇을 사고 있었는지, 새 집 값이었는지 땅과 기대의 값이었는지였다.</p>
+<p><em>공개된 실거래 자료를 정리한 글이며 투자 권유가 아니다.</em></p>]]></content:encoded></item>
     <item><title>9억 이하 84㎡, 서울 구축과 경기 신축 값이 같았다</title><link>https://geuttaeneolma.com/blog/2026-11-9eok-84/</link><guid>https://geuttaeneolma.com/blog/2026-11-9eok-84/</guid><pubDate>Wed, 18 Nov 2026 00:00:00 +0900</pubDate><description>9억 이하 84㎡를 서울 6개 구 20년 넘은 단지 230곳과 경기 4개 시 입주 10년 이내 단지 152곳으로 나눠 실거래 중앙값, 역 거리, 대지지분, 주차, 필요 현금을 맞대 봤다.</description><content:encoded><![CDATA[<p>"9억 이하로 84㎡"라는 조건을 걸면 선택지가 둘로 갈린다. 서울 외곽의 오래된 아파트, 아니면 경기의 새 아파트. <a href="https://geuttaeneolma.com/blog/2026-11-newlywed-15/">지난번 15억 신혼집 글</a>의 다음 편으로, 이번엔 그 갈림길을 숫자로 맞대 봤다.</p>
 <p>서울은 도봉·금천·강북·중랑·구로·노원, 경기는 화성·용인·수원·고양이다. 서울 쪽은 2006년 이전 준공(20년 넘은 단지), 경기 쪽은 2017년 이후 입주(10년 이내)로 잘랐다.</p>
 <p>결과부터 쓰면, <strong>값은 거의 같았다.</strong> 서울 구축 84㎡ 중앙값이 6.91억, 경기 신축이 6.70억이다. 2천만 원 차이다. 그런데 그 돈으로 받는 것은 꽤 달랐다. 서울은 역을 받고, 경기는 새 건물과 땅과 주차장을 받는다. 그리고 경기 안에서도 규제지역이냐 아니냐에 따라 필요한 현금이 두 배 넘게 갈렸다.</p>
