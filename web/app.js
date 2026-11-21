@@ -2740,6 +2740,7 @@
     function fitBoth(list) {
       const pts = list.filter((c) => c && mappable(c));
       if (!kmap || !pts.length) return;
+      kmap.relayout();  // the detail column may have just narrowed the map
       if (pts.length === 1 || pts[0].key === pts[1].key) { panTo(pts[0]); return; }
       const bounds = new kakao.maps.LatLngBounds();
       for (const c of pts) bounds.extend(new kakao.maps.LatLng(c.lat, c.lng));
@@ -3068,7 +3069,8 @@
     readHash();
     await mapReady;
     map.refresh();
-    if (state.start === "pair") map.fitBoth(state.pair.slots.map(pairComplex));
+    // After the detail column has finished opening (presentPair relayouts at 900ms).
+    if (state.start === "pair") setTimeout(() => map.fitBoth(state.pair.slots.map(pairComplex)), 1000);
     state.ready = true;
     if (state.rankMode !== "off" || filterActive()) loadMapFacts();
     if (state.filterSummary) state.filterSummary();
