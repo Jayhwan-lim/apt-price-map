@@ -1112,7 +1112,9 @@
     if (!c.b.length) return;
     const P = state.pair;
     if (slot == null) slot = P.active;
-    if (pan) map.panTo(c);
+    // Search picks move the map (framing both pins once B is set); map
+    // taps leave it where the user is browsing.
+    if (pan) map.fitBoth([pairComplex(P.slots[1 - slot]), c]);
     await loadRegion(c.code);
     P.slots[slot] = { key: c.key, band: band && c.b.includes(band) ? band : pairDefaultBand(c, slot) };
     // The next map tap fills the other slot while it is empty, otherwise
@@ -2734,7 +2736,18 @@
       if (kmap) kmap.relayout();
     }
 
-    return { init, refresh, panTo, relayout, pinFor };
+    // Frame both pair pins (one complex: just pan to it).
+    function fitBoth(list) {
+      const pts = list.filter((c) => c && mappable(c));
+      if (!kmap || !pts.length) return;
+      if (pts.length === 1 || pts[0].key === pts[1].key) { panTo(pts[0]); return; }
+      const bounds = new kakao.maps.LatLngBounds();
+      for (const c of pts) bounds.extend(new kakao.maps.LatLng(c.lat, c.lng));
+      kmap.setBounds(bounds, 90, 90, 90, 90);
+      if (kmap.getLevel() < 3) kmap.setLevel(3);
+    }
+
+    return { init, refresh, panTo, relayout, pinFor, fitBoth };
   })();
 
   // ---------- URL state ----------
@@ -2811,8 +2824,6 @@
       if (p.get("pv") === "index") P.mode = "index";
       P.active = P.slots[0] && !P.slots[1] ? 1 : 0;
       setStart("pair");
-      const first = pairComplex(P.slots[0]);
-      if (first) map.panTo(first);
       return;
     }
     if (p.get("st") === "p") {
@@ -3057,6 +3068,7 @@
     readHash();
     await mapReady;
     map.refresh();
+    if (state.start === "pair") map.fitBoth(state.pair.slots.map(pairComplex));
     state.ready = true;
     if (state.rankMode !== "off" || filterActive()) loadMapFacts();
     if (state.filterSummary) state.filterSummary();
