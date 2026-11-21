@@ -1,10 +1,10 @@
 {
-  "started": "2026-11-20T10:14:34+09:00",
+  "started": "2026-11-21T09:46:59+09:00",
   "written": 222,
-  "rows": 38099,
+  "rows": 38678,
   "failures": [],
   "result": "complete",
   "calls": 222,
   "remaining": 0,
-  "finished": "2026-11-20T10:15:49+09:00"
+  "finished": "2026-11-21T09:48:58+09:00"
 }
