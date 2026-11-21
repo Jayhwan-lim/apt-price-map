@@ -76,6 +76,9 @@
     sideRankBlock: $("side-rank-block"), sideRankTitle: $("side-rank-title"), sideRank: $("side-rank"),
     sideNatBlock: $("side-nat-block"), sideNatTitle: $("side-nat-title"), sideNat: $("side-nat"),
     sideRecentBlock: $("side-recent-block"), sideRecent: $("side-recent"),
+    pairSec: $("pair-section"), pairBody: $("pair-body"), pairYears: $("pair-years"),
+    pairChartWrap: $("pair-chart-wrap"), pairCanvas: $("pair-chart"), pairChartNote: $("pair-chart-note"),
+    pairChartTitle: $("pair-chart-title"),
   };
 
   const state = {
@@ -91,8 +94,11 @@
     checked: [],            // entry keys, in the order they were checked
     slotOf: new Map(),      // entry key -> palette slot (1..7), sticky while checked
     slim: false, pendingKey: null, fullPromise: null, kickFull: null,  // two-phase data load
-    start: "complex",       // "complex" (start from a complex) or "price" (from a month + budget)
+    start: "complex",       // "complex" (start from a complex), "price" (from a month + budget) or "pair" (two complexes)
     price: { mi: null, amount: 80000, sort: "desc", results: [], loading: false },
+    // Pair mode: two (complex, area type) slots compared side by side.
+    // slots[i] = { key, band } or null; `active` is the slot a map tap fills.
+    pair: { slots: [null, null], active: 0, year: null, gran: "year", mode: "price" },
   };
 
   // ---------- formatting ----------
@@ -361,9 +367,10 @@
   let searchHits = [];
   let searchIdx = -1;
 
-  function runSearch() {
-    const q = normalize(el.search.value);
-    if (!q || !state.data) return closeSearch();
+  // Name matches first, then name-contains / exact dong-name matches.
+  function searchHitsFor(raw) {
+    const q = normalize(raw);
+    if (!q || !state.data) return [];
     const starts = [], contains = [];
     for (const c of state.data.complexes) {
       if (!state.slim && !c.b.length) continue;
@@ -371,7 +378,11 @@
       else if (c._norm.includes(q) || normalize(c.umd) === q) contains.push(c);
       if (starts.length >= 12) break;
     }
-    searchHits = starts.concat(contains).slice(0, 12);
+    return starts.concat(contains).slice(0, 12);
+  }
+  function runSearch() {
+    if (!normalize(el.search.value) || !state.data) return closeSearch();
+    searchHits = searchHitsFor(el.search.value);
     searchIdx = searchHits.length ? 0 : -1;
     renderSearch();
   }
@@ -417,9 +428,13 @@
   let priceInCol = false;
   let priceColClosed = false;
   let priceSheetClosed = false;
+  let pairInCol = false;
+  let pairColClosed = false;
+  let pairSheetClosed = false;
   function syncPhoneUi() {
     document.documentElement.classList.toggle("phone-ui", phoneLike());
     if (state.start === "price") presentPrice();
+    else if (state.start === "pair") presentPair();
     else if (state.ref) presentDetail();
     else if (!phoneLike()) closeSheet();
   }
@@ -431,10 +446,11 @@
     document.body.classList.add("sheet-open");
     if (!was) setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
   }
-  function openPriceSheet() {
+  function openPriceSheet() { openModeSheet("가격으로 찾기"); }
+  function openModeSheet(text) {
     if (!phoneLike()) return;
     const title = document.getElementById("sheet-title");
-    if (title) title.textContent = "가격으로 찾기";
+    if (title) title.textContent = text;
     const was = document.body.classList.contains("sheet-open");
     document.body.classList.add("sheet-open");
     if (!was) setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
@@ -517,14 +533,50 @@
       setTimeout(() => { try { if (map && typeof map.relayout === "function") map.relayout(); } catch (e) { /* map not ready */ } }, 900);
     }
   }
+  // Pair mode: same right-column / sheet treatment as price mode.
+  function placePair(inCol) {
+    // Go by where the section actually is, not a flag that could drift.
+    pairInCol = el.pairSec.parentElement && el.pairSec.parentElement.id === "detail-col-body";
+    if (pairInCol === inCol) return;
+    if (inCol) {
+      const host = document.getElementById("detail-col-body");
+      if (!host) return;
+      host.appendChild(el.pairSec);
+    } else {
+      const anchor = document.getElementById("pair-home");
+      if (!anchor || !anchor.parentNode) return;
+      anchor.parentNode.insertBefore(el.pairSec, anchor);
+    }
+    pairInCol = inCol;
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 280);
+  }
+  function presentPair() {
+    if (state.start !== "pair") return;
+    if (phoneLike()) {
+      placePair(false);
+      document.body.classList.remove("detail-open");
+      if (pairSheetClosed) closeSheet(); else openModeSheet("두 단지 비교");
+    } else {
+      closeSheet();
+      if (pairColClosed) { placePair(false); document.body.classList.remove("detail-open"); return; }
+      placePair(true);
+      const t = document.getElementById("detail-col-title");
+      if (t) t.textContent = "두 단지 비교";
+      document.body.classList.add("detail-open");
+      setTimeout(() => { try { if (map && typeof map.relayout === "function") map.relayout(); } catch (e) { /* map not ready */ } }, 900);
+    }
+  }
   const sheetBack = document.getElementById("sheet-back");
   if (sheetBack) sheetBack.addEventListener("click", () => {
-    if (state.start === "price") priceSheetClosed = true; else sheetClosed = true;
+    if (state.start === "price") priceSheetClosed = true;
+    else if (state.start === "pair") pairSheetClosed = true;
+    else sheetClosed = true;
     closeSheet();
   });
   const colClose = document.getElementById("detail-col-close");
   if (colClose) colClose.addEventListener("click", () => {
     if (state.start === "price") { priceColClosed = true; placePrice(false); document.body.classList.remove("detail-open"); }
+    else if (state.start === "pair") { pairColClosed = true; placePair(false); document.body.classList.remove("detail-open"); }
     else { detailColClosed = true; retractDetail(); }
   });
   syncPhoneUi();
@@ -695,13 +747,16 @@
   }
 
   // Area type select for the selected complex: every type with its trade count.
-  function fillTypeSelect(c) {
+  function typeOptions(c) {
     const ty = ((regionStore.get(c.code) || {})[c.id] || {}).ty || {};
-    el.band.innerHTML = c.b.map((k) => {
+    return c.b.map((k) => {
       const t = ty[k];
       const range = t && t[0] !== t[1] ? ` (${t[0]}~${t[1]})` : "";
       return `<option value="${k}">${escapeHtml(bandTag(k))}${range}${t ? ` · ${t[3].toLocaleString("ko-KR")}건` : ""}</option>`;
     }).join("");
+  }
+  function fillTypeSelect(c) {
+    el.band.innerHTML = typeOptions(c);
     el.band.value = state.band;
   }
 
@@ -845,6 +900,7 @@
   // ---------- rendering ----------
   function render() {
     renderSide();
+    if (state.start === "pair") { renderPair(); map.refresh(); writeHash(); return; }
     if (state.start === "price") { renderPrice(); map.refresh(); writeHash(); return; }
     const c = state.ref;
     const has = !!c;
@@ -868,36 +924,49 @@
   // that month (same rule as complex mode) was within the tolerance.
   function setStart(mode, { run = true } = {}) {
     state.start = mode;
-    const price = mode === "price";
+    const price = mode === "price", pair = mode === "pair", other = mode !== "complex";
     document.querySelectorAll(".start-tab").forEach((t) => {
       const on = t.dataset.start === mode;
       t.classList.toggle("is-on", on);
       t.setAttribute("aria-selected", String(on));
     });
-    el.searchBox.hidden = price;
+    el.searchBox.hidden = other;
     for (const [lab, sel] of [[el.bandLabel, el.band], [el.cmpBandLabel, el.cmpBand]]) {
-      lab.classList.toggle("is-off", price);
-      sel.disabled = price;
+      lab.classList.toggle("is-off", other);
+      sel.disabled = other;
     }
+    // Price range and region only shape the similar-price lists; pair mode
+    // hides them along with the complex-mode size controls.
+    for (const sel of [el.tol, el.scope]) sel.disabled = pair;
+    for (const lab of [el.bandLabel, el.cmpBandLabel, el.tol.closest("label"), el.scope.closest("label")]) lab.hidden = pair;
     const sgg = el.scope.querySelector('option[value="sgg"]');
     sgg.disabled = price;
     if (price && state.scope === "sgg") { state.scope = "all"; el.scope.value = "all"; }
-    if (price) {
+    if (other) {
       retractDetail();
-      priceColClosed = false;
-      priceSheetClosed = false;
       state.ref = null;
       state.checked = [];
       state.slotOf.clear();
+      state.similar = [];
       el.empty.hidden = el.refSec.hidden = el.chartSec.hidden = el.simSec.hidden = el.tradesSec.hidden = el.tradeDistSec.hidden = el.holdSec.hidden = el.factsSec.hidden = true;
-      el.priceSec.hidden = false;
+    }
+    el.priceSec.hidden = !price;
+    if (!price) placePrice(false);
+    el.pairSec.hidden = !pair;
+    if (!pair) placePair(false);
+    if (price) {
+      priceColClosed = false;
+      priceSheetClosed = false;
       if (state.price.mi == null) state.price.mi = Math.max(0, lastMi() - 60);
       if (run) runPrice();
       presentPrice();
+    } else if (pair) {
+      pairColClosed = false;
+      pairSheetClosed = false;
+      if (run) runPair(); else render();
+      presentPair();
     } else {
       state.similar = [];
-      el.priceSec.hidden = true;
-      placePrice(false);
       if (run) render();
     }
   }
@@ -1000,6 +1069,481 @@
     if (!(eok > 0)) return;
     state.price.amount = Math.round(eok * 10000);
     runPrice();
+  }
+
+  // ---------- pair mode: two complexes side by side ----------
+  // Any two (complex, area type) slots, including two types of one complex:
+  // prices in a chosen base year and now, a facts table built from the same
+  // map metrics as the pins, both price lines, and a year-by-year table.
+  const pairComplex = (s) => (s ? state.byKey.get(s.key) || null : null);
+  const pairName = (c, band) => `${c.nm} ${bandShort(band)}`;
+  // Leading words MapMetrics puts in front of a value; the row label says them.
+  const PAIR_STRIP = /^(평당|갭|전세가율|용적률|건폐율|세대당|대지|평소 대비)\s+/;
+  const PAIR_MISSING = /정보 없음|거래 없음|이력 부족/;
+
+  // Map taps fill the active pair slot in pair mode, else open the complex.
+  function mapSelect(c) {
+    if (state.start === "pair") pairPick(c);
+    else selectComplex(c);
+  }
+
+  // Area type for a newly picked complex: the type nearest the other
+  // slot's (so 84 meets 84), unless that would repeat the other slot
+  // exactly; otherwise the most traded type.
+  function pairDefaultBand(c, slot) {
+    const other = state.pair.slots[1 - slot];
+    const same = (k) => other && other.key === c.key && other.band === k;
+    const near = nearestType(c, (other && other.band) || state.band, true);
+    if (near && !same(near)) return near;
+    const ty = ((regionStore.get(c.code) || {})[c.id] || {}).ty || {};
+    const ranked = Object.entries(ty).sort((x, y) => y[1][3] - x[1][3]).map(([k]) => k).filter((k) => c.b.includes(k));
+    return ranked.find((k) => !same(k)) || ranked[0] || c.b[0];
+  }
+
+  async function pairPick(c, { slot = null, band = null, pan = false } = {}) {
+    if (state.slim) {
+      if (state.kickFull) state.kickFull();
+      el.note.textContent = "단지 상세 정보를 불러오는 중입니다…";
+      if (state.fullPromise) await state.fullPromise;
+      c = state.byKey.get(c.key);
+      if (!c || state.slim) return;
+    }
+    c = state.byKey.get(c.key) || c;
+    if (!c.b.length) return;
+    const P = state.pair;
+    if (slot == null) slot = P.active;
+    if (pan) map.panTo(c);
+    await loadRegion(c.code);
+    P.slots[slot] = { key: c.key, band: band && c.b.includes(band) ? band : pairDefaultBand(c, slot) };
+    // The next map tap fills the other slot while it is empty, otherwise
+    // keeps replacing this one (trying several B candidates against one A).
+    P.active = P.slots[1 - slot] ? slot : 1 - slot;
+    pairSheetClosed = false;
+    pairColClosed = false;
+    loadMapFacts();
+    runPair();
+  }
+
+  // Years in which both slots have at least one trade.
+  function pairYears(a, sa, b, sb) {
+    return state.data.years.filter((y) => stat(a, y, sa.band) && stat(b, y, sb.band));
+  }
+  // Default base year: five years before the latest data year, or the
+  // nearest year where both slots have FALLBACK_MIN_N trades (never the
+  // current year, which has no growth window yet).
+  function pairDefaultYear(a, sa, b, sb, ys) {
+    if (!ys.length) return null;
+    const last = state.data.years[state.data.years.length - 1];
+    const solid = ys.filter((y) => y < last && stat(a, y, sa.band)[0] >= FALLBACK_MIN_N && stat(b, y, sb.band)[0] >= FALLBACK_MIN_N);
+    const pool = solid.length ? solid : ys;
+    const target = last - 5;
+    return pool.reduce((best, y) => (Math.abs(y - target) < Math.abs(best - target) ? y : best), pool[0]);
+  }
+
+  let pairSeq = 0;
+  async function runPair() {
+    if (state.kickFull) state.kickFull();
+    if (state.slim && state.fullPromise) await state.fullPromise;
+    const my = ++pairSeq;
+    const P = state.pair;
+    const cs = P.slots.map(pairComplex);
+    if (cs.some((c) => c && !regionStore.has(c.code))) {
+      render();
+      await Promise.all(cs.filter(Boolean).map((c) => loadRegion(c.code)));
+      if (my !== pairSeq || state.start !== "pair") return;
+    }
+    cs.forEach((c, i) => { if (c && !P.slots[i].band) P.slots[i].band = pairDefaultBand(c, i); });
+    const [a, b] = cs;
+    if (a && b) {
+      const ys = pairYears(a, P.slots[0], b, P.slots[1]);
+      if (P.year == null || !ys.includes(P.year)) P.year = pairDefaultYear(a, P.slots[0], b, P.slots[1], ys);
+    }
+    render();
+    presentPair();
+  }
+
+  function markPairActive() {
+    el.pairSec.querySelectorAll(".pair-pick").forEach((box) =>
+      box.classList.toggle("is-active", Number(box.dataset.slot) === state.pair.active));
+  }
+
+  // "B가 A보다 1.2억(8%) 비쌉니다" for averages x (A) and y (B).
+  function pairGap(nameA, x, nameB, y, past) {
+    const r = y / x - 1;
+    if (Math.abs(r) < 0.01) return past ? "두 곳 값이 거의 같았습니다" : "두 곳 시세가 거의 같습니다";
+    const [hi, lo, rr] = r > 0 ? [nameB, nameA, r] : [nameA, nameB, x / y - 1];
+    return `<b>${escapeHtml(hi)}</b>가 <b>${escapeHtml(lo)}</b>보다 <b>${fmtPrice(Math.abs(y - x))}(${Math.round(rr * 100)}%)</b> ${past ? "비쌌습니다" : "비쌉니다"}`;
+  }
+
+  function renderPair() {
+    const P = state.pair;
+    const pal = palette();
+    el.pairSec.hidden = false;
+    P.slots.forEach((s, slot) => {
+      const c = pairComplex(s);
+      const box = el.pairSec.querySelector(`.pair-pick[data-slot="${slot}"]`);
+      box.style.setProperty("--c", pal[slot]);
+      const sel = $(`pair-b-${slot}`);
+      if (c && regionStore.has(c.code)) {
+        sel.innerHTML = typeOptions(c);
+        sel.value = s.band;
+        sel.disabled = false;
+      } else {
+        sel.innerHTML = `<option>단지를 고르면 나옵니다</option>`;
+        sel.disabled = true;
+      }
+      const inp = $(`pair-q-${slot}`);
+      if (document.activeElement !== inp) inp.value = c ? c.nm : "";
+    });
+    markPairActive();
+    document.querySelectorAll("[data-pgran], [data-pmode]").forEach((btn) => {
+      const on = btn.dataset.pgran ? btn.dataset.pgran === P.gran : btn.dataset.pmode === P.mode;
+      btn.classList.toggle("is-on", on);
+      btn.setAttribute("aria-pressed", String(on));
+    });
+
+    const [a, b] = P.slots.map(pairComplex);
+    const ready = a && b && regionStore.has(a.code) && regionStore.has(b.code) && P.slots[0].band && P.slots[1].band;
+    if (!ready) {
+      const loading = (a && !regionStore.has(a.code)) || (b && !regionStore.has(b.code));
+      el.pairBody.innerHTML = `<p class="pair-empty">${loading ? "단지 데이터를 불러오는 중…"
+        : !a && !b ? "비교할 두 단지를 고르세요. 위 칸에서 검색하거나 지도에서 단지를 누르면 됩니다."
+        : "비교할 단지를 하나 더 고르세요. 위 칸에서 검색하거나 지도에서 단지를 누르면 됩니다."}</p>`;
+      el.pairChartWrap.hidden = true;
+      el.pairYears.innerHTML = "";
+      return;
+    }
+    const sa = P.slots[0], sb = P.slots[1];
+    const ys = pairYears(a, sa, b, sb);
+    const Y = P.year;
+    const nameA = pairName(a, sa.band), nameB = pairName(b, sb.band);
+    const na = nowPrice(a, sa.band), nb = nowPrice(b, sb.band);
+    const ya = Y != null ? stat(a, Y, sa.band) : null, yb = Y != null ? stat(b, Y, sb.band) : null;
+    const ba = Y != null ? yearBase(a, sa.band, Y) : null, bb = Y != null ? yearBase(b, sb.band, Y) : null;
+    const ga = growthOf(ba, na), gb = growthOf(bb, nb);
+    const last = state.data.years[state.data.years.length - 1];
+
+    // Summary: the gap now, the gap in the base year, and what changed.
+    const lines = [];
+    if (na && nb) lines.push(`지금은 ${pairGap(nameA, na.avg, nameB, nb.avg, false)}.`);
+    else lines.push(`${escapeHtml(!na ? nameA : nameB)}의 최근 1년 거래가 없어 지금 시세는 비교할 수 없습니다.`);
+    if (ya && yb) {
+      const thin = ya[0] < FALLBACK_MIN_N || yb[0] < FALLBACK_MIN_N ? ` <span class="badge-thin">표본 적음</span>` : "";
+      lines.push(`${Y}년에는 ${pairGap(nameA, ya[1], nameB, yb[1], true)}.${thin}`);
+    }
+    if (ga != null && gb != null) {
+      const then = yb[1] / ya[1] - 1, now = nb.avg / na.avg - 1;
+      const flip = Math.abs(then) >= 0.01 && Math.abs(now) >= 0.01 && Math.sign(then) !== Math.sign(now);
+      const verdict = flip ? "순서가 뒤집혔습니다" : Math.abs(now) > Math.abs(then) + 0.01 ? "격차가 벌어졌습니다"
+        : Math.abs(now) < Math.abs(then) - 0.01 ? "격차가 좁혀졌습니다" : "격차가 거의 그대로입니다";
+      lines.push(`그사이 ${escapeHtml(nameA)} <b class="chg ${chgClass(ga)}">${fmtPct(ga)}</b>, ${escapeHtml(nameB)} <b class="chg ${chgClass(gb)}">${fmtPct(gb)}</b> — ${verdict}.`);
+    }
+    const yearSel = ys.length
+      ? `<label class="pair-year">기준 연도 <select id="pair-year">${ys.slice().reverse().map((y) =>
+          `<option value="${y}"${y === Y ? " selected" : ""}>${y}년${y === last ? " (올해)" : ""}</option>`).join("")}</select></label>`
+      : `<p class="pair-hint">두 단지가 같은 해에 거래된 적이 없어 기준 연도를 고를 수 없습니다.</p>`;
+
+    // Facts table: A and B columns; B cells note the gap to A where it is a price.
+    const facts = [factsOf(a), factsOf(b)];
+    const sides = [[a, sa, na, ya, ga, facts[0]], [b, sb, nb, yb, gb, facts[1]]];
+    const val = (k, [c, s, now, , , f]) => {
+      if (!f) return `<span class="muted">불러오는 중…</span>`;
+      const t = MapMetrics.value(k, c, s.band, now, f, state.variant).replace(PAIR_STRIP, "");
+      return PAIR_MISSING.test(t) ? `<span class="muted">${escapeHtml(t)}</span>` : escapeHtml(t);
+    };
+    const vsA = (x, y, pp = false) => {
+      if (x == null || y == null) return "";
+      const d = pp ? y - x : y / x - 1;
+      const txt = pp ? `${fmtPct(d).slice(0, -1)}%p` : fmtPct(d);
+      return `<small class="chg ${chgClass(d)}">A 대비 ${txt}</small>`;
+    };
+    const areaOfSide = ([c, s, , , , f]) => (f && f.areas && f.areas[s.band]) || areaOf(s.band);
+    const per33 = (side) => (side[2] ? side[2].avg / areaOfSide(side) * 3.3058 : null);
+    const rows = [];
+    const group = (t) => rows.push(`<tr class="pair-group"><th colspan="3" scope="colgroup">${t}</th></tr>`);
+    const row = (label, ca, cb, title = "") =>
+      rows.push(`<tr><th scope="row"${title ? ` title="${escapeAttr(title)}"` : ""}>${label}</th><td>${ca}</td><td>${cb}</td></tr>`);
+    const def = (k) => MapMetrics.definitions[k];
+    const metricRow = (k, label = def(k)[0]) => row(label, val(k, sides[0]), val(k, sides[1]), def(k)[1]);
+
+    group("가격");
+    const nowCell = (now) => now
+      ? `<b>${fmtPrice(now.avg)}</b><small>${fmtRange(now.lo, now.hi)} 평균 ${now.n}건${now.thin ? " · 표본 부족" : ""}</small>` : `<span class="muted">최근 1년 거래 없음</span>`;
+    row("지금 실거래", nowCell(na), nowCell(nb) + vsA(na && na.avg, nb && nb.avg), "최근 3·6·12개월 중 거래 5건 이상인 가장 짧은 기간의 평균");
+    const p33 = [per33(sides[0]), per33(sides[1])];
+    const man = (x) => (x ? `${Math.round(x).toLocaleString("ko-KR")}만원` : `<span class="muted">–</span>`);
+    row("전용 3.3㎡당", man(p33[0]), man(p33[1]) + vsA(p33[0], p33[1]), "지금 실거래 평균 ÷ 전용면적 × 3.3058");
+    metricRow("pyeong", "공급 평당");
+    if (Y != null) {
+      const yCell = (s) => s ? `${fmtPrice(s[1])}<small>${s[0]}건${s[0] < FALLBACK_MIN_N ? " · 표본 부족" : ""}</small>` : `<span class="muted">거래 없음</span>`;
+      row(`${Y}년 중위가`, yCell(ya), yCell(yb) + vsA(ya && ya[1], yb && yb[1]));
+      const gCell = (g) => g == null ? `<span class="muted">–</span>` : `<b class="chg ${chgClass(g)}">${fmtPct(g)}</b>`;
+      row(`${Y}년 이후`, gCell(ga), gCell(gb) + vsA(ga, gb, true), `${Y}년 연 중앙값(거래 ${FALLBACK_MIN_N}건 이상) 대비 지금 실거래 평균`);
+    }
+    metricRow("peak");
+    metricRow("rel");
+    metricRow("rank");
+    group("단지");
+    row("위치", escapeHtml(where(a)), escapeHtml(where(b)));
+    metricRow("occupancy");
+    metricRow("units");
+    const areaCell = (side) => {
+      const f = side[5], s = side[1], sup = f && f.supply && f.supply[s.band];
+      return `전용 ${areaOfSide(side)}㎡<small>${sup ? `공급 ${f.supplyEst && f.supplyEst.includes(s.band) ? "≈" : ""}${sup}㎡ · ` : ""}약 ${pyeong(areaOf(s.band))}평형</small>`;
+    };
+    row("면적", areaCell(sides[0]), areaCell(sides[1]));
+    metricRow("land");
+    metricRow("landPrice");
+    metricRow("far");
+    metricRow("park");
+    metricRow("subway", "지하철");
+    group("전세·거래");
+    metricRow("rentRatio");
+    metricRow("gap");
+    metricRow("vol");
+    metricRow("turnover");
+
+    const head = (c, s, i) => `<th scope="col"><span class="pair-col-head">
+        <span class="swatch" style="background:${pal[i]}"></span>
+        <button type="button" class="pair-name" data-key="${escapeAttr(c.key)}" data-band="${escapeAttr(s.band)}" title="이 단지 상세 보기">${escapeHtml(c.nm)}</button>
+        <span class="pair-band-tag">${escapeHtml(bandTag(s.band))}</span></span></th>`;
+    el.pairBody.innerHTML = `
+      ${yearSel}
+      <div class="pair-summary">${lines.map((l) => `<p>${l}</p>`).join("")}</div>
+      <table class="pair-table">
+        <thead><tr><th scope="col"><span class="sr-only">항목</span></th>${head(a, sa, 0)}${head(b, sb, 1)}</tr></thead>
+        <tbody>${rows.join("")}</tbody>
+      </table>
+      <p class="trade-distribution-note">해제 거래 제외 · 직거래 ${state.variant === "all" ? "포함" : "제외"}. ≈ 표시는 추정값입니다(항목 이름에 마우스를 올리면 산정 방식이 나옵니다). 단지명을 누르면 그 단지 상세가 열립니다.</p>`;
+    if (!facts[0] || !facts[1]) loadMapFacts();
+
+    // Year table: both medians and B's gap to A, newest first.
+    const yrs = state.data.years.filter((y) => stat(a, y, sa.band) || stat(b, y, sb.band));
+    const yCellT = (s) => s ? `${fmtPrice(s[1])} <small>${s[0]}건</small>` : `<span class="muted">–</span>`;
+    el.pairYears.innerHTML = yrs.length ? `<details class="pair-ytable" open>
+        <summary>연도별 중위가</summary>
+        <div class="trades-scroll"><table>
+          <thead><tr><th>연도</th><th>A ${escapeHtml(bandShort(sa.band))}</th><th>B ${escapeHtml(bandShort(sb.band))}</th><th>B는 A 대비</th></tr></thead>
+          <tbody>${yrs.slice().reverse().map((y) => {
+            const s1 = stat(a, y, sa.band), s2 = stat(b, y, sb.band);
+            const d = s1 && s2 ? s2[1] / s1[1] - 1 : null;
+            const thin = (s1 && s1[0] < FALLBACK_MIN_N) || (s2 && s2[0] < FALLBACK_MIN_N);
+            return `<tr class="${thin ? "is-thin" : ""}${y === Y ? " is-base" : ""}"><td>${y}</td><td>${yCellT(s1)}</td><td>${yCellT(s2)}</td>
+              <td class="chg ${chgClass(d)}">${d == null ? "–" : fmtPct(d)}</td></tr>`;
+          }).join("")}</tbody>
+        </table></div>
+        <p class="trade-distribution-note">그해 실거래 중앙값. 거래가 ${FALLBACK_MIN_N}건 미만인 해는 흐리게 표시합니다.</p>
+      </details>` : "";
+
+    el.pairChartWrap.hidden = false;
+    if (!phoneLike() && !pairColClosed) placePair(true);
+    renderPairChart(a, sa, b, sb, Y);
+  }
+
+  let pairChart = null;
+  let pairChartSeq = 0;
+  async function renderPairChart(a, sa, b, sb, Y) {
+    const my = ++pairChartSeq;
+    await loadChartLib();
+    if (!window.Chart || my !== pairChartSeq || state.start !== "pair") return;
+    const P = state.pair;
+    const pal = palette();
+    const monthly = P.gran === "month";
+    const idxBtn = document.getElementById("pair-index-btn");
+    idxBtn.textContent = Y != null ? `${Y}년 = 100` : "기준연도 = 100";
+    idxBtn.disabled = Y == null;
+    const isIndex = P.mode === "index" && Y != null;
+    const series = (c, band) => {
+      const base = isIndex ? (stat(c, Y, band) || [])[1] || null : null;
+      const toV = (m) => (isIndex ? (base ? (m / base) * 100 : null) : m / 10000);
+      if (!monthly) return state.data.years.map((y) => {
+        const s = stat(c, y, band);
+        return s ? { v: toV(s[1]), n: s[0], m: s[1] } : { v: null, n: 0, m: null };
+      });
+      return Array.from({ length: state.data.mcount }, (_, mi) => {
+        const v = monthVal(c, mi, band);
+        return v ? { v: toV(v.avg), n: v.n, m: v.avg } : { v: null, n: 0, m: null };
+      });
+    };
+    let ptsA = series(a, sa.band), ptsB = series(b, sb.band);
+    let labels = monthly ? Array.from({ length: state.data.mcount }, (_, mi) => fmtMonth(mi)) : state.data.years.map(String);
+    // Start the axis where either line has data.
+    let first = ptsA.findIndex((p, i) => p.v != null || ptsB[i].v != null);
+    if (first < 0) first = 0;
+    if (monthly) first -= first % 12;
+    ptsA = ptsA.slice(first); ptsB = ptsB.slice(first); labels = labels.slice(first);
+    const surface = cssVar("--surface");
+    const thin = monthly ? 2 : 3;
+    const ds = (c, band, pts, color, i) => ({
+      label: `${i ? "B" : "A"} ${pairName(c, band)}`,
+      data: pts.map((p) => p.v), _pts: pts,
+      borderColor: color, backgroundColor: color,
+      borderWidth: monthly ? 2 : 2.5, pointRadius: monthly ? 2 : 3.5, pointHoverRadius: monthly ? 5 : 6,
+      pointBorderWidth: monthly ? 1.5 : 2,
+      pointBackgroundColor: pts.map((p) => (p.n && p.n < thin ? surface : color)), pointBorderColor: color,
+      spanGaps: true, tension: 0, order: i,
+    });
+    el.pairChartTitle.textContent = monthly ? "월별 평균가격" : "연도별 중위가격";
+    el.pairChartNote.textContent = (monthly
+      ? "빈 원은 그 달 거래가 1건뿐인 값입니다. 거래가 없는 달은 앞뒤를 이어 그렸습니다."
+      : "빈 원은 그해 거래가 3건 미만이라 대표성이 낮은 값입니다.") +
+      (isIndex ? ` 각 단지의 ${Y}년 중위가를 100으로 놓은 값입니다.` : "") +
+      (Y != null ? ` 음영(연도별은 점선)은 기준 연도 ${Y}년입니다.` : "");
+    const marker = {
+      id: "pairBase",
+      beforeDatasetsDraw(ch) {
+        if (Y == null) return;
+        const { top, bottom } = ch.chartArea;
+        const ctx = ch.ctx;
+        ctx.save();
+        if (monthly) {
+          const lo = labels.indexOf(`${Y}.01`);
+          if (lo < 0) { ctx.restore(); return; }
+          const hi = Math.min(labels.length - 1, lo + 11);
+          const x0 = ch.scales.x.getPixelForValue(lo), x1 = ch.scales.x.getPixelForValue(hi);
+          ctx.fillStyle = cssVar("--plane");
+          ctx.fillRect(x0, top, x1 - x0, bottom - top);
+        } else {
+          const i = labels.indexOf(String(Y));
+          if (i >= 0) {
+            const x = ch.scales.x.getPixelForValue(i);
+            ctx.strokeStyle = cssVar("--line-strong");
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+          }
+        }
+        ctx.restore();
+      },
+    };
+    const muted = cssVar("--muted"), grid = cssVar("--line");
+    const config = {
+      type: "line",
+      data: { labels, datasets: [ds(a, sa.band, ptsA, pal[0], 0), ds(b, sb.band, ptsB, pal[1], 1)] },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        interaction: { mode: "index", intersect: false },
+        layout: { padding: { top: 6, right: 6 } },
+        scales: {
+          x: {
+            grid: { display: false }, border: { color: grid },
+            ticks: {
+              color: muted, font: { family: cssVar("--font") }, maxRotation: 0, autoSkip: !monthly,
+              callback: (v, i) => (monthly ? (labels[i].endsWith(".01") && Number(labels[i].slice(0, 4)) % 2 === 0 ? labels[i].slice(0, 4) : null) : labels[i]),
+            },
+          },
+          y: {
+            grid: { color: grid }, border: { display: false },
+            ticks: { color: muted, font: { family: cssVar("--font") }, callback: (v) => (isIndex ? v : `${v}억`) },
+          },
+        },
+        plugins: {
+          legend: { display: true, position: "bottom", labels: { color: cssVar("--ink-2"), boxWidth: 14, boxHeight: 3, font: { family: cssVar("--font"), size: 12 } } },
+          tooltip: {
+            backgroundColor: cssVar("--surface"), titleColor: cssVar("--ink"), bodyColor: cssVar("--ink-2"),
+            borderColor: cssVar("--line-strong"), borderWidth: 1, padding: 10, boxPadding: 4, usePointStyle: true,
+            filter: (item) => item.parsed.y != null && item.dataset._pts[item.dataIndex].m != null,
+            callbacks: {
+              title: (items) => (monthly ? items[0].label.replace(".", "년 ") + "월" : `${items[0].label}년`),
+              label: (item) => {
+                const p = item.dataset._pts[item.dataIndex];
+                return `${item.dataset.label}: ${fmtPrice(p.m)}${isIndex ? ` (지수 ${p.v.toFixed(0)})` : ""}, ${p.n}건`;
+              },
+            },
+          },
+        },
+      },
+      plugins: [marker],
+    };
+    if (pairChart) pairChart.destroy();
+    pairChart = new Chart(el.pairCanvas, config);
+  }
+
+  function bindPair() {
+    el.pairSec.querySelectorAll(".pair-pick").forEach((box) => {
+      const slot = Number(box.dataset.slot);
+      const inp = box.querySelector("input");
+      const list = box.querySelector(".search-results");
+      let hits = [], idx = -1;
+      const activate = () => { if (state.pair.active !== slot) { state.pair.active = slot; markPairActive(); } };
+      const draw = () => {
+        list.innerHTML = hits.length ? hits.map((c, i) =>
+          `<li role="option" data-i="${i}" aria-selected="${i === idx}"><span>${escapeHtml(c.nm)}</span><span class="where">${escapeHtml(where(c))}</span></li>`).join("")
+          : `<li aria-disabled="true">일치하는 단지가 없습니다</li>`;
+        list.hidden = false;
+      };
+      const close = () => { list.hidden = true; hits = []; idx = -1; };
+      const choose = (i) => {
+        const c = hits[i];
+        if (!c) return;
+        close();
+        inp.value = c.nm;
+        pairPick(c, { slot, pan: true });
+      };
+      box.addEventListener("pointerdown", activate);
+      inp.addEventListener("focus", activate);
+      inp.addEventListener("input", () => {
+        if (!normalize(inp.value)) return close();
+        hits = searchHitsFor(inp.value);
+        idx = hits.length ? 0 : -1;
+        draw();
+      });
+      inp.addEventListener("keydown", (e) => {
+        if (list.hidden) return;
+        if (e.key === "ArrowDown") { idx = Math.min(idx + 1, hits.length - 1); draw(); e.preventDefault(); }
+        else if (e.key === "ArrowUp") { idx = Math.max(idx - 1, 0); draw(); e.preventDefault(); }
+        else if (e.key === "Enter") { choose(idx); e.preventDefault(); }
+        else if (e.key === "Escape") close();
+      });
+      // Restore the chosen name if the box is left half-typed.
+      inp.addEventListener("blur", () => setTimeout(() => {
+        close();
+        const c = pairComplex(state.pair.slots[slot]);
+        if (document.activeElement !== inp) inp.value = c ? c.nm : "";
+      }, 150));
+      // Keep the input focused through the tap so its blur does not close
+      // the list first; a scroll inside the list fires no click.
+      list.addEventListener("pointerdown", (e) => e.preventDefault());
+      list.addEventListener("click", (e) => {
+        const li = e.target.closest("li[data-i]");
+        if (li) choose(Number(li.dataset.i));
+      });
+      $(`pair-b-${slot}`).addEventListener("change", (e) => {
+        const s = state.pair.slots[slot];
+        if (!s) return;
+        s.band = e.target.value;
+        runPair();
+      });
+    });
+    document.getElementById("pair-swap").addEventListener("click", () => {
+      const P = state.pair;
+      P.slots.reverse();
+      if (!!P.slots[0] !== !!P.slots[1]) P.active = P.slots[0] ? 1 : 0;
+      runPair();
+    });
+    el.pairBody.addEventListener("change", (e) => {
+      if (e.target.id !== "pair-year") return;
+      state.pair.year = Number(e.target.value);
+      render();
+    });
+    el.pairBody.addEventListener("click", (e) => {
+      const btn = e.target.closest(".pair-name");
+      if (!btn) return;
+      const c = state.byKey.get(btn.dataset.key);
+      if (c) selectComplex(c, { band: btn.dataset.band, pan: true });
+    });
+    // From a complex's detail: it becomes A, B is picked next.
+    document.getElementById("pair-from-ref").addEventListener("click", () => {
+      const c = state.ref;
+      if (!c) return;
+      const P = state.pair;
+      const keepB = P.slots[1] && !(P.slots[1].key === c.key && P.slots[1].band === state.band) ? P.slots[1] : null;
+      P.slots = [{ key: c.key, band: state.band }, keepB];
+      P.active = 1;
+      const y = baseYear();
+      if (y != null && y < state.data.years[state.data.years.length - 1]) P.year = y;
+      setStart("pair");
+      if (!keepB && !phoneLike()) setTimeout(() => $("pair-q-1").focus(), 300);
+    });
   }
 
   function renderRef() {
@@ -1437,7 +1981,7 @@
   async function loadMapFacts() {
     if (!state.mapFactsPromise) state.mapFactsPromise = fetch("data/map-metrics.json")
       .then(r => { if (!r.ok) throw new Error("map facts unavailable"); return r.json(); })
-      .then(data => { state.mapFacts = data; map.refresh(); if (state.ref) renderFacts(); if (state.filterSummary) state.filterSummary(); })
+      .then(data => { state.mapFacts = data; map.refresh(); if (state.ref) renderFacts(); if (state.start === "pair") renderPair(); if (state.filterSummary) state.filterSummary(); })
       .catch(() => { state.mapFactsPromise = null; });
     return state.mapFactsPromise;
   }
@@ -1974,7 +2518,7 @@
           markerCache.set(c.key, marker);
         } else {
           marker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(c.lat, c.lng) });
-          kakao.maps.event.addListener(marker, "click", () => selectComplex(c));
+          kakao.maps.event.addListener(marker, "click", () => mapSelect(c));
           markerCache.set(c.key, marker);
           perf.markersCreated++;
         }
@@ -2020,14 +2564,14 @@
         e.stopPropagation();
         touchedAt = Date.now();
         e.preventDefault();
-        selectComplex(c);
+        mapSelect(c);
       });
       node.addEventListener("pointercancel", () => { press = null; });
       node.addEventListener("click", (e) => {
         kakao.maps.event.preventMap();
         e.stopPropagation();
         if (Date.now() - touchedAt < 700) return; // synthetic click after touch
-        selectComplex(c);
+        mapSelect(c);
       });
     }
 
@@ -2116,6 +2660,11 @@
       const pal = palette();
       const want = new Map(); // complex key -> [complex, kind, color, band]
       if (state.ref) want.set(state.ref.key, [state.ref, "ref", null, state.band]);
+      // Pair mode: A as the filled blue pin, B outlined in its series color.
+      if (state.start === "pair") state.pair.slots.forEach((s, i) => {
+        const c = s && state.byKey.get(s.key);
+        if (c && !want.has(c.key)) want.set(c.key, [c, i === 0 ? "ref" : "cmp", i === 0 ? null : pal[1], s.band || state.band]);
+      });
       // A complex can match in several bands; a checked band wins the pin.
       for (const s of state.similar) {
         const on = state.slotOf.has(s.key);
@@ -2190,8 +2739,25 @@
 
   // ---------- URL state ----------
   // Price mode keys: st=p, pm=YYYYMM, pa=억, ps=asc (t/s/d shared).
+  // Pair mode keys: st=pair, ka/ba and kb/bb (complex key / area type of
+  // A and B), py=base year, pg=month, pv=index (d shared).
   function writeHash() {
     const p = new URLSearchParams();
+    if (state.start === "pair") {
+      const P = state.pair;
+      p.set("st", "pair");
+      P.slots.forEach((s, i) => {
+        if (!s) return;
+        p.set(i ? "kb" : "ka", s.key);
+        if (s.band) p.set(i ? "bb" : "ba", s.band);
+      });
+      if (P.year != null) p.set("py", P.year);
+      if (P.gran === "month") p.set("pg", "month");
+      if (P.mode === "index") p.set("pv", "index");
+      if (state.variant === "all") p.set("d", "1");
+      history.replaceState(null, "", `#${p.toString()}`);
+      return;
+    }
     if (state.start === "price") {
       const [y, m] = ymOf(state.price.mi);
       p.set("st", "p");
@@ -2233,6 +2799,22 @@
     el.direct.checked = state.variant === "all";
     el.cmpBand.value = state.sameBand ? "same" : "all";
     setSegButtons();
+    if (p.get("st") === "pair") {
+      const P = state.pair;
+      P.slots = [["ka", "ba"], ["kb", "bb"]].map(([k, b]) => {
+        const c = p.get(k) && state.byKey.get(p.get(k));
+        return c ? { key: c.key, band: c.b.includes(p.get(b)) ? p.get(b) : null } : null;
+      });
+      const py = Number(p.get("py"));
+      if (py) P.year = py;
+      if (p.get("pg") === "month") P.gran = "month";
+      if (p.get("pv") === "index") P.mode = "index";
+      P.active = P.slots[0] && !P.slots[1] ? 1 : 0;
+      setStart("pair");
+      const first = pairComplex(P.slots[0]);
+      if (first) map.panTo(first);
+      return;
+    }
     if (p.get("st") === "p") {
       const pm = p.get("pm");
       if (pm && /^\d{6}$/.test(pm)) {
@@ -2355,6 +2937,13 @@
     document.querySelectorAll(".seg").forEach((seg) => seg.addEventListener("click", (e) => {
       const b = e.target.closest(".seg-btn");
       if (!b) return;
+      if (b.dataset.pgran || b.dataset.pmode) {
+        if (b.disabled) return;
+        if (b.dataset.pgran) state.pair.gran = b.dataset.pgran;
+        if (b.dataset.pmode) state.pair.mode = b.dataset.pmode;
+        render();
+        return;
+      }
       if (b.dataset.psort) {
         state.price.sort = b.dataset.psort;
         sortEntries(state.price.results, state.price.sort);
@@ -2369,7 +2958,11 @@
       writeHash();
     }));
 
-    darkQuery.addEventListener("change", () => { if (state.ref) { renderSimilar(); renderChart(); map.refresh(); } });
+    darkQuery.addEventListener("change", () => {
+      if (state.start === "pair") render();
+      else if (state.ref) { renderSimilar(); renderChart(); map.refresh(); }
+    });
+    bindPair();
 
     // Price mode
     document.querySelector(".start-tabs").addEventListener("click", (e) => {
@@ -2406,6 +2999,7 @@
 
   function afterFilter(bandChanged) {
     monthCache.clear();
+    if (state.start === "pair") { runPair(); return; }
     if (state.start === "price") { runPrice(); return; }
     if (!state.ref) { map.refresh(); writeHash(); return; }
     recompute({ resetChecks: bandChanged });
@@ -2420,7 +3014,7 @@
   const escapeAttr = escapeHtml;
 
   // Expose helpers for tests.
-  window.__aptMap = { makeMapPin: map.pinFor, mapMetricText, state, findSimilar, matchCandidates, stat, months, windowAvg, basePrice, nowPrice, fmtPrice, selectComplex, setStart };
+  window.__aptMap = { makeMapPin: map.pinFor, mapMetricText, state, findSimilar, matchCandidates, stat, months, windowAvg, basePrice, nowPrice, fmtPrice, selectComplex, setStart, pairPick };
 
   (async function start() {
     bind();

@@ -35,7 +35,17 @@ const assert=require('node:assert/strict');
   if(await page.locator('#map-metric-toggle').isVisible())await page.click('#map-metric-toggle');
   const select=await page.locator('#map-metric-select').boundingBox();assert.ok(select.x>=0 && select.x+select.width<=width);
   await page.screenshot({path:'/tmp/site-ui/map-metric-'+width+'.png'});
+  // Two-complex comparison from a shared link: summary, facts table, chart,
+  // no sideways scroll, and the tab returns to complex mode.
+  await page.goto('http://127.0.0.1:8765/#st=pair&ka='+encodeURIComponent('11710|잠실동|22')+'&ba=84&kb='+encodeURIComponent('11710|신천동|17')+'&bb=84');
+  await page.reload();await page.waitForSelector('.pair-table tbody tr');
+  const pair=await page.evaluate(()=>({summary:document.querySelector('.pair-summary').innerText,rows:document.querySelectorAll('.pair-table tbody tr').length,
+   year:document.getElementById('pair-year').value,band:document.getElementById('pair-b-1').value,scroll:document.documentElement.scrollWidth}));
+  assert.ok(pair.summary.startsWith('지금은'),pair.summary);assert.ok(pair.rows>=20,String(pair.rows));
+  assert.ok(Number(pair.year)>=2006);assert.equal(pair.band,'84');assert.ok(pair.scroll<=width,String(pair.scroll));
+  await page.waitForFunction(()=>document.getElementById('pair-chart').getBoundingClientRect().height>0);
+  await page.screenshot({path:'/tmp/site-ui/pair-'+width+'.png'});
   assert.deepEqual(errors,[]);await context.close();
  }
- await browser.close();console.log('Map metric controls and two-line pins passed at three viewport widths');
+ await browser.close();console.log('Map metric controls, two-line pins and pair comparison passed at three viewport widths');
 })().catch(e=>{console.error(e);process.exit(1)});
