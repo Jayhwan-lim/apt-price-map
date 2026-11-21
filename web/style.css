@@ -607,26 +607,35 @@ html.phone-ui .map-metric-control.open .mm-toggle::after { content: "▴"; }
   border-radius: 999px; padding: 4px 12px; font-size: 12.5px; cursor: pointer; color: var(--ink);
 }
 .pair-open:hover { border-color: var(--ink-2); }
-.pair-pickers { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; align-items: center; }
+.pair-pickers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: start; }
 .pair-pick {
   display: grid; gap: 6px; min-width: 0; padding: 9px 10px 10px;
   border: 1px solid var(--line); border-top: 3px solid var(--c, var(--line-strong));
   border-radius: var(--radius-m); background: var(--surface);
 }
 .pair-pick.is-active { border-color: var(--c); box-shadow: 0 0 0 1px var(--c); }
-.pair-slot { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.pair-slot { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 20px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.pair-slot > span { display: inline-flex; align-items: center; gap: 6px; }
+.pair-remove { border: 0; background: none; padding: 0 2px; cursor: pointer; color: var(--muted); font-size: 13px; line-height: 1; }
+.pair-remove:hover { color: var(--ink); }
 .pair-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--line-strong)); }
 .pair-search input { height: 36px; padding: 0 9px; font-size: 13.5px; }
 .pair-search .search-results { top: 40px; min-width: 250px; }
-.pair-pick[data-slot="1"] .search-results { left: auto; right: 0; }
+.pair-pick:nth-child(even) .search-results { left: auto; right: 0; }
 .pair-band-label { display: grid; gap: 2px; font-size: 12px; color: var(--ink-2); }
 .pair-band {
   width: 100%; height: 32px; padding: 0 6px; font-size: 12.5px;
   border: 1px solid var(--line-strong); border-radius: var(--radius-s); background: var(--surface);
 }
+.pair-tools { display: flex; gap: 8px; margin-top: 8px; }
+.pair-add {
+  flex: 1; height: 34px; border: 1px dashed var(--line-strong); border-radius: var(--radius-m);
+  background: var(--surface); color: var(--ink-2); font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.pair-add:hover { border-color: var(--ink-2); color: var(--ink); }
 .pair-swap {
-  width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer;
-  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); font-size: 15px;
+  height: 34px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--radius-m);
+  background: var(--surface); color: var(--ink-2); font-size: 12.5px; cursor: pointer; white-space: nowrap;
 }
 .pair-swap:hover { border-color: var(--ink-2); color: var(--ink); }
 .pair-hint { margin-top: 8px; font-size: 12px; color: var(--muted); }
@@ -657,7 +666,10 @@ html.phone-ui .map-metric-control.open .mm-toggle::after { content: "▴"; }
 .pair-table td b { font-weight: 600; }
 .pair-group th { padding-top: 14px; font-size: 11.5px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
 .pair-col-head { display: grid; gap: 3px; justify-items: start; }
-.pair-col-head .swatch { width: 18px; height: 4px; }
+.pair-letter {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--c); color: #fff; font-size: 11px; font-weight: 700;
+}
 .pair-name {
   border: 0; background: none; padding: 0; cursor: pointer; text-align: left;
   font-weight: 600; font-size: 13.5px; line-height: 1.3; color: var(--ink);
@@ -679,3 +691,11 @@ html.phone-ui .map-metric-control.open .mm-toggle::after { content: "▴"; }
 html.phone-ui body.sheet-open .pair-pickers { gap: 4px; }
 /* The phone sheet hides the main search box; the pair pickers keep theirs. */
 html.phone-ui body.sheet-open .search.pair-search { display: block; }
+/* Three or four columns: tighter type so the table fits the 420px column and phones. */
+.pair-table-wrap { overflow-x: auto; }
+.pair-table.n3, .pair-table.n4 { font-size: 12px; }
+.pair-table.n3 thead th:first-child, .pair-table.n4 thead th:first-child { width: 20%; }
+.pair-table.n3 th, .pair-table.n3 td, .pair-table.n4 th, .pair-table.n4 td { padding: 6px 3px; }
+.pair-table.n3 .pair-name, .pair-table.n4 .pair-name { font-size: 12.5px; }
+.pair-table.n4 td small, .pair-table.n4 .pair-band-tag { font-size: 10.5px; }
+.pair-table.n4 tbody th { font-size: 11px; }

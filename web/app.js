@@ -555,13 +555,13 @@
     if (phoneLike()) {
       placePair(false);
       document.body.classList.remove("detail-open");
-      if (pairSheetClosed) closeSheet(); else openModeSheet("두 단지 비교");
+      if (pairSheetClosed) closeSheet(); else openModeSheet("단지 비교");
     } else {
       closeSheet();
       if (pairColClosed) { placePair(false); document.body.classList.remove("detail-open"); return; }
       placePair(true);
       const t = document.getElementById("detail-col-title");
-      if (t) t.textContent = "두 단지 비교";
+      if (t) t.textContent = "단지 비교";
       document.body.classList.add("detail-open");
       setTimeout(() => { try { if (map && typeof map.relayout === "function") map.relayout(); } catch (e) { /* map not ready */ } }, 900);
     }
@@ -1071,10 +1071,13 @@
     runPrice();
   }
 
-  // ---------- pair mode: two complexes side by side ----------
-  // Any two (complex, area type) slots, including two types of one complex:
-  // prices in a chosen base year and now, a facts table built from the same
-  // map metrics as the pins, both price lines, and a year-by-year table.
+  // ---------- pair mode: two to four complexes side by side ----------
+  // Slots A-D, each a (complex, area type), including several types of one
+  // complex: prices in a chosen base year and now, a facts table built from
+  // the same map metrics as the pins, every price line, and a year table.
+  // A (the first filled slot) is the reference the other columns compare to.
+  const PAIR_MAX = 4;
+  const SLOT = "ABCD";
   const pairComplex = (s) => (s ? state.byKey.get(s.key) || null : null);
   const pairName = (c, band) => `${c.nm} ${bandShort(band)}`;
   // Leading words MapMetrics puts in front of a value; the row label says them.
@@ -1087,13 +1090,17 @@
     else selectComplex(c);
   }
 
-  // Area type for a newly picked complex: the type nearest the other
-  // slot's (so 84 meets 84), unless that would repeat the other slot
-  // exactly; otherwise the most traded type.
+  const pairEmptySlot = () => state.pair.slots.findIndex((s) => !s);
+
+  // Area type for a newly picked complex: the type nearest A's (so 84
+  // meets 84), unless that would repeat another slot exactly; otherwise
+  // the most traded type.
   function pairDefaultBand(c, slot) {
-    const other = state.pair.slots[1 - slot];
-    const same = (k) => other && other.key === c.key && other.band === k;
-    const near = nearestType(c, (other && other.band) || state.band, true);
+    const P = state.pair;
+    const others = P.slots.filter((s, i) => s && i !== slot && s.band);
+    const same = (k) => others.some((o) => o.key === c.key && o.band === k);
+    const ref = slot !== 0 && P.slots[0] && P.slots[0].band ? P.slots[0] : others[0];
+    const near = nearestType(c, (ref && ref.band) || state.band, true);
     if (near && !same(near)) return near;
     const ty = ((regionStore.get(c.code) || {})[c.id] || {}).ty || {};
     const ranked = Object.entries(ty).sort((x, y) => y[1][3] - x[1][3]).map(([k]) => k).filter((k) => c.b.includes(k));
@@ -1112,34 +1119,62 @@
     if (!c.b.length) return;
     const P = state.pair;
     if (slot == null) slot = P.active;
-    // Search picks move the map (framing both pins once B is set); map
-    // taps leave it where the user is browsing.
-    if (pan) map.fitBoth([pairComplex(P.slots[1 - slot]), c]);
+    slot = Math.max(0, Math.min(slot, P.slots.length - 1));
     await loadRegion(c.code);
     P.slots[slot] = { key: c.key, band: band && c.b.includes(band) ? band : pairDefaultBand(c, slot) };
-    // The next map tap fills the other slot while it is empty, otherwise
-    // keeps replacing this one (trying several B candidates against one A).
-    P.active = P.slots[1 - slot] ? slot : 1 - slot;
+    // The next map tap fills the first empty slot, otherwise keeps replacing
+    // this one (trying several candidates against the others).
+    const empty = pairEmptySlot();
+    P.active = empty >= 0 ? empty : slot;
+    // Search picks move the map to frame every pick; map taps leave the
+    // view where the user is browsing.
+    if (pan) map.fitAll(P.slots.map(pairComplex));
     pairSheetClosed = false;
     pairColClosed = false;
     loadMapFacts();
     runPair();
   }
 
-  // Years in which both slots have at least one trade.
-  function pairYears(a, sa, b, sb) {
-    return state.data.years.filter((y) => stat(a, y, sa.band) && stat(b, y, sb.band));
+  function pairAdd() {
+    const P = state.pair;
+    if (P.slots.length >= PAIR_MAX) return;
+    P.slots.push(null);
+    P.active = P.slots.length - 1;
+    render();
+    setTimeout(() => { const inp = $(`pair-q-${P.active}`); if (inp) inp.focus(); }, 60);
+  }
+  function pairRemove(i) {
+    const P = state.pair;
+    P.slots.splice(i, 1);
+    while (P.slots.length < 2) P.slots.push(null);
+    const empty = pairEmptySlot();
+    P.active = empty >= 0 ? empty : Math.min(P.active, P.slots.length - 1);
+    runPair();
+  }
+
+  // Base years: those in which every compared slot traded; if there is no
+  // such year, those of the first slot (the others show "–").
+  function pairYears(items) {
+    const all = state.data.years.filter((y) => items.every((it) => stat(it.c, y, it.s.band)));
+    return all.length ? all : state.data.years.filter((y) => stat(items[0].c, y, items[0].s.band));
   }
   // Default base year: five years before the latest data year, or the
-  // nearest year where both slots have FALLBACK_MIN_N trades (never the
+  // nearest year where every slot has FALLBACK_MIN_N trades (never the
   // current year, which has no growth window yet).
-  function pairDefaultYear(a, sa, b, sb, ys) {
+  function pairDefaultYear(items, ys) {
     if (!ys.length) return null;
     const last = state.data.years[state.data.years.length - 1];
-    const solid = ys.filter((y) => y < last && stat(a, y, sa.band)[0] >= FALLBACK_MIN_N && stat(b, y, sb.band)[0] >= FALLBACK_MIN_N);
+    const solid = ys.filter((y) => y < last && items.every((it) => (stat(it.c, y, it.s.band) || [0])[0] >= FALLBACK_MIN_N));
     const pool = solid.length ? solid : ys;
     const target = last - 5;
     return pool.reduce((best, y) => (Math.abs(y - target) < Math.abs(best - target) ? y : best), pool[0]);
+  }
+  // Filled slots whose data is loaded, in slot order.
+  function pairItems() {
+    return state.pair.slots.map((s, i) => {
+      const c = pairComplex(s);
+      return c && s.band && regionStore.has(c.code) ? { i, c, s, letter: SLOT[i], name: pairName(c, s.band) } : null;
+    }).filter(Boolean);
   }
 
   let pairSeq = 0;
@@ -1155,10 +1190,10 @@
       if (my !== pairSeq || state.start !== "pair") return;
     }
     cs.forEach((c, i) => { if (c && !P.slots[i].band) P.slots[i].band = pairDefaultBand(c, i); });
-    const [a, b] = cs;
-    if (a && b) {
-      const ys = pairYears(a, P.slots[0], b, P.slots[1]);
-      if (P.year == null || !ys.includes(P.year)) P.year = pairDefaultYear(a, P.slots[0], b, P.slots[1], ys);
+    const items = pairItems();
+    if (items.length >= 2) {
+      const ys = pairYears(items);
+      if (P.year == null || !ys.includes(P.year)) P.year = pairDefaultYear(items, ys);
     }
     render();
     presentPair();
@@ -1169,6 +1204,28 @@
       box.classList.toggle("is-active", Number(box.dataset.slot) === state.pair.active));
   }
 
+  // Picker boxes are rebuilt only when the slot count changes, so typing in
+  // one is never interrupted by a re-render.
+  function pickerHtml(i) {
+    return `<div class="pair-pick" data-slot="${i}">
+      <p class="pair-slot"><span><i class="pair-dot"></i>단지 ${SLOT[i]}</span>
+        <button type="button" class="pair-remove" data-remove="${i}" title="이 칸 빼기" aria-label="단지 ${SLOT[i]} 빼기">✕</button></p>
+      <div class="search pair-search">
+        <label class="sr-only" for="pair-q-${i}">단지 ${SLOT[i]} 검색</label>
+        <input id="pair-q-${i}" data-slot="${i}" type="search" autocomplete="off" placeholder="단지 검색 또는 지도에서 선택">
+        <ul class="search-results" role="listbox" hidden></ul>
+      </div>
+      <label class="pair-band-label">평형 <select class="pair-band" id="pair-b-${i}" data-slot="${i}" disabled><option>단지를 고르면 나옵니다</option></select></label>
+    </div>`;
+  }
+  function syncPickers() {
+    const host = $("pair-pickers");
+    const n = state.pair.slots.length;
+    if (Number(host.dataset.n) === n) return;
+    host.dataset.n = String(n);
+    host.innerHTML = state.pair.slots.map((_, i) => pickerHtml(i)).join("");
+  }
+
   // "B가 A보다 1.2억(8%) 비쌉니다" for averages x (A) and y (B).
   function pairGap(nameA, x, nameB, y, past) {
     const r = y / x - 1;
@@ -1176,15 +1233,56 @@
     const [hi, lo, rr] = r > 0 ? [nameB, nameA, r] : [nameA, nameB, x / y - 1];
     return `<b>${escapeHtml(hi)}</b>가 <b>${escapeHtml(lo)}</b>보다 <b>${fmtPrice(Math.abs(y - x))}(${Math.round(rr * 100)}%)</b> ${past ? "비쌌습니다" : "비쌉니다"}`;
   }
+  // "X 42.5억 > Y 35.0억 > Z 29.7억" for three or more.
+  function pairRanking(items, val, fmt) {
+    return items.filter((it) => val(it) != null).sort((x, y) => val(y) - val(x))
+      .map((it) => `<b>${escapeHtml(it.name)}</b> ${fmt(val(it))}`).join(" &gt; ");
+  }
+
+  function pairSummary(items, Y) {
+    const lines = [];
+    if (items.length === 2) {
+      const [A, B] = items;
+      if (A.now && B.now) lines.push(`지금은 ${pairGap(A.name, A.now.avg, B.name, B.now.avg, false)}.`);
+      else lines.push(`${escapeHtml(!A.now ? A.name : B.name)}의 최근 1년 거래가 없어 지금 시세는 비교할 수 없습니다.`);
+      if (A.ys && B.ys) {
+        const thin = A.ys[0] < FALLBACK_MIN_N || B.ys[0] < FALLBACK_MIN_N ? ` <span class="badge-thin">표본 적음</span>` : "";
+        lines.push(`${Y}년에는 ${pairGap(A.name, A.ys[1], B.name, B.ys[1], true)}.${thin}`);
+      }
+      if (A.g != null && B.g != null) {
+        const then = B.ys[1] / A.ys[1] - 1, now = B.now.avg / A.now.avg - 1;
+        const flip = Math.abs(then) >= 0.01 && Math.abs(now) >= 0.01 && Math.sign(then) !== Math.sign(now);
+        const verdict = flip ? "순서가 뒤집혔습니다" : Math.abs(now) > Math.abs(then) + 0.01 ? "격차가 벌어졌습니다"
+          : Math.abs(now) < Math.abs(then) - 0.01 ? "격차가 좁혀졌습니다" : "격차가 거의 그대로입니다";
+        lines.push(`그사이 ${escapeHtml(A.name)} <b class="chg ${chgClass(A.g)}">${fmtPct(A.g)}</b>, ${escapeHtml(B.name)} <b class="chg ${chgClass(B.g)}">${fmtPct(B.g)}</b> — ${verdict}.`);
+      }
+      return lines;
+    }
+    // Three or more: order by price now, by price then, and by growth.
+    const withNow = items.filter((it) => it.now);
+    if (withNow.length >= 2) {
+      const hi = Math.max(...withNow.map((it) => it.now.avg)), lo = Math.min(...withNow.map((it) => it.now.avg));
+      lines.push(`지금 시세: ${pairRanking(withNow, (it) => it.now.avg, fmtPrice)}. 가장 비싼 곳과 싼 곳 차이 <b>${fmtPrice(hi - lo)}(${Math.round((hi / lo - 1) * 100)}%)</b>.`);
+    }
+    const noNow = items.filter((it) => !it.now);
+    if (noNow.length) lines.push(`${noNow.map((it) => escapeHtml(it.name)).join(", ")}: 최근 1년 거래가 없어 지금 시세가 없습니다.`);
+    const withY = items.filter((it) => it.ys);
+    if (Y != null && withY.length >= 2) lines.push(`${Y}년: ${pairRanking(withY, (it) => it.ys[1], fmtPrice)}.`);
+    const withG = items.filter((it) => it.g != null);
+    if (Y != null && withG.length >= 2) lines.push(`${Y}년 이후 상승률: ${pairRanking(withG, (it) => it.g, (g) => `<span class="chg ${chgClass(g)}">${fmtPct(g)}</span>`)}.`);
+    return lines;
+  }
 
   function renderPair() {
     const P = state.pair;
     const pal = palette();
     el.pairSec.hidden = false;
+    syncPickers();
     P.slots.forEach((s, slot) => {
       const c = pairComplex(s);
       const box = el.pairSec.querySelector(`.pair-pick[data-slot="${slot}"]`);
       box.style.setProperty("--c", pal[slot]);
+      box.querySelector(".pair-remove").hidden = P.slots.length <= 2;
       const sel = $(`pair-b-${slot}`);
       if (c && regionStore.has(c.code)) {
         sel.innerHTML = typeOptions(c);
@@ -1198,102 +1296,90 @@
       if (document.activeElement !== inp) inp.value = c ? c.nm : "";
     });
     markPairActive();
+    $("pair-add").hidden = P.slots.length >= PAIR_MAX;
+    $("pair-swap").hidden = P.slots.length !== 2;
     document.querySelectorAll("[data-pgran], [data-pmode]").forEach((btn) => {
       const on = btn.dataset.pgran ? btn.dataset.pgran === P.gran : btn.dataset.pmode === P.mode;
       btn.classList.toggle("is-on", on);
       btn.setAttribute("aria-pressed", String(on));
     });
 
-    const [a, b] = P.slots.map(pairComplex);
-    const ready = a && b && regionStore.has(a.code) && regionStore.has(b.code) && P.slots[0].band && P.slots[1].band;
-    if (!ready) {
-      const loading = (a && !regionStore.has(a.code)) || (b && !regionStore.has(b.code));
+    const items = pairItems();
+    if (items.length < 2) {
+      const loading = P.slots.some((s) => { const c = pairComplex(s); return c && !regionStore.has(c.code); });
+      const filled = P.slots.filter(Boolean).length;
       el.pairBody.innerHTML = `<p class="pair-empty">${loading ? "단지 데이터를 불러오는 중…"
-        : !a && !b ? "비교할 두 단지를 고르세요. 위 칸에서 검색하거나 지도에서 단지를 누르면 됩니다."
-        : "비교할 단지를 하나 더 고르세요. 위 칸에서 검색하거나 지도에서 단지를 누르면 됩니다."}</p>`;
+        : filled ? "비교할 단지를 하나 더 고르세요. 위 칸에서 검색하거나 지도에서 단지를 누르면 됩니다."
+        : "비교할 단지를 고르세요. 위 칸에서 검색하거나 지도에서 단지를 누르면 됩니다."}</p>`;
       el.pairChartWrap.hidden = true;
       el.pairYears.innerHTML = "";
       return;
     }
-    const sa = P.slots[0], sb = P.slots[1];
-    const ys = pairYears(a, sa, b, sb);
+    const n = items.length;
+    const ys = pairYears(items);
     const Y = P.year;
-    const nameA = pairName(a, sa.band), nameB = pairName(b, sb.band);
-    const na = nowPrice(a, sa.band), nb = nowPrice(b, sb.band);
-    const ya = Y != null ? stat(a, Y, sa.band) : null, yb = Y != null ? stat(b, Y, sb.band) : null;
-    const ba = Y != null ? yearBase(a, sa.band, Y) : null, bb = Y != null ? yearBase(b, sb.band, Y) : null;
-    const ga = growthOf(ba, na), gb = growthOf(bb, nb);
     const last = state.data.years[state.data.years.length - 1];
-
-    // Summary: the gap now, the gap in the base year, and what changed.
-    const lines = [];
-    if (na && nb) lines.push(`지금은 ${pairGap(nameA, na.avg, nameB, nb.avg, false)}.`);
-    else lines.push(`${escapeHtml(!na ? nameA : nameB)}의 최근 1년 거래가 없어 지금 시세는 비교할 수 없습니다.`);
-    if (ya && yb) {
-      const thin = ya[0] < FALLBACK_MIN_N || yb[0] < FALLBACK_MIN_N ? ` <span class="badge-thin">표본 적음</span>` : "";
-      lines.push(`${Y}년에는 ${pairGap(nameA, ya[1], nameB, yb[1], true)}.${thin}`);
+    for (const it of items) {
+      it.now = nowPrice(it.c, it.s.band);
+      it.ys = Y != null ? stat(it.c, Y, it.s.band) : null;
+      it.base = Y != null ? yearBase(it.c, it.s.band, Y) : null;
+      it.g = growthOf(it.base, it.now);
+      it.f = factsOf(it.c);
+      it.area = (it.f && it.f.areas && it.f.areas[it.s.band]) || areaOf(it.s.band);
+      it.p33 = it.now ? it.now.avg / it.area * 3.3058 : null;
     }
-    if (ga != null && gb != null) {
-      const then = yb[1] / ya[1] - 1, now = nb.avg / na.avg - 1;
-      const flip = Math.abs(then) >= 0.01 && Math.abs(now) >= 0.01 && Math.sign(then) !== Math.sign(now);
-      const verdict = flip ? "순서가 뒤집혔습니다" : Math.abs(now) > Math.abs(then) + 0.01 ? "격차가 벌어졌습니다"
-        : Math.abs(now) < Math.abs(then) - 0.01 ? "격차가 좁혀졌습니다" : "격차가 거의 그대로입니다";
-      lines.push(`그사이 ${escapeHtml(nameA)} <b class="chg ${chgClass(ga)}">${fmtPct(ga)}</b>, ${escapeHtml(nameB)} <b class="chg ${chgClass(gb)}">${fmtPct(gb)}</b> — ${verdict}.`);
-    }
+    const ref = items[0];
     const yearSel = ys.length
       ? `<label class="pair-year">기준 연도 <select id="pair-year">${ys.slice().reverse().map((y) =>
           `<option value="${y}"${y === Y ? " selected" : ""}>${y}년${y === last ? " (올해)" : ""}</option>`).join("")}</select></label>`
-      : `<p class="pair-hint">두 단지가 같은 해에 거래된 적이 없어 기준 연도를 고를 수 없습니다.</p>`;
+      : `<p class="pair-hint">비교할 단지들이 같은 해에 거래된 적이 없어 기준 연도를 고를 수 없습니다.</p>`;
 
-    // Facts table: A and B columns; B cells note the gap to A where it is a price.
-    const facts = [factsOf(a), factsOf(b)];
-    const sides = [[a, sa, na, ya, ga, facts[0]], [b, sb, nb, yb, gb, facts[1]]];
-    const val = (k, [c, s, now, , , f]) => {
-      if (!f) return `<span class="muted">불러오는 중…</span>`;
-      const t = MapMetrics.value(k, c, s.band, now, f, state.variant).replace(PAIR_STRIP, "");
+    // Facts table: one column per slot; columns after the first note their
+    // gap to it where the row is a price or a growth rate.
+    const val = (k, it) => {
+      if (!it.f) return `<span class="muted">불러오는 중…</span>`;
+      let t = MapMetrics.value(k, it.c, it.s.band, it.now, it.f, state.variant).replace(PAIR_STRIP, "");
+      if (n >= 3) t = t.replace(/\s*\(구 평균[^)]*\)$/, "");  // keep narrow columns short
       return PAIR_MISSING.test(t) ? `<span class="muted">${escapeHtml(t)}</span>` : escapeHtml(t);
     };
-    const vsA = (x, y, pp = false) => {
+    const vsRef = (x, y, pp = false) => {
       if (x == null || y == null) return "";
       const d = pp ? y - x : y / x - 1;
       const txt = pp ? `${fmtPct(d).slice(0, -1)}%p` : fmtPct(d);
-      return `<small class="chg ${chgClass(d)}">A 대비 ${txt}</small>`;
+      return `<small class="chg ${chgClass(d)}">${ref.letter} 대비 ${txt}</small>`;
     };
-    const areaOfSide = ([c, s, , , , f]) => (f && f.areas && f.areas[s.band]) || areaOf(s.band);
-    const per33 = (side) => (side[2] ? side[2].avg / areaOfSide(side) * 3.3058 : null);
     const rows = [];
-    const group = (t) => rows.push(`<tr class="pair-group"><th colspan="3" scope="colgroup">${t}</th></tr>`);
-    const row = (label, ca, cb, title = "") =>
-      rows.push(`<tr><th scope="row"${title ? ` title="${escapeAttr(title)}"` : ""}>${label}</th><td>${ca}</td><td>${cb}</td></tr>`);
+    const group = (t) => rows.push(`<tr class="pair-group"><th colspan="${n + 1}" scope="colgroup">${t}</th></tr>`);
+    const row = (label, cell, title = "") => rows.push(`<tr><th scope="row"${title ? ` title="${escapeAttr(title)}"` : ""}>${label}</th>${items.map((it, k) => `<td>${cell(it, k)}</td>`).join("")}</tr>`);
     const def = (k) => MapMetrics.definitions[k];
-    const metricRow = (k, label = def(k)[0]) => row(label, val(k, sides[0]), val(k, sides[1]), def(k)[1]);
+    const metricRow = (k, label = def(k)[0]) => row(label, (it) => val(k, it), def(k)[1]);
+    const man = (x) => (x ? `${Math.round(x).toLocaleString("ko-KR")}만원` : `<span class="muted">–</span>`);
 
     group("가격");
-    const nowCell = (now) => now
-      ? `<b>${fmtPrice(now.avg)}</b><small>${fmtRange(now.lo, now.hi)} 평균 ${now.n}건${now.thin ? " · 표본 부족" : ""}</small>` : `<span class="muted">최근 1년 거래 없음</span>`;
-    row("지금 실거래", nowCell(na), nowCell(nb) + vsA(na && na.avg, nb && nb.avg), "최근 3·6·12개월 중 거래 5건 이상인 가장 짧은 기간의 평균");
-    const p33 = [per33(sides[0]), per33(sides[1])];
-    const man = (x) => (x ? `${Math.round(x).toLocaleString("ko-KR")}만원` : `<span class="muted">–</span>`);
-    row("전용 3.3㎡당", man(p33[0]), man(p33[1]) + vsA(p33[0], p33[1]), "지금 실거래 평균 ÷ 전용면적 × 3.3058");
+    row("지금 실거래", (it, k) => (it.now
+      ? `<b>${fmtPrice(it.now.avg)}</b><small>${fmtRange(it.now.lo, it.now.hi)} 평균 ${it.now.n}건${it.now.thin ? " · 표본 부족" : ""}</small>`
+      : `<span class="muted">최근 1년 거래 없음</span>`) + (k ? vsRef(ref.now && ref.now.avg, it.now && it.now.avg) : ""),
+      "최근 3·6·12개월 중 거래 5건 이상인 가장 짧은 기간의 평균");
+    row("전용 3.3㎡당", (it, k) => man(it.p33) + (k ? vsRef(ref.p33, it.p33) : ""), "지금 실거래 평균 ÷ 전용면적 × 3.3058");
     metricRow("pyeong", "공급 평당");
     if (Y != null) {
-      const yCell = (s) => s ? `${fmtPrice(s[1])}<small>${s[0]}건${s[0] < FALLBACK_MIN_N ? " · 표본 부족" : ""}</small>` : `<span class="muted">거래 없음</span>`;
-      row(`${Y}년 중위가`, yCell(ya), yCell(yb) + vsA(ya && ya[1], yb && yb[1]));
-      const gCell = (g) => g == null ? `<span class="muted">–</span>` : `<b class="chg ${chgClass(g)}">${fmtPct(g)}</b>`;
-      row(`${Y}년 이후`, gCell(ga), gCell(gb) + vsA(ga, gb, true), `${Y}년 연 중앙값(거래 ${FALLBACK_MIN_N}건 이상) 대비 지금 실거래 평균`);
+      row(`${Y}년 중위가`, (it, k) => (it.ys ? `${fmtPrice(it.ys[1])}<small>${it.ys[0]}건${it.ys[0] < FALLBACK_MIN_N ? " · 표본 부족" : ""}</small>` : `<span class="muted">거래 없음</span>`)
+        + (k ? vsRef(ref.ys && ref.ys[1], it.ys && it.ys[1]) : ""));
+      row(`${Y}년 이후`, (it, k) => (it.g == null ? `<span class="muted">–</span>` : `<b class="chg ${chgClass(it.g)}">${fmtPct(it.g)}</b>`)
+        + (k ? vsRef(ref.g, it.g, true) : ""), `${Y}년 연 중앙값(거래 ${FALLBACK_MIN_N}건 이상) 대비 지금 실거래 평균`);
     }
     metricRow("peak");
     metricRow("rel");
     metricRow("rank");
     group("단지");
-    row("위치", escapeHtml(where(a)), escapeHtml(where(b)));
+    row("위치", (it) => escapeHtml(where(it.c)));
     metricRow("occupancy");
     metricRow("units");
-    const areaCell = (side) => {
-      const f = side[5], s = side[1], sup = f && f.supply && f.supply[s.band];
-      return `전용 ${areaOfSide(side)}㎡<small>${sup ? `공급 ${f.supplyEst && f.supplyEst.includes(s.band) ? "≈" : ""}${sup}㎡ · ` : ""}약 ${pyeong(areaOf(s.band))}평형</small>`;
-    };
-    row("면적", areaCell(sides[0]), areaCell(sides[1]));
+    row("면적", (it) => {
+      const sup = it.f && it.f.supply && it.f.supply[it.s.band];
+      const est = sup && it.f.supplyEst && it.f.supplyEst.includes(it.s.band) ? "≈" : "";
+      return `전용 ${it.area}㎡<small>${sup ? `공급 ${est}${sup}㎡ · ` : ""}약 ${pyeong(areaOf(it.s.band))}평형</small>`;
+    });
     metricRow("land");
     metricRow("landPrice");
     metricRow("far");
@@ -1305,33 +1391,33 @@
     metricRow("vol");
     metricRow("turnover");
 
-    const head = (c, s, i) => `<th scope="col"><span class="pair-col-head">
-        <span class="swatch" style="background:${pal[i]}"></span>
-        <button type="button" class="pair-name" data-key="${escapeAttr(c.key)}" data-band="${escapeAttr(s.band)}" title="이 단지 상세 보기">${escapeHtml(c.nm)}</button>
-        <span class="pair-band-tag">${escapeHtml(bandTag(s.band))}</span></span></th>`;
+    const head = (it) => `<th scope="col"><span class="pair-col-head">
+        <span class="pair-letter" style="--c:${pal[it.i]}">${it.letter}</span>
+        <button type="button" class="pair-name" data-key="${escapeAttr(it.c.key)}" data-band="${escapeAttr(it.s.band)}" title="이 단지 상세 보기">${escapeHtml(it.c.nm)}</button>
+        <span class="pair-band-tag">${escapeHtml(bandTag(it.s.band))}</span></span></th>`;
     el.pairBody.innerHTML = `
       ${yearSel}
-      <div class="pair-summary">${lines.map((l) => `<p>${l}</p>`).join("")}</div>
-      <table class="pair-table">
-        <thead><tr><th scope="col"><span class="sr-only">항목</span></th>${head(a, sa, 0)}${head(b, sb, 1)}</tr></thead>
+      <div class="pair-summary">${pairSummary(items, Y).map((l) => `<p>${l}</p>`).join("")}</div>
+      <div class="pair-table-wrap"><table class="pair-table n${n}">
+        <thead><tr><th scope="col"><span class="sr-only">항목</span></th>${items.map(head).join("")}</tr></thead>
         <tbody>${rows.join("")}</tbody>
-      </table>
+      </table></div>
       <p class="trade-distribution-note">해제 거래 제외 · 직거래 ${state.variant === "all" ? "포함" : "제외"}. ≈ 표시는 추정값입니다(항목 이름에 마우스를 올리면 산정 방식이 나옵니다). 단지명을 누르면 그 단지 상세가 열립니다.</p>`;
-    if (!facts[0] || !facts[1]) loadMapFacts();
+    if (items.some((it) => !it.f)) loadMapFacts();
 
-    // Year table: both medians and B's gap to A, newest first.
-    const yrs = state.data.years.filter((y) => stat(a, y, sa.band) || stat(b, y, sb.band));
-    const yCellT = (s) => s ? `${fmtPrice(s[1])} <small>${s[0]}건</small>` : `<span class="muted">–</span>`;
+    // Year table: every slot's median, newest first; with two slots also
+    // the second's gap to the first.
+    const yrs = state.data.years.filter((y) => items.some((it) => stat(it.c, y, it.s.band)));
+    const yCell = (s) => (s ? `${fmtPrice(s[1])} <small>${s[0]}건</small>` : `<span class="muted">–</span>`);
     el.pairYears.innerHTML = yrs.length ? `<details class="pair-ytable" open>
         <summary>연도별 중위가</summary>
         <div class="trades-scroll"><table>
-          <thead><tr><th>연도</th><th>A ${escapeHtml(bandShort(sa.band))}</th><th>B ${escapeHtml(bandShort(sb.band))}</th><th>B는 A 대비</th></tr></thead>
+          <thead><tr><th>연도</th>${items.map((it) => `<th>${it.letter} ${escapeHtml(bandShort(it.s.band))}</th>`).join("")}${n === 2 ? `<th>${items[1].letter}는 ${ref.letter} 대비</th>` : ""}</tr></thead>
           <tbody>${yrs.slice().reverse().map((y) => {
-            const s1 = stat(a, y, sa.band), s2 = stat(b, y, sb.band);
-            const d = s1 && s2 ? s2[1] / s1[1] - 1 : null;
-            const thin = (s1 && s1[0] < FALLBACK_MIN_N) || (s2 && s2[0] < FALLBACK_MIN_N);
-            return `<tr class="${thin ? "is-thin" : ""}${y === Y ? " is-base" : ""}"><td>${y}</td><td>${yCellT(s1)}</td><td>${yCellT(s2)}</td>
-              <td class="chg ${chgClass(d)}">${d == null ? "–" : fmtPct(d)}</td></tr>`;
+            const ss = items.map((it) => stat(it.c, y, it.s.band));
+            const thin = ss.some((s) => s && s[0] < FALLBACK_MIN_N);
+            const d = n === 2 && ss[0] && ss[1] ? ss[1][1] / ss[0][1] - 1 : null;
+            return `<tr class="${thin ? "is-thin" : ""}${y === Y ? " is-base" : ""}"><td>${y}</td>${ss.map((s) => `<td>${yCell(s)}</td>`).join("")}${n === 2 ? `<td class="chg ${chgClass(d)}">${d == null ? "–" : fmtPct(d)}</td>` : ""}</tr>`;
           }).join("")}</tbody>
         </table></div>
         <p class="trade-distribution-note">그해 실거래 중앙값. 거래가 ${FALLBACK_MIN_N}건 미만인 해는 흐리게 표시합니다.</p>
@@ -1339,12 +1425,12 @@
 
     el.pairChartWrap.hidden = false;
     if (!phoneLike() && !pairColClosed) placePair(true);
-    renderPairChart(a, sa, b, sb, Y);
+    renderPairChart(items, Y);
   }
 
   let pairChart = null;
   let pairChartSeq = 0;
-  async function renderPairChart(a, sa, b, sb, Y) {
+  async function renderPairChart(items, Y) {
     const my = ++pairChartSeq;
     await loadChartLib();
     if (!window.Chart || my !== pairChartSeq || state.start !== "pair") return;
@@ -1367,23 +1453,27 @@
         return v ? { v: toV(v.avg), n: v.n, m: v.avg } : { v: null, n: 0, m: null };
       });
     };
-    let ptsA = series(a, sa.band), ptsB = series(b, sb.band);
+    let pts = items.map((it) => series(it.c, it.s.band));
     let labels = monthly ? Array.from({ length: state.data.mcount }, (_, mi) => fmtMonth(mi)) : state.data.years.map(String);
-    // Start the axis where either line has data.
-    let first = ptsA.findIndex((p, i) => p.v != null || ptsB[i].v != null);
+    // Start the axis where any line has data.
+    let first = labels.findIndex((_, i) => pts.some((p) => p[i].v != null));
     if (first < 0) first = 0;
     if (monthly) first -= first % 12;
-    ptsA = ptsA.slice(first); ptsB = ptsB.slice(first); labels = labels.slice(first);
+    pts = pts.map((p) => p.slice(first));
+    labels = labels.slice(first);
     const surface = cssVar("--surface");
     const thin = monthly ? 2 : 3;
-    const ds = (c, band, pts, color, i) => ({
-      label: `${i ? "B" : "A"} ${pairName(c, band)}`,
-      data: pts.map((p) => p.v), _pts: pts,
-      borderColor: color, backgroundColor: color,
-      borderWidth: monthly ? 2 : 2.5, pointRadius: monthly ? 2 : 3.5, pointHoverRadius: monthly ? 5 : 6,
-      pointBorderWidth: monthly ? 1.5 : 2,
-      pointBackgroundColor: pts.map((p) => (p.n && p.n < thin ? surface : color)), pointBorderColor: color,
-      spanGaps: true, tension: 0, order: i,
+    const datasets = items.map((it, k) => {
+      const color = pal[it.i];
+      return {
+        label: `${it.letter} ${it.name}`,
+        data: pts[k].map((p) => p.v), _pts: pts[k],
+        borderColor: color, backgroundColor: color,
+        borderWidth: monthly ? 2 : 2.5, pointRadius: monthly ? 2 : 3.5, pointHoverRadius: monthly ? 5 : 6,
+        pointBorderWidth: monthly ? 1.5 : 2,
+        pointBackgroundColor: pts[k].map((p) => (p.n && p.n < thin ? surface : color)), pointBorderColor: color,
+        spanGaps: true, tension: 0, order: k,
+      };
     });
     el.pairChartTitle.textContent = monthly ? "월별 평균가격" : "연도별 중위가격";
     el.pairChartNote.textContent = (monthly
@@ -1400,11 +1490,12 @@
         ctx.save();
         if (monthly) {
           const lo = labels.indexOf(`${Y}.01`);
-          if (lo < 0) { ctx.restore(); return; }
-          const hi = Math.min(labels.length - 1, lo + 11);
-          const x0 = ch.scales.x.getPixelForValue(lo), x1 = ch.scales.x.getPixelForValue(hi);
-          ctx.fillStyle = cssVar("--plane");
-          ctx.fillRect(x0, top, x1 - x0, bottom - top);
+          if (lo >= 0) {
+            const hi = Math.min(labels.length - 1, lo + 11);
+            const x0 = ch.scales.x.getPixelForValue(lo), x1 = ch.scales.x.getPixelForValue(hi);
+            ctx.fillStyle = cssVar("--plane");
+            ctx.fillRect(x0, top, x1 - x0, bottom - top);
+          }
         } else {
           const i = labels.indexOf(String(Y));
           if (i >= 0) {
@@ -1420,7 +1511,7 @@
     const muted = cssVar("--muted"), grid = cssVar("--line");
     const config = {
       type: "line",
-      data: { labels, datasets: [ds(a, sa.band, ptsA, pal[0], 0), ds(b, sb.band, ptsB, pal[1], 1)] },
+      data: { labels, datasets },
       options: {
         responsive: true, maintainAspectRatio: false, animation: false,
         interaction: { mode: "index", intersect: false },
@@ -1444,8 +1535,9 @@
             backgroundColor: cssVar("--surface"), titleColor: cssVar("--ink"), bodyColor: cssVar("--ink-2"),
             borderColor: cssVar("--line-strong"), borderWidth: 1, padding: 10, boxPadding: 4, usePointStyle: true,
             filter: (item) => item.parsed.y != null && item.dataset._pts[item.dataIndex].m != null,
+            itemSort: (a, b) => (b.parsed.y ?? -1) - (a.parsed.y ?? -1),
             callbacks: {
-              title: (items) => (monthly ? items[0].label.replace(".", "년 ") + "월" : `${items[0].label}년`),
+              title: (its) => (monthly ? its[0].label.replace(".", "년 ") + "월" : `${its[0].label}년`),
               label: (item) => {
                 const p = item.dataset._pts[item.dataIndex];
                 return `${item.dataset.label}: ${fmtPrice(p.m)}${isIndex ? ` (지수 ${p.v.toFixed(0)})` : ""}, ${p.n}건`;
@@ -1461,65 +1553,84 @@
   }
 
   function bindPair() {
-    el.pairSec.querySelectorAll(".pair-pick").forEach((box) => {
-      const slot = Number(box.dataset.slot);
-      const inp = box.querySelector("input");
-      const list = box.querySelector(".search-results");
-      let hits = [], idx = -1;
-      const activate = () => { if (state.pair.active !== slot) { state.pair.active = slot; markPairActive(); } };
-      const draw = () => {
-        list.innerHTML = hits.length ? hits.map((c, i) =>
-          `<li role="option" data-i="${i}" aria-selected="${i === idx}"><span>${escapeHtml(c.nm)}</span><span class="where">${escapeHtml(where(c))}</span></li>`).join("")
-          : `<li aria-disabled="true">일치하는 단지가 없습니다</li>`;
-        list.hidden = false;
-      };
-      const close = () => { list.hidden = true; hits = []; idx = -1; };
-      const choose = (i) => {
-        const c = hits[i];
-        if (!c) return;
-        close();
-        inp.value = c.nm;
-        pairPick(c, { slot, pan: true });
-      };
-      box.addEventListener("pointerdown", activate);
-      inp.addEventListener("focus", activate);
-      inp.addEventListener("input", () => {
-        if (!normalize(inp.value)) return close();
-        hits = searchHitsFor(inp.value);
-        idx = hits.length ? 0 : -1;
-        draw();
-      });
-      inp.addEventListener("keydown", (e) => {
-        if (list.hidden) return;
-        if (e.key === "ArrowDown") { idx = Math.min(idx + 1, hits.length - 1); draw(); e.preventDefault(); }
-        else if (e.key === "ArrowUp") { idx = Math.max(idx - 1, 0); draw(); e.preventDefault(); }
-        else if (e.key === "Enter") { choose(idx); e.preventDefault(); }
-        else if (e.key === "Escape") close();
-      });
-      // Restore the chosen name if the box is left half-typed.
-      inp.addEventListener("blur", () => setTimeout(() => {
-        close();
-        const c = pairComplex(state.pair.slots[slot]);
-        if (document.activeElement !== inp) inp.value = c ? c.nm : "";
-      }, 150));
-      // Keep the input focused through the tap so its blur does not close
-      // the list first; a scroll inside the list fires no click.
-      list.addEventListener("pointerdown", (e) => e.preventDefault());
-      list.addEventListener("click", (e) => {
-        const li = e.target.closest("li[data-i]");
-        if (li) choose(Number(li.dataset.i));
-      });
-      $(`pair-b-${slot}`).addEventListener("change", (e) => {
-        const s = state.pair.slots[slot];
-        if (!s) return;
-        s.band = e.target.value;
-        runPair();
-      });
+    // Picker boxes come and go with the slot count: delegate everything.
+    const host = $("pair-pickers");
+    const search = new Map(); // slot -> { hits, idx }
+    const listOf = (i) => host.querySelector(`.pair-pick[data-slot="${i}"] .search-results`);
+    const activate = (i) => { if (state.pair.active !== i) { state.pair.active = i; markPairActive(); } };
+    const draw = (i) => {
+      const { hits, idx } = search.get(i);
+      const list = listOf(i);
+      list.innerHTML = hits.length ? hits.map((c, k) =>
+        `<li role="option" data-i="${k}" aria-selected="${k === idx}"><span>${escapeHtml(c.nm)}</span><span class="where">${escapeHtml(where(c))}</span></li>`).join("")
+        : `<li aria-disabled="true">일치하는 단지가 없습니다</li>`;
+      list.hidden = false;
+    };
+    const close = (i) => { search.delete(i); const list = listOf(i); if (list) list.hidden = true; };
+    const choose = (i, k) => {
+      const hit = search.get(i)?.hits[k];
+      if (!hit) return;
+      close(i);
+      $(`pair-q-${i}`).value = hit.nm;
+      pairPick(hit, { slot: i, pan: true });
+    };
+    const slotOf = (node) => Number(node.closest("[data-slot]").dataset.slot);
+    host.addEventListener("pointerdown", (e) => {
+      const box = e.target.closest(".pair-pick");
+      if (box) activate(Number(box.dataset.slot));
+      // Keep the input focused through a tap on a result so its blur does
+      // not close the list first; a scroll inside the list fires no click.
+      if (e.target.closest(".search-results")) e.preventDefault();
     });
-    document.getElementById("pair-swap").addEventListener("click", () => {
+    host.addEventListener("focusin", (e) => { if (e.target.matches("input[data-slot]")) activate(slotOf(e.target)); });
+    host.addEventListener("input", (e) => {
+      if (!e.target.matches("input[data-slot]")) return;
+      const i = slotOf(e.target);
+      if (!normalize(e.target.value)) return close(i);
+      const hits = searchHitsFor(e.target.value);
+      search.set(i, { hits, idx: hits.length ? 0 : -1 });
+      draw(i);
+    });
+    host.addEventListener("keydown", (e) => {
+      if (!e.target.matches("input[data-slot]")) return;
+      const i = slotOf(e.target), st = search.get(i);
+      if (!st) return;
+      if (e.key === "ArrowDown") { st.idx = Math.min(st.idx + 1, st.hits.length - 1); draw(i); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { st.idx = Math.max(st.idx - 1, 0); draw(i); e.preventDefault(); }
+      else if (e.key === "Enter") { choose(i, st.idx); e.preventDefault(); }
+      else if (e.key === "Escape") close(i);
+    });
+    // Restore the chosen name if a box is left half-typed.
+    host.addEventListener("focusout", (e) => {
+      const inp = e.target;
+      if (!inp.matches("input[data-slot]")) return;
+      const i = slotOf(inp);
+      setTimeout(() => {
+        if (!inp.isConnected || document.activeElement === inp) return;
+        close(i);
+        const c = pairComplex(state.pair.slots[i]);
+        inp.value = c ? c.nm : "";
+      }, 150);
+    });
+    host.addEventListener("click", (e) => {
+      const rm = e.target.closest("[data-remove]");
+      if (rm) { pairRemove(Number(rm.dataset.remove)); return; }
+      const li = e.target.closest(".search-results li[data-i]");
+      if (li) choose(slotOf(li), Number(li.dataset.i));
+    });
+    host.addEventListener("change", (e) => {
+      if (!e.target.matches("select.pair-band")) return;
+      const s = state.pair.slots[slotOf(e.target)];
+      if (!s) return;
+      s.band = e.target.value;
+      runPair();
+    });
+    $("pair-add").addEventListener("click", pairAdd);
+    $("pair-swap").addEventListener("click", () => {
       const P = state.pair;
       P.slots.reverse();
-      if (!!P.slots[0] !== !!P.slots[1]) P.active = P.slots[0] ? 1 : 0;
+      const empty = pairEmptySlot();
+      if (empty >= 0) P.active = empty;
       runPair();
     });
     el.pairBody.addEventListener("change", (e) => {
@@ -1533,18 +1644,20 @@
       const c = state.byKey.get(btn.dataset.key);
       if (c) selectComplex(c, { band: btn.dataset.band, pan: true });
     });
-    // From a complex's detail: it becomes A, B is picked next.
+    // From a complex's detail: it becomes A; slots already picked stay.
     document.getElementById("pair-from-ref").addEventListener("click", () => {
       const c = state.ref;
       if (!c) return;
       const P = state.pair;
-      const keepB = P.slots[1] && !(P.slots[1].key === c.key && P.slots[1].band === state.band) ? P.slots[1] : null;
-      P.slots = [{ key: c.key, band: state.band }, keepB];
-      P.active = 1;
+      const others = P.slots.filter((s) => s && !(s.key === c.key && s.band === state.band));
+      P.slots = [{ key: c.key, band: state.band }, ...others].slice(0, PAIR_MAX);
+      if (P.slots.length < 2) P.slots.push(null);
+      const empty = pairEmptySlot();
+      P.active = empty >= 0 ? empty : 1;
       const y = baseYear();
       if (y != null && y < state.data.years[state.data.years.length - 1]) P.year = y;
       setStart("pair");
-      if (!keepB && !phoneLike()) setTimeout(() => $("pair-q-1").focus(), 300);
+      if (empty >= 0 && !phoneLike()) setTimeout(() => { const inp = $(`pair-q-${empty}`); if (inp) inp.focus(); }, 300);
     });
   }
 
@@ -2662,10 +2775,10 @@
       const pal = palette();
       const want = new Map(); // complex key -> [complex, kind, color, band]
       if (state.ref) want.set(state.ref.key, [state.ref, "ref", null, state.band]);
-      // Pair mode: A as the filled blue pin, B outlined in its series color.
+      // Pair mode: A as the filled blue pin, the others outlined in their series colors.
       if (state.start === "pair") state.pair.slots.forEach((s, i) => {
         const c = s && state.byKey.get(s.key);
-        if (c && !want.has(c.key)) want.set(c.key, [c, i === 0 ? "ref" : "cmp", i === 0 ? null : pal[1], s.band || state.band]);
+        if (c && !want.has(c.key)) want.set(c.key, [c, i === 0 ? "ref" : "cmp", i === 0 ? null : pal[i], s.band || state.band]);
       });
       // A complex can match in several bands; a checked band wins the pin.
       for (const s of state.similar) {
@@ -2736,25 +2849,25 @@
       if (kmap) kmap.relayout();
     }
 
-    // Frame both pair pins (one complex: just pan to it).
-    function fitBoth(list) {
-      const pts = list.filter((c) => c && mappable(c));
+    // Frame every pair pin (one complex: just pan to it).
+    function fitAll(list) {
+      const pts = [...new Map(list.filter((c) => c && mappable(c)).map((c) => [c.key, c])).values()];
       if (!kmap || !pts.length) return;
       kmap.relayout();  // the detail column may have just narrowed the map
-      if (pts.length === 1 || pts[0].key === pts[1].key) { panTo(pts[0]); return; }
+      if (pts.length === 1) { panTo(pts[0]); return; }
       const bounds = new kakao.maps.LatLngBounds();
       for (const c of pts) bounds.extend(new kakao.maps.LatLng(c.lat, c.lng));
       kmap.setBounds(bounds, 90, 90, 90, 90);
       if (kmap.getLevel() < 3) kmap.setLevel(3);
     }
 
-    return { init, refresh, panTo, relayout, pinFor, fitBoth };
+    return { init, refresh, panTo, relayout, pinFor, fitAll };
   })();
 
   // ---------- URL state ----------
   // Price mode keys: st=p, pm=YYYYMM, pa=억, ps=asc (t/s/d shared).
-  // Pair mode keys: st=pair, ka/ba and kb/bb (complex key / area type of
-  // A and B), py=base year, pg=month, pv=index (d shared).
+  // Pair mode keys: st=pair, ka/ba .. kd/bd (complex key / area type of
+  // slots A-D), py=base year, pg=month, pv=index (d shared).
   function writeHash() {
     const p = new URLSearchParams();
     if (state.start === "pair") {
@@ -2762,8 +2875,9 @@
       p.set("st", "pair");
       P.slots.forEach((s, i) => {
         if (!s) return;
-        p.set(i ? "kb" : "ka", s.key);
-        if (s.band) p.set(i ? "bb" : "ba", s.band);
+        const l = "abcd"[i];
+        p.set(`k${l}`, s.key);
+        if (s.band) p.set(`b${l}`, s.band);
       });
       if (P.year != null) p.set("py", P.year);
       if (P.gran === "month") p.set("pg", "month");
@@ -2815,15 +2929,17 @@
     setSegButtons();
     if (p.get("st") === "pair") {
       const P = state.pair;
-      P.slots = [["ka", "ba"], ["kb", "bb"]].map(([k, b]) => {
-        const c = p.get(k) && state.byKey.get(p.get(k));
-        return c ? { key: c.key, band: c.b.includes(p.get(b)) ? p.get(b) : null } : null;
+      P.slots = [..."abcd"].map((l) => {
+        const c = p.get(`k${l}`) && state.byKey.get(p.get(`k${l}`));
+        return c ? { key: c.key, band: c.b.includes(p.get(`b${l}`)) ? p.get(`b${l}`) : null } : null;
       });
+      while (P.slots.length > 2 && !P.slots[P.slots.length - 1]) P.slots.pop();
       const py = Number(p.get("py"));
       if (py) P.year = py;
       if (p.get("pg") === "month") P.gran = "month";
       if (p.get("pv") === "index") P.mode = "index";
-      P.active = P.slots[0] && !P.slots[1] ? 1 : 0;
+      const empty = P.slots.findIndex((s) => !s);
+      P.active = empty >= 0 ? empty : 0;
       setStart("pair");
       return;
     }
@@ -3070,7 +3186,7 @@
     await mapReady;
     map.refresh();
     // After the detail column has finished opening (presentPair relayouts at 900ms).
-    if (state.start === "pair") setTimeout(() => map.fitBoth(state.pair.slots.map(pairComplex)), 1000);
+    if (state.start === "pair") setTimeout(() => map.fitAll(state.pair.slots.map(pairComplex)), 1000);
     state.ready = true;
     if (state.rankMode !== "off" || filterActive()) loadMapFacts();
     if (state.filterSummary) state.filterSummary();

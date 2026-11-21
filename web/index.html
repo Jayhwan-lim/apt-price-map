@@ -21,7 +21,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#14202b">
   <link rel="apple-touch-icon" href="icon-180.png">
-  <script src="config.js?v=20261121c"></script>
+  <script src="config.js?v=20261121d"></script>
   <script>
     // Start the Kakao SDK before the map index so its first tile requests
     // aren't queued behind twelve data downloads.
@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20261121c">
+  <link rel="stylesheet" href="style.css?v=20261121d">
 </head>
 <body>
   <div class="app">
@@ -108,7 +108,7 @@
         <div class="start-tabs" role="tablist" aria-label="시작 방식">
           <button type="button" role="tab" class="start-tab is-on" data-start="complex" aria-selected="true">단지로 시작</button>
           <button type="button" role="tab" class="start-tab" data-start="price" aria-selected="false">가격으로 시작</button>
-          <button type="button" role="tab" class="start-tab" data-start="pair" aria-selected="false">두 단지 비교</button>
+          <button type="button" role="tab" class="start-tab" data-start="pair" aria-selected="false">단지 비교</button>
         </div>
         <div class="search" id="search-box">
           <label class="sr-only" for="search-input">단지 검색</label>
@@ -180,28 +180,12 @@
 
         <div id="pair-home" hidden></div>
         <section class="pair" id="pair-section" hidden>
-          <div class="pair-pickers">
-            <div class="pair-pick" data-slot="0">
-              <p class="pair-slot"><i class="pair-dot"></i>단지 A</p>
-              <div class="search pair-search">
-                <label class="sr-only" for="pair-q-0">단지 A 검색</label>
-                <input id="pair-q-0" type="search" autocomplete="off" placeholder="단지 검색 또는 지도에서 선택">
-                <ul class="search-results" role="listbox" hidden></ul>
-              </div>
-              <label class="pair-band-label">평형 <select class="pair-band" id="pair-b-0" disabled><option>단지를 고르면 나옵니다</option></select></label>
-            </div>
-            <button type="button" class="pair-swap" id="pair-swap" title="A와 B 바꾸기" aria-label="A와 B 바꾸기">⇅</button>
-            <div class="pair-pick" data-slot="1">
-              <p class="pair-slot"><i class="pair-dot"></i>단지 B</p>
-              <div class="search pair-search">
-                <label class="sr-only" for="pair-q-1">단지 B 검색</label>
-                <input id="pair-q-1" type="search" autocomplete="off" placeholder="단지 검색 또는 지도에서 선택">
-                <ul class="search-results" role="listbox" hidden></ul>
-              </div>
-              <label class="pair-band-label">평형 <select class="pair-band" id="pair-b-1" disabled><option>단지를 고르면 나옵니다</option></select></label>
-            </div>
+          <div class="pair-pickers" id="pair-pickers"></div>
+          <div class="pair-tools">
+            <button type="button" class="pair-add" id="pair-add">＋ 단지 추가</button>
+            <button type="button" class="pair-swap" id="pair-swap" title="A와 B 바꾸기">⇅ A·B 바꾸기</button>
           </div>
-          <p class="pair-hint" id="pair-hint">지도에서 단지를 누르면 테두리가 진한 칸에 들어갑니다. 같은 단지의 다른 평형끼리도 비교할 수 있습니다.</p>
+          <p class="pair-hint" id="pair-hint">지도에서 단지를 누르면 테두리가 진한 칸에 들어갑니다. ＋로 4곳까지 늘릴 수 있고, 같은 단지의 다른 평형끼리도 비교됩니다.</p>
           <div id="pair-body" aria-live="polite"></div>
           <div class="pair-chart" id="pair-chart-wrap" hidden>
             <div class="chart-head">
@@ -217,7 +201,7 @@
                 </div>
               </div>
             </div>
-            <div class="chart-box"><canvas id="pair-chart" aria-label="두 단지 가격 비교 그래프" role="img"></canvas></div>
+            <div class="chart-box"><canvas id="pair-chart" aria-label="단지 가격 비교 그래프" role="img"></canvas></div>
             <p class="chart-note" id="pair-chart-note"></p>
           </div>
           <div id="pair-years"></div>
@@ -313,8 +297,8 @@
         </section>
       </div>
       <footer class="panel-foot">자료: 국토교통부 아파트 매매 실거래가(공공데이터포털). 해제 신고된 거래는 통계에서 뺐습니다. <a href="privacy">개인정보처리방침</a></footer>
-      <script src="map-metrics.js?v=20261121c"></script>
-      <script src="app.js?v=20261121c"></script>
+      <script src="map-metrics.js?v=20261121d"></script>
+      <script src="app.js?v=20261121d"></script>
       <section class="ad-slot" id="ad-section" aria-label="광고">
           <!-- The ad section appears only after the partner widget creates an iframe. -->
           <div class="ad-slot-body" id="coupang-slot"><script src="https://ads-partners.coupang.com/g.js"></script><script>new PartnersCoupang.G({"id":1037758,"template":"carousel","trackingCode":"AF8973032","width":"400","height":"100","tsource":""});</script></div>
