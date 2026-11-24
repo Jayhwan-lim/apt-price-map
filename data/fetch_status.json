@@ -1,10 +1,12 @@
 {
-  "started": "2026-11-23T09:15:14+09:00",
-  "written": 222,
-  "rows": 38727,
-  "failures": [],
+  "started": "2026-11-24T13:16:37+09:00",
+  "written": 221,
+  "rows": 39644,
+  "failures": [
+    "11650 202609 p1: HTTPSConnectionPool(host='apis.data.go.kr', port=443): Max retries exceeded with url: /1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev?serviceKey=93d2bef5da4294533674b0567be73dd0c3ed9b723971ebd209a377c7e846d2e0&LAWD_CD=11650&DEAL_YMD=202609&pageNo=1&numOfRows=1000 (Caused by ConnectTimeoutError(<HTTPSConnection(host='apis.data.go.kr', port=443) at 0x7921e4777710>, 'Connection to apis.data.go.kr timed out. (connect timeout=30)'))"
+  ],
   "result": "complete",
-  "calls": 222,
+  "calls": 225,
   "remaining": 0,
-  "finished": "2026-11-23T09:16:59+09:00"
+  "finished": "2026-11-24T13:20:52+09:00"
 }
