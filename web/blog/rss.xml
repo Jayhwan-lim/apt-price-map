@@ -5,6 +5,865 @@
     <link>https://geuttaeneolma.com/blog/</link>
     <description>그땐 얼마?의 서울·경기 아파트 실거래가 데이터로 단지를 들여다보는 글</description>
     <language>ko</language>
+    <item><title>서울 84㎡ 15억 선, 1년 새 135곳이 넘어갔다</title><link>https://geuttaeneolma.com/blog/2026-11-15eok-line/</link><guid>https://geuttaeneolma.com/blog/2026-11-15eok-line/</guid><pubDate>Tue, 24 Nov 2026 00:00:00 +0900</pubDate><description>대출 한도가 6억에서 4억으로 꺾이는 15억 선을 서울 84㎡ 1,243곳에 대 봤다. 74%는 아직 아래지만 1년 새 135곳이 넘어갔고, 실거래는 14.8~15.0억에 몰렸다. 구별 비중과 경계 단지 목록을 정리했다.</description><content:encoded><![CDATA[<p>요즘 서울에서 집을 보는 사람한테 15억은 그냥 숫자가 아니다. 2025년 10월 16일부터 수도권·규제지역 주택담보대출 한도가 집값 구간별로 나뉘었다. 15억 이하는 최대 6억, 15억을 넘으면 4억, 25억을 넘으면 2억이다. 15억짜리 집과 15억 500만 원짜리 집 사이에서 대출이 2억 줄어드는 셈이다.</p>
+<p>그래서 궁금했다. 서울 84㎡ 가운데 아직 이 선 아래에 있는 단지는 몇 곳일까. 지난 1년 동안 몇 곳이 선을 넘었을까. 그리고 실제 거래 가격이 이 선 앞에서 멈칫하는 게 데이터에 보일까.</p>
+<p>결론부터 쓰면, <strong>서울 84㎡ 단지 1,243곳 중 915곳(74%)은 최근 1년 중앙값이 15억 이하</strong>였다. 그런데 1년 전과 비교할 수 있는 1,068곳만 보면 15억 이하는 <strong>882곳에서 747곳으로, 135곳이 선을 넘었다.</strong> 거꾸로 내려온 곳은 0곳이었다. 그리고 거래는 <strong>14.8~15.0억 구간에 눈에 띄게 몰려</strong> 있었다.</p>
+<h2>어떻게 셌나</h2>
+<ul>
+<li>대상은 그땐 얼마? 지도에 있는 서울 아파트 중 전용 83~86㎡(흔히 말하는 84㎡) 거래가 최근 1년(2025년 11월 21일~2026년 11월 20일 신고분)에 5건 이상인 단지다.</li>
+<li>가격은 직거래와 해제 건을 뺀 실거래 중앙값이다. 이렇게 남은 곳이 <strong>1,243곳, 거래 16,190건</strong>이다.</li>
+<li>같은 단지가 이름만 달리 두 번 잡힌 경우(같은 동·세대수·용적률)는 하나로 합쳤다. 토지임대부 아파트는 뺐다.</li>
+<li>1년 전 비교는 그 전 1년(2024년 11월 21일~2025년 11월 20일)에도 84㎡ 거래가 3건 이상인 1,068곳만 썼다.</li>
+</ul>
+<h2>15억 아래와 위, 필요한 현금이 2억 벌어진다</h2>
+<p>먼저 선 하나가 얼마나 큰지부터 계산해 봤다. 규제지역 무주택자 기본 LTV 40%를 가정하고, 가격 구간별 한도를 적용했다. 취득세와 중개보수는 뺐다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">집값</th>
+<th style="text-align: right;">대출 (LTV 40%, 한도 적용)</th>
+<th style="text-align: right;">필요한 현금</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">12.00억</td>
+<td style="text-align: right;">4.80억</td>
+<td style="text-align: right;">7.20억</td>
+</tr>
+<tr>
+<td style="text-align: right;">14.00억</td>
+<td style="text-align: right;">5.60억</td>
+<td style="text-align: right;">8.40억</td>
+</tr>
+<tr>
+<td style="text-align: right;"><strong>15.00억</strong></td>
+<td style="text-align: right;"><strong>6.00억</strong></td>
+<td style="text-align: right;"><strong>9.00억</strong></td>
+</tr>
+<tr>
+<td style="text-align: right;"><strong>15.05억</strong></td>
+<td style="text-align: right;"><strong>4.00억</strong></td>
+<td style="text-align: right;"><strong>11.05억</strong></td>
+</tr>
+<tr>
+<td style="text-align: right;">16.00억</td>
+<td style="text-align: right;">4.00억</td>
+<td style="text-align: right;">12.00억</td>
+</tr>
+<tr>
+<td style="text-align: right;">18.00억</td>
+<td style="text-align: right;">4.00억</td>
+<td style="text-align: right;">14.00억</td>
+</tr>
+</tbody>
+</table></div>
+<p>15억에서 500만 원만 넘어가도 필요한 현금이 9억에서 11억 남짓으로 뛴다. 15억 집을 살 수 있는 사람이 16억 집을 보려면 현금 1억이 아니라 3억이 더 있어야 한다. 15억 바로 위 집은 그 아래 집과 사는 사람이 다를 수밖에 없다.</p>
+<p>여기서 15억은 실거래가가 아니라 은행이 보는 시세(KB시세 등) 기준이다. 실거래 15억과 정확히 같지는 않다. 다만 시세는 결국 실거래를 따라가니, 실거래 15억 근처가 사실상 경계라고 봤다.</p>
+<h2>구별로 보면: 도봉·노원은 전부 아래, 서초·용산은 전부 위</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>구</th>
+<th style="text-align: right;">84㎡ 단지</th>
+<th style="text-align: right;">15억 이하</th>
+<th style="text-align: right;">비중</th>
+<th style="text-align: right;">구 중앙값</th>
+<th style="text-align: right;">1년 새 15억 넘은 곳</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>도봉구</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">6.05억</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>강북구</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">6.90억</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>금천구</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">7.32억</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>중랑구</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">7.78억</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>노원구</td>
+<td style="text-align: right;">96</td>
+<td style="text-align: right;">96</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">7.80억</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>관악구</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">10.45억</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>성북구</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;">83</td>
+<td style="text-align: right;">98%</td>
+<td style="text-align: right;">9.50억</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>은평구</td>
+<td style="text-align: right;">66</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">97%</td>
+<td style="text-align: right;">9.25억</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>구로구</td>
+<td style="text-align: right;">88</td>
+<td style="text-align: right;">83</td>
+<td style="text-align: right;">94%</td>
+<td style="text-align: right;">7.89억</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>강서구</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">90%</td>
+<td style="text-align: right;">10.20억</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td>동대문구</td>
+<td style="text-align: right;">68</td>
+<td style="text-align: right;">58</td>
+<td style="text-align: right;">85%</td>
+<td style="text-align: right;">9.99억</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td>서대문구</td>
+<td style="text-align: right;">53</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">83%</td>
+<td style="text-align: right;">10.98억</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>양천구</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">80%</td>
+<td style="text-align: right;">12.00억</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>종로구</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">67%</td>
+<td style="text-align: right;">14.20억</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>영등포구</td>
+<td style="text-align: right;">67</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">61%</td>
+<td style="text-align: right;">13.30억</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr>
+<td>강동구</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">57%</td>
+<td style="text-align: right;">14.90억</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>동작구</td>
+<td style="text-align: right;">61</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">48%</td>
+<td style="text-align: right;">15.07억</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td>마포구</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">44%</td>
+<td style="text-align: right;">16.00억</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td>중구</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">31%</td>
+<td style="text-align: right;">17.10억</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td>성동구</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">28%</td>
+<td style="text-align: right;">18.60억</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td>송파구</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">25%</td>
+<td style="text-align: right;">18.38억</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr>
+<td>광진구</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">17%</td>
+<td style="text-align: right;">18.60억</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td>강남구</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3%</td>
+<td style="text-align: right;">27.62억</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>용산구</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0%</td>
+<td style="text-align: right;">21.45억</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>서초구</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0%</td>
+<td style="text-align: right;">26.00억</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table></div>
+<p>구 중앙값은 그 구 84㎡ 단지들의 중앙값을 다시 가운데로 줄 세운 값이다.</p>
+<p>눈에 띈 건 가운데 띠였다. 도봉·강북·금천·중랑·노원·관악 여섯 구는 84㎡ 단지가 전부 15억 아래였다. 서초·용산은 하나도 없었고, 강남은 34곳 중 1곳이었다. 양 끝은 15억 선과 상관없이 이미 자리가 정해져 있다.</p>
+<p>선이 실제로 지나가는 곳은 15억 이하 비중이 절반 안팎인 <strong>영등포·강동·동작·마포</strong>였다. 동작구는 구 중앙값이 15.07억으로 선 바로 위에 걸쳐 있다. 1년 새 15억을 넘은 단지도 동작 20곳, 송파 17곳, 영등포 16곳, 강동 15곳 순이었다. 동작·송파·영등포·강동 네 구가 135곳 중 68곳, 절반이다. 마포는 7곳이었지만 이미 절반 넘는 단지가 선 위에 있다.</p>
+<h2>1년 새 15억을 넘은 135곳</h2>
+<p>1년 전과 비교할 수 있는 1,068곳의 84㎡ 중앙값은 1년 새 13.8% 올랐다. 그 사이 15억 이하에서 15억 초과로 넘어간 곳이 135곳이다. 거래가 많은 순으로 10곳만 뽑았다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단지</th>
+<th>구·동</th>
+<th style="text-align: right;">준공</th>
+<th style="text-align: right;">1년 전</th>
+<th style="text-align: right;">최근 1년 (건)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%EB%B6%81%EA%B0%80%EC%A2%8C%EB%8F%99%7C481">DMC래미안e편한세상</a></td>
+<td>서대문구 북가좌동</td>
+<td style="text-align: right;">2012</td>
+<td style="text-align: right;">12.90억</td>
+<td style="text-align: right;">15.37억 (68)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11140%7C%EC%8B%A0%EB%8B%B9%EB%8F%99%7C844">남산타운</a></td>
+<td>중구 신당동</td>
+<td style="text-align: right;">2002</td>
+<td style="text-align: right;">13.60억</td>
+<td style="text-align: right;">17.10억 (49)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11500%7C%ED%99%94%EA%B3%A1%EB%8F%99%7C1159">우장산아이파크,이편한세상</a></td>
+<td>강서구 화곡동</td>
+<td style="text-align: right;">2008</td>
+<td style="text-align: right;">12.90억</td>
+<td style="text-align: right;">15.48억 (47)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11740%7C%EA%B3%A0%EB%8D%95%EB%8F%99%7C486">아남1</a></td>
+<td>강동구 고덕동</td>
+<td style="text-align: right;">1996</td>
+<td style="text-align: right;">11.30억</td>
+<td style="text-align: right;">15.25억 (42)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11230%7C%EC%A0%84%EB%86%8D%EB%8F%99%7C690">래미안크레시티</a></td>
+<td>동대문구 전농동</td>
+<td style="text-align: right;">2014</td>
+<td style="text-align: right;">15.00억</td>
+<td style="text-align: right;">17.32억 (38)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11230%7C%EB%8B%B5%EC%8B%AD%EB%A6%AC%EB%8F%99%7C1003">래미안위브</a></td>
+<td>동대문구 답십리동</td>
+<td style="text-align: right;">2014</td>
+<td style="text-align: right;">13.80억</td>
+<td style="text-align: right;">16.80억 (37)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11500%7C%EB%82%B4%EB%B0%9C%EC%82%B0%EB%8F%99%7C657">우장산힐스테이트</a></td>
+<td>강서구 내발산동</td>
+<td style="text-align: right;">2005</td>
+<td style="text-align: right;">14.20억</td>
+<td style="text-align: right;">16.00억 (37)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%EB%82%A8%EA%B0%80%EC%A2%8C%EB%8F%99%7C385%2311410-4479">DMC파크뷰자이1단지</a></td>
+<td>서대문구 남가좌동</td>
+<td style="text-align: right;">2015</td>
+<td style="text-align: right;">13.80억</td>
+<td style="text-align: right;">16.38억 (36)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EB%85%B8%EB%9F%89%EC%A7%84%EB%8F%99%7C325">신동아리버파크</a></td>
+<td>동작구 노량진동</td>
+<td style="text-align: right;">2001</td>
+<td style="text-align: right;">11.70억</td>
+<td style="text-align: right;">16.20억 (35)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11740%7C%EC%95%94%EC%82%AC%EB%8F%99%7C413">프라이어팰리스</a></td>
+<td>강동구 암사동</td>
+<td style="text-align: right;">2007</td>
+<td style="text-align: right;">13.85억</td>
+<td style="text-align: right;">17.35억 (32)</td>
+</tr>
+</tbody>
+</table></div>
+<p>2,000~4,000세대 대단지가 많았다. 강서 우장산, 서대문 가좌, 동대문 전농·답십리처럼 그 동네에서 "대장"으로 불리는 단지들이다. 1년 전에도 이미 13억 안팎이었으니, 선을 넘는 데 큰 상승이 필요하지 않았다.</p>
+<h2>거래는 14.8~15.0억에 몰렸다</h2>
+<p>이번엔 단지가 아니라 거래 한 건 한 건을 봤다. 서울에서 14억 초과 16억 이하에 신고된 거래(면적 무관, 직거래·해제 제외)를 2,000만 원 간격으로 나눴다. 규제 시행일(2025년 10월 16일)을 기준으로 앞 1년과 그 뒤를 따로 셌다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>가격 구간</th>
+<th style="text-align: right;">시행 전 1년</th>
+<th style="text-align: right;">비중</th>
+<th style="text-align: right;">시행 후</th>
+<th style="text-align: right;">비중</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14.0~14.2억</td>
+<td style="text-align: right;">436</td>
+<td style="text-align: right;">7.8%</td>
+<td style="text-align: right;">327</td>
+<td style="text-align: right;">7.3%</td>
+</tr>
+<tr>
+<td>14.2~14.4억</td>
+<td style="text-align: right;">499</td>
+<td style="text-align: right;">8.9%</td>
+<td style="text-align: right;">393</td>
+<td style="text-align: right;">8.8%</td>
+</tr>
+<tr>
+<td>14.4~14.6억</td>
+<td style="text-align: right;">659</td>
+<td style="text-align: right;">11.8%</td>
+<td style="text-align: right;">468</td>
+<td style="text-align: right;">10.5%</td>
+</tr>
+<tr>
+<td>14.6~14.8억</td>
+<td style="text-align: right;">565</td>
+<td style="text-align: right;">10.1%</td>
+<td style="text-align: right;">453</td>
+<td style="text-align: right;">10.2%</td>
+</tr>
+<tr>
+<td><strong>14.8~15.0억</strong></td>
+<td style="text-align: right;"><strong>880</strong></td>
+<td style="text-align: right;"><strong>15.7%</strong></td>
+<td style="text-align: right;"><strong>892</strong></td>
+<td style="text-align: right;"><strong>20.0%</strong></td>
+</tr>
+<tr>
+<td>15.0~15.2억</td>
+<td style="text-align: right;">360</td>
+<td style="text-align: right;">6.4%</td>
+<td style="text-align: right;">249</td>
+<td style="text-align: right;">5.6%</td>
+</tr>
+<tr>
+<td>15.2~15.4억</td>
+<td style="text-align: right;">436</td>
+<td style="text-align: right;">7.8%</td>
+<td style="text-align: right;">380</td>
+<td style="text-align: right;">8.5%</td>
+</tr>
+<tr>
+<td>15.4~15.6억</td>
+<td style="text-align: right;">581</td>
+<td style="text-align: right;">10.4%</td>
+<td style="text-align: right;">442</td>
+<td style="text-align: right;">9.9%</td>
+</tr>
+<tr>
+<td>15.6~15.8억</td>
+<td style="text-align: right;">422</td>
+<td style="text-align: right;">7.5%</td>
+<td style="text-align: right;">326</td>
+<td style="text-align: right;">7.3%</td>
+</tr>
+<tr>
+<td>15.8~16.0억</td>
+<td style="text-align: right;">770</td>
+<td style="text-align: right;">13.7%</td>
+<td style="text-align: right;">521</td>
+<td style="text-align: right;">11.7%</td>
+</tr>
+<tr>
+<td>합계</td>
+<td style="text-align: right;">5,608</td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">4,451</td>
+<td style="text-align: right;">100%</td>
+</tr>
+</tbody>
+</table></div>
+<p>구간 상한 포함(예: 14.8~15.0억은 14.8억 초과 15.0억 이하). 시행 후는 2025년 10월 16일~2026년 11월 20일이다.</p>
+<p>15억 바로 아래 칸은 원래도 두꺼웠다. 15억이라는 딱 떨어지는 숫자에 거래가 몰리는 건 자연스럽다. 시행 전에도 14.8~15.0억은 바로 위 칸(15.0~15.2억)의 2.4배였다.</p>
+<p>그런데 시행 후에는 이 차이가 <strong>3.6배</strong>로 커졌다. 14.8~15.0억 비중은 15.7%에서 20.0%로 늘었고, 바로 위 칸은 6.4%에서 5.6%로 줄었다. 나머지 칸은 대체로 1%p 안팎에서 움직였다. 14억~16억 거래 다섯 건 중 한 건이 15억 바로 아래 2,000만 원 폭에 들어간 셈이다.</p>
+<p>이 데이터만으로 이유를 단정할 수는 없다. 다만 나는 이렇게 읽었다. 15억을 조금 넘는 호가는 사는 쪽의 대출이 2억 줄어드니 맞춰 줄 사람이 적다. 파는 쪽이 15억에 맞춰 주거나, 그게 안 되면 아예 15억을 훌쩍 넘겨 4억 한도를 감당할 수 있는 사람을 기다리는 쪽으로 갈린 것 같다.</p>
+<h2>지금 15억 바로 아래에 있는 84㎡</h2>
+<p>마지막으로 최근 1년 84㎡ 중앙값이 14억~15억이고 거래가 8건 이상인 47곳이다. 지금 "15억 이하, 대출 6억"으로 볼 수 있는 서울 84㎡의 가장 위쪽이다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단지</th>
+<th>구·동</th>
+<th style="text-align: right;">준공</th>
+<th style="text-align: right;">세대</th>
+<th style="text-align: right;">1년 전</th>
+<th style="text-align: right;">최근 1년 (건)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11200%7C%EC%9D%91%EB%B4%89%EB%8F%99%7C275">신동아</a></td>
+<td>성동구 응봉동</td>
+<td style="text-align: right;">1996</td>
+<td style="text-align: right;">434</td>
+<td style="text-align: right;">10.90억</td>
+<td style="text-align: right;">15.00억 (8)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11200%7C%ED%95%98%EC%99%95%EC%8B%AD%EB%A6%AC%EB%8F%99%7C258">벽산</a></td>
+<td>성동구 하왕십리동</td>
+<td style="text-align: right;">1996</td>
+<td style="text-align: right;">822</td>
+<td style="text-align: right;">11.40억</td>
+<td style="text-align: right;">15.00억 (13)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11230%7C%EB%8B%B5%EC%8B%AD%EB%A6%AC%EB%8F%99%7C1002">청계한신휴플러스</a></td>
+<td>동대문구 답십리동</td>
+<td style="text-align: right;">2010</td>
+<td style="text-align: right;">725</td>
+<td style="text-align: right;">11.70억</td>
+<td style="text-align: right;">15.00억 (9)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11440%7C%EC%B0%BD%EC%A0%84%EB%8F%99%7C439">신촌태영데시앙</a></td>
+<td>마포구 창전동</td>
+<td style="text-align: right;">2003</td>
+<td style="text-align: right;">553</td>
+<td style="text-align: right;">12.50억</td>
+<td style="text-align: right;">15.00억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%ED%9D%91%EC%84%9D%EB%8F%99%7C328">흑석동양아파트</a></td>
+<td>동작구 흑석동</td>
+<td style="text-align: right;">2003</td>
+<td style="text-align: right;">423</td>
+<td style="text-align: right;">11.00억</td>
+<td style="text-align: right;">15.00억 (11)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11500%7C%ED%99%94%EA%B3%A1%EB%8F%99%7C1165">강서힐스테이트</a></td>
+<td>강서구 화곡동</td>
+<td style="text-align: right;">2015</td>
+<td style="text-align: right;">2603</td>
+<td style="text-align: right;">13.60억</td>
+<td style="text-align: right;">14.97억 (28)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11740%7C%EA%B0%95%EC%9D%BC%EB%8F%99%7C72">힐스테이트리슈빌강일</a></td>
+<td>강동구 강일동</td>
+<td style="text-align: right;">2023</td>
+<td style="text-align: right;">540</td>
+<td style="text-align: right;">13.50억</td>
+<td style="text-align: right;">14.97억 (22)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11740%7C%EA%B8%B8%EB%8F%99%7C474">강동LG자이</a></td>
+<td>강동구 길동</td>
+<td style="text-align: right;">2003</td>
+<td style="text-align: right;">596</td>
+<td style="text-align: right;">12.42억</td>
+<td style="text-align: right;">14.97억 (10)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11230%7C%EC%9A%A9%EB%91%90%EB%8F%99%7C797">청량리역해링턴플레이스</a></td>
+<td>동대문구 용두동</td>
+<td style="text-align: right;">2023</td>
+<td style="text-align: right;">220</td>
+<td style="text-align: right;">13.90억</td>
+<td style="text-align: right;">14.95억 (9)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%8B%A0%EA%B8%B8%EB%8F%99%7C4518">우성2</a></td>
+<td>영등포구 신길동</td>
+<td style="text-align: right;">1986</td>
+<td style="text-align: right;">725</td>
+<td style="text-align: right;">11.10억</td>
+<td style="text-align: right;">14.95억 (17)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11560%7C%EC%96%91%ED%8F%89%EB%8F%993%EA%B0%80%7C101">양평현대6차</a></td>
+<td>영등포구 양평동3가</td>
+<td style="text-align: right;">2000</td>
+<td style="text-align: right;">770</td>
+<td style="text-align: right;">11.00억</td>
+<td style="text-align: right;">14.90억 (18)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%83%81%EB%8F%84%EB%8F%99%7C416">아이파크</a></td>
+<td>동작구 상도동</td>
+<td style="text-align: right;">2004</td>
+<td style="text-align: right;">400</td>
+<td style="text-align: right;">11.62억</td>
+<td style="text-align: right;">14.90억 (9)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11710%7C%ED%92%8D%EB%82%A9%EB%8F%99%7C506">동아한가람1</a></td>
+<td>송파구 풍납동</td>
+<td style="text-align: right;">1995</td>
+<td style="text-align: right;">782</td>
+<td style="text-align: right;">10.95억</td>
+<td style="text-align: right;">14.90억 (23)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11740%7C%EC%B2%9C%ED%98%B8%EB%8F%99%7C568">강변그대가리버뷰</a></td>
+<td>강동구 천호동</td>
+<td style="text-align: right;">2007</td>
+<td style="text-align: right;">225</td>
+<td style="text-align: right;">13.32억</td>
+<td style="text-align: right;">14.90억 (9)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11380%7C%EC%88%98%EC%83%89%EB%8F%99%7C418">DMCSKVIEW</a></td>
+<td>은평구 수색동</td>
+<td style="text-align: right;">2023</td>
+<td style="text-align: right;">753</td>
+<td style="text-align: right;">14.19억</td>
+<td style="text-align: right;">14.88억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%82%AC%EB%8B%B9%EB%8F%99%7C1133">삼성래미안</a></td>
+<td>동작구 사당동</td>
+<td style="text-align: right;">2003</td>
+<td style="text-align: right;">896</td>
+<td style="text-align: right;">12.35억</td>
+<td style="text-align: right;">14.85억 (16)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EB%85%B8%EB%9F%89%EC%A7%84%EB%8F%99%7C324">건영(103동-106동)</a></td>
+<td>동작구 노량진동</td>
+<td style="text-align: right;">1997</td>
+<td style="text-align: right;">824</td>
+<td style="text-align: right;">10.87억</td>
+<td style="text-align: right;">14.80억 (17)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11710%7C%ED%92%8D%EB%82%A9%EB%8F%99%7C401-1">쌍용</a></td>
+<td>송파구 풍납동</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">417</td>
+<td style="text-align: right;">11.90억</td>
+<td style="text-align: right;">14.80억 (10)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11620%7C%EB%B4%89%EC%B2%9C%EB%8F%99%7C1730">e편한세상서울대입구1단지</a></td>
+<td>관악구 봉천동</td>
+<td style="text-align: right;">2019</td>
+<td style="text-align: right;">711</td>
+<td style="text-align: right;">12.78억</td>
+<td style="text-align: right;">14.75억 (20)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11380%7C%EC%9D%91%EC%95%94%EB%8F%99%7C769">녹번역e편한세상캐슬</a></td>
+<td>은평구 응암동</td>
+<td style="text-align: right;">2021</td>
+<td style="text-align: right;">2569</td>
+<td style="text-align: right;">12.85억</td>
+<td style="text-align: right;">14.72억 (28)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11470%7C%EB%AA%A9%EB%8F%99%7C965">목동롯데캐슬마에스트로</a></td>
+<td>양천구 목동</td>
+<td style="text-align: right;">2019</td>
+<td style="text-align: right;">410</td>
+<td style="text-align: right;">12.35억</td>
+<td style="text-align: right;">14.70억 (11)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11530%7C%EC%8B%A0%EB%8F%84%EB%A6%BC%EB%8F%99%7C644">동아2</a></td>
+<td>구로구 신도림동</td>
+<td style="text-align: right;">2000</td>
+<td style="text-align: right;">655</td>
+<td style="text-align: right;">12.00억</td>
+<td style="text-align: right;">14.68억 (10)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11290%7C%EC%9E%A5%EC%9C%84%EB%8F%99%7C323">꿈의숲아이파크</a></td>
+<td>성북구 장위동</td>
+<td style="text-align: right;">2022</td>
+<td style="text-align: right;">1711</td>
+<td style="text-align: right;">11.95억</td>
+<td style="text-align: right;">14.62억 (16)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%8B%A0%EB%8C%80%EB%B0%A9%EB%8F%99%7C565">우성1차</a></td>
+<td>동작구 신대방동</td>
+<td style="text-align: right;">1988</td>
+<td style="text-align: right;">1335</td>
+<td style="text-align: right;">10.45억</td>
+<td style="text-align: right;">14.60억 (9)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11620%7C%EB%B4%89%EC%B2%9C%EB%8F%99%7C1733">e편한세상서울대입구2차</a></td>
+<td>관악구 봉천동</td>
+<td style="text-align: right;">2020</td>
+<td style="text-align: right;">519</td>
+<td style="text-align: right;">12.12억</td>
+<td style="text-align: right;">14.60억 (13)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11110%7C%EB%AC%B4%EC%95%85%EB%8F%99%7C82">현대</a></td>
+<td>종로구 무악동</td>
+<td style="text-align: right;">2000</td>
+<td style="text-align: right;">964</td>
+<td style="text-align: right;">13.00억</td>
+<td style="text-align: right;">14.57억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%83%81%EB%8F%84%EB%8F%99%7C415">중앙하이츠빌</a></td>
+<td>동작구 상도동</td>
+<td style="text-align: right;">2003</td>
+<td style="text-align: right;">544</td>
+<td style="text-align: right;">11.35억</td>
+<td style="text-align: right;">14.53억 (16)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11440%7C%EC%83%81%EC%95%94%EB%8F%99%7C1658">상암월드컵파크5단지</a></td>
+<td>마포구 상암동</td>
+<td style="text-align: right;">2005</td>
+<td style="text-align: right;">436</td>
+<td style="text-align: right;">13.28억</td>
+<td style="text-align: right;">14.50억 (13)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11500%7C%EC%97%BC%EC%B0%BD%EB%8F%99%7C299">강변힐스테이트</a></td>
+<td>강서구 염창동</td>
+<td style="text-align: right;">2005</td>
+<td style="text-align: right;">417</td>
+<td style="text-align: right;">12.30억</td>
+<td style="text-align: right;">14.50억 (11)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11500%7C%ED%99%94%EA%B3%A1%EB%8F%99%7C1173">우장산숲아이파크</a></td>
+<td>강서구 화곡동</td>
+<td style="text-align: right;">2022</td>
+<td style="text-align: right;">576</td>
+<td style="text-align: right;">13.47억</td>
+<td style="text-align: right;">14.50억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EC%82%AC%EB%8B%B9%EB%8F%99%7C1149">사당롯데캐슬2차</a></td>
+<td>동작구 사당동</td>
+<td style="text-align: right;">2004</td>
+<td style="text-align: right;">223</td>
+<td style="text-align: right;">11.60억</td>
+<td style="text-align: right;">14.50억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11620%7C%EB%B4%89%EC%B2%9C%EB%8F%99%7C1730-1">e편한세상서울대입구2단지</a></td>
+<td>관악구 봉천동</td>
+<td style="text-align: right;">2019</td>
+<td style="text-align: right;">565</td>
+<td style="text-align: right;">12.03억</td>
+<td style="text-align: right;">14.41억 (20)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11470%7C%EB%AA%A9%EB%8F%99%7C951">금호어울림</a></td>
+<td>양천구 목동</td>
+<td style="text-align: right;">2004</td>
+<td style="text-align: right;">371</td>
+<td style="text-align: right;">12.50억</td>
+<td style="text-align: right;">14.40억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11560%7C%EB%AC%B8%EB%9E%98%EB%8F%995%EA%B0%80%7C67">문래모아미래도</a></td>
+<td>영등포구 문래동5가</td>
+<td style="text-align: right;">2017</td>
+<td style="text-align: right;">222</td>
+<td style="text-align: right;">11.75억</td>
+<td style="text-align: right;">14.40억 (17)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%EB%8C%80%ED%98%84%EB%8F%99%7C144">신촌럭키</a></td>
+<td>서대문구 대현동</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">855</td>
+<td style="text-align: right;">10.30억</td>
+<td style="text-align: right;">14.30억 (16)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%ED%99%8D%EC%A0%9C%EB%8F%99%7C473">홍제센트럴IPARK</a></td>
+<td>서대문구 홍제동</td>
+<td style="text-align: right;">2020</td>
+<td style="text-align: right;">906</td>
+<td style="text-align: right;">12.57억</td>
+<td style="text-align: right;">14.30억 (31)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EB%8C%80%EB%B0%A9%EB%8F%99%7C500">성원</a></td>
+<td>동작구 대방동</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">487</td>
+<td style="text-align: right;">12.40억</td>
+<td style="text-align: right;">14.30억 (25)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11230%7C%EB%8B%B5%EC%8B%AD%EB%A6%AC%EB%8F%99%7C998">두산위브</a></td>
+<td>동대문구 답십리동</td>
+<td style="text-align: right;">2007</td>
+<td style="text-align: right;">516</td>
+<td style="text-align: right;">11.18억</td>
+<td style="text-align: right;">14.25억 (13)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%EB%82%A8%EA%B0%80%EC%A2%8C%EB%8F%99%7C389">DMC에코자이</a></td>
+<td>서대문구 남가좌동</td>
+<td style="text-align: right;">2019</td>
+<td style="text-align: right;">1047</td>
+<td style="text-align: right;">12.80억</td>
+<td style="text-align: right;">14.20억 (11)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11740%7C%EB%AA%85%EC%9D%BC%EB%8F%99%7C332">명일지에스아파트</a></td>
+<td>강동구 명일동</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">772</td>
+<td style="text-align: right;">9.97억</td>
+<td style="text-align: right;">14.12억 (10)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11410%7C%EB%82%A8%EA%B0%80%EC%A2%8C%EB%8F%99%7C396">DMC금호리첸시아</a></td>
+<td>서대문구 남가좌동</td>
+<td style="text-align: right;">2024</td>
+<td style="text-align: right;">450</td>
+<td style="text-align: right;">12.75억</td>
+<td style="text-align: right;">14.10억 (10)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11470%7C%EC%8B%A0%EC%A0%95%EB%8F%99%7C1252">현대</a></td>
+<td>양천구 신정동</td>
+<td style="text-align: right;">1995</td>
+<td style="text-align: right;">217</td>
+<td style="text-align: right;">10.50억</td>
+<td style="text-align: right;">14.10억 (9)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11590%7C%EB%8C%80%EB%B0%A9%EB%8F%99%7C502">대방동현대</a></td>
+<td>동작구 대방동</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">514</td>
+<td style="text-align: right;">10.85억</td>
+<td style="text-align: right;">14.10억 (16)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11260%7C%EB%A9%B4%EB%AA%A9%EB%8F%99%7C1545">사가정센트럴아이파크</a></td>
+<td>중랑구 면목동</td>
+<td style="text-align: right;">2020</td>
+<td style="text-align: right;">1505</td>
+<td style="text-align: right;">12.40억</td>
+<td style="text-align: right;">14.07억 (47)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11200%7C%EB%A7%88%EC%9E%A5%EB%8F%99%7C818">현대</a></td>
+<td>성동구 마장동</td>
+<td style="text-align: right;">1998</td>
+<td style="text-align: right;">1017</td>
+<td style="text-align: right;">10.55억</td>
+<td style="text-align: right;">14.05억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11530%7C%EC%8B%A0%EB%8F%84%EB%A6%BC%EB%8F%99%7C643">동아1</a></td>
+<td>구로구 신도림동</td>
+<td style="text-align: right;">1999</td>
+<td style="text-align: right;">1095</td>
+<td style="text-align: right;">12.40억</td>
+<td style="text-align: right;">14.05억 (14)</td>
+</tr>
+<tr>
+<td><a href="https://geuttaeneolma.com/#k=11290%7C%EA%B8%B8%EC%9D%8C%EB%8F%99%7C1286">길음뉴타운9단지(래미안)</a></td>
+<td>성북구 길음동</td>
+<td style="text-align: right;">2010</td>
+<td style="text-align: right;">1012</td>
+<td style="text-align: right;">11.60억</td>
+<td style="text-align: right;">14.00억 (17)</td>
+</tr>
+</tbody>
+</table></div>
+<p>중앙값이 정확히 15.00억인 곳이 다섯 곳이었다. 응봉동 신동아, 하왕십리 벽산, 답십리 청계한신휴플러스, 창전동 신촌태영데시앙, 흑석동양아파트다. 이 다섯 곳은 1년 전 중앙값이 10.90~12.50억이었다. 1년 동안 2.5억~4.1억이 오르고 정확히 15억에서 멈춰 있다.</p>
+<p>47곳 중 동작구가 9곳으로 가장 많았다. 성동구는 이 목록에 셋이 있는데, 모두 1996~1998년 준공 구축이다. 성동에서 15억 이하 84㎡를 찾으면 연식을 양보해야 한다는 얘기다. 반대로 은평·서대문·관악·성북에서는 2019년 이후 준공 신축이 14억대에 있었다.</p>
+<h2>감안할 것</h2>
+<ol>
+<li><strong>은행이 보는 15억은 시세다.</strong> 대출 한도는 KB시세 같은 시세나 감정가를 기준으로 정한다. 실거래 중앙값이 15억 이하라도 시세가 15억을 넘으면 한도는 4억이다. 이 글의 15억은 실거래 기준이다.</li>
+<li><strong>대출 규제는 바뀐다.</strong> 2025년 10월 16일 시행된 가격 구간별 한도를 게시일 기준으로 다시 확인했다. LTV는 무주택자 40%를 가정했고, 생애최초 등 우대 조건이나 DSR(소득 대비 상환액) 한도, 1주택자 조건은 반영하지 않았다. 실제 한도는 사람마다, 은행마다 다르다.</li>
+<li><strong>중앙값 하나로 단지를 판단하면 안 된다.</strong> 같은 84㎡라도 층·향·동에 따라 1~2억이 차이 난다. 중앙값이 15억이면 거래 절반은 15억 위에 있다는 뜻이기도 하다. 거래 8~9건인 단지는 몇 건에 중앙값이 흔들린다.</li>
+<li><strong>14.8~15.0억 쏠림은 원인을 증명하지 않는다.</strong> 시행 전에도 15억 직전은 두꺼웠다. 시행 후 더 두꺼워진 건 데이터로 보이지만, 그게 대출 한도 때문인지 다른 요인과 겹친 건지는 이 숫자만으로 가를 수 없다.</li>
+<li><strong>최근 거래는 아직 덜 들어왔다.</strong> 실거래 신고는 계약 후 30일 안에 하면 된다. 10~11월 계약 일부는 아직 집계에 없다.</li>
+</ol>
+<p>정리하면, 서울 84㎡ 넷 중 셋은 아직 15억 아래에 있다. 하지만 그 915곳 중 713곳은 12억 미만이다. 15억 선과는 거리가 있는, 원래 아래에 있던 곳이 대부분이라는 얘기다. 서울 전체로는 1년 사이 135곳이 선을 넘었고, 그 절반이 동작·송파·영등포·강동에서 나왔다. 남은 곳들 중 74곳은 14억~15억, 선 바로 앞에 줄 서 있다. 15억 이하 84㎡를 찾는다면, 지금 고를 수 있는 폭은 생각보다 빠르게 좁아지고 있었다.</p>
+<p><em>공개된 실거래 자료와 공개 정책 자료를 정리한 글이며 투자 권유가 아니다.</em></p>]]></content:encoded></item>
     <item><title>토허구역 아파트, 처음 사는 사람을 위한 매수 절차 총정리</title><link>https://geuttaeneolma.com/blog/2026-11-tohu-guide/</link><guid>https://geuttaeneolma.com/blog/2026-11-tohu-guide/</guid><pubDate>Sun, 22 Nov 2026 00:00:00 +0900</pubDate><description>서울 전역과 경기 15곳 아파트는 구청 허가를 받아야 살 수 있다. 대상 확인부터 허가 신청, 거래신고, 잔금·등기, 4개월 내 입주와 2년 실거주까지 처음 사는 사람 눈높이로 순서대로 정리했다.</description><content:encoded><![CDATA[<p>서울에서 아파트를 사려면 이제 구청 허가가 먼저다. 2025년 10월 20일부터 서울 25개 구 전체와 경기 12곳의 아파트가 토지거래허가구역(줄여서 토허구역)이 됐고, 2026년 7월 5일에는 화성 동탄구·용인 기흥구·구리시가 더해졌다. 그런데 막상 집을 보러 다니면 "가계약금은 언제 보내나", "허가증이랑 신고필증은 뭐가 다르지", "세 낀 집은 정말 못 사나" 같은 데서 막힌다.</p>
 <p>그래서 처음 집을 사는 사람이 따라 할 수 있도록 순서대로 정리했다. 법령과 국토교통부·서울시 안내를 기준으로 썼고, 이 절차가 실제 거래에 어떻게 찍혔는지는 그땐 얼마? 실거래 데이터로 확인했다.</p>
 <p>기준일은 2026년 11월 22일이다. 토허 규정은 1년에도 몇 번씩 바뀐다. 계약 전에 집이 있는 구청 토지거래허가 담당 부서에 꼭 다시 확인하자.</p>
