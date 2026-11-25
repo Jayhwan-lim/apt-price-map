@@ -5,6 +5,333 @@
     <link>https://geuttaeneolma.com/blog/</link>
     <description>그땐 얼마?의 서울·경기 아파트 실거래가 데이터로 단지를 들여다보는 글</description>
     <language>ko</language>
+    <item><title>판교·광교·동탄 10년, 판교만 따로 달렸다</title><link>https://geuttaeneolma.com/blog/2026-11-pangyo-gwanggyo-dongtan/</link><guid>https://geuttaeneolma.com/blog/2026-11-pangyo-gwanggyo-dongtan/</guid><pubDate>Thu, 26 Nov 2026 00:00:00 +0900</pubDate><description>경기 남부 2기 신도시 세 곳을 같은 단지끼리 이어 붙인 지수로 10년 따라가 봤다. 2016년을 100으로 놓으면 판교는 300, 광교는 201, 동탄은 189가 됐다. 2021년까지는 비슷했고 그 뒤에 갈렸다.</description><content:encoded><![CDATA[<p>경기 남부에서 "신도시" 하면 먼저 떠오르는 세 곳이 판교, 광교, 동탄이다. 입주 시기도 2007~2011년으로 비슷하게 시작했고, 셋 다 일자리(판교테크노밸리, 경기도청·법조타운, 삼성 반도체)를 끼고 있다. 그런데 지금 가격표를 보면 같은 신도시라고 묶기 어렵다. 최근 1년 전용 84㎡ 실거래 중앙값이 <strong>판교 18.45억, 광교 12.8억, 동탄 7.68억</strong>이다.</p>
+<p>처음부터 이렇게 벌어져 있었는지, 언제 벌어졌는지가 궁금해서 10년을 이어 봤다.</p>
+<p>결론부터 쓰면, 2016년을 100으로 놓았을 때 지금 <strong>판교는 300, 광교는 201, 동탄은 189</strong>다. 판교만 세 배가 됐다. 그런데 더 눈에 띈 건 시점이었다. <strong>2021년까지는 광교와 동탄이 똑같이 188</strong>이었고, 판교도 226으로 아주 멀리 있진 않았다. 갈린 건 2021년 이후다. 그 5년 동안 판교는 33% 올랐고 광교는 7%, 동탄은 0%였다.</p>
+<h2>어떻게 셌나</h2>
+<ul>
+<li><strong>판교</strong>는 성남 분당구 판교동·백현동·삼평동·운중동의 2008년 이후 입주 단지 38곳(약 2.1만 세대)이다. 대장동(대장지구)은 뺐다.</li>
+<li><strong>광교</strong>는 수원 영통구 이의동·하동·원천동과 용인 수지구 상현동의 2011년 이후 입주 단지 38곳(약 2.5만 세대)이다. 상현동 옛 시가지와 영흥공원 쪽처럼 신도시 밖인데 같은 동에 걸리는 단지 7곳은 뺐다.</li>
+<li><strong>동탄</strong>은 동탄1(반송동·석우동·능동, 2007년 이후)과 동탄2(청계동·영천동·오산동·여울동 등, 2015년 이후) 136곳(약 10.3만 세대)이다.</li>
+<li>실거래는 2026년 11월 24일 계약분까지, 직거래와 해제된 거래는 뺐다. 용적률 500%가 넘는 주상복합은 뺐고, 같은 단지가 두 이름으로 잡힌 경우는 합쳤다.</li>
+<li>지수는 전용 50~100㎡의 전용 3.3㎡당 가격으로 만들었다. 단지마다 연도별 중앙값(3건 이상)을 내고, <strong>같은 단지끼리 전년과 비교한 변화율의 중앙값</strong>을 이어 붙였다. 해마다 새 단지가 입주하고 거래되는 단지가 바뀌어 생기는 착시를 줄이려는 방법이다. 특히 동탄은 2015년 이후 동탄2 신축이 대거 들어와서, 그냥 연도별 평균을 내면 "신축이 들어와서 오른 것"이 섞인다.</li>
+</ul>
+<h2>10년 지수</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>연도</th>
+<th style="text-align: right;">판교</th>
+<th style="text-align: right;">광교</th>
+<th style="text-align: right;">동탄</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2016</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">100</td>
+</tr>
+<tr>
+<td>2017</td>
+<td style="text-align: right;">107</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">104</td>
+</tr>
+<tr>
+<td>2018</td>
+<td style="text-align: right;"><strong>140</strong></td>
+<td style="text-align: right;">117</td>
+<td style="text-align: right;">107</td>
+</tr>
+<tr>
+<td>2019</td>
+<td style="text-align: right;">150</td>
+<td style="text-align: right;">127</td>
+<td style="text-align: right;">113</td>
+</tr>
+<tr>
+<td>2020</td>
+<td style="text-align: right;">172</td>
+<td style="text-align: right;">157</td>
+<td style="text-align: right;">149</td>
+</tr>
+<tr>
+<td>2021</td>
+<td style="text-align: right;">226</td>
+<td style="text-align: right;"><strong>188</strong></td>
+<td style="text-align: right;"><strong>188</strong></td>
+</tr>
+<tr>
+<td>2022</td>
+<td style="text-align: right;">223</td>
+<td style="text-align: right;">171</td>
+<td style="text-align: right;">164</td>
+</tr>
+<tr>
+<td>2023</td>
+<td style="text-align: right;">198</td>
+<td style="text-align: right;">157</td>
+<td style="text-align: right;">156</td>
+</tr>
+<tr>
+<td>2024</td>
+<td style="text-align: right;">212</td>
+<td style="text-align: right;">168</td>
+<td style="text-align: right;">168</td>
+</tr>
+<tr>
+<td>2025</td>
+<td style="text-align: right;">240</td>
+<td style="text-align: right;">177</td>
+<td style="text-align: right;">172</td>
+</tr>
+<tr>
+<td>2026</td>
+<td style="text-align: right;"><strong>300</strong></td>
+<td style="text-align: right;"><strong>201</strong></td>
+<td style="text-align: right;"><strong>189</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>(각 연도 지수를 계산하는 데 쓴 단지 수는 판교 11~27곳, 광교 13~26곳, 동탄 38~118곳이다. 판교는 2022~2023년에 거래가 끊겨 11곳뿐이다.)</p>
+<p>표를 세 구간으로 나눠 읽었다.</p>
+<p><strong>2018년, 판교가 먼저 튀었다.</strong> 판교는 2018년 한 해에 31% 올랐다. 같은 해 광교는 16%, 동탄은 3%였다. 동탄은 2017~2019년 3년 동안 거의 제자리였다. 지도 데이터로 세어 보면 이 3년 동안 동탄2에 입주한 매매 단지만 약 4.4만 세대다(2018년 한 해 약 2만 세대). 물량이 한꺼번에 쏟아지던 시기다.</p>
+<p><strong>2020~2021년, 셋 다 같이 뛰었다.</strong> 이 2년 동안 동탄이 가장 많이 올랐다. 113에서 188, 66%다. 그래서 2021년에는 광교와 동탄의 지수가 같아졌다. 2016년부터 따지면 두 곳이 똑같이 88% 오른 것이다.</p>
+<p><strong>2022년 이후, 판교만 다시 올라갔다.</strong> 2021년에서 2023년까지 빠진 폭은 판교 -12.5%, 광교 -16.5%, 동탄 -17.0%였다. 판교가 가장 덜 빠졌다. 그리고 2021년 수준을 다시 넘은 건 판교가 2025년, 광교가 2026년이었다. 동탄은 2026년에 와서야 2021년 수준(189 대 188)에 겨우 닿았다. 올해 한 해만 보면 판교가 25% 올랐다. 광교 13%, 동탄 10%다.</p>
+<h2>84㎡ 가격으로 보면</h2>
+<p>지수는 비교에는 좋지만 실감이 덜 나서, 84㎡ 실거래 중앙값도 같이 봤다. 이 숫자는 그해 거래된 단지 구성이 그대로 섞인 값이다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>연도</th>
+<th style="text-align: right;">판교</th>
+<th style="text-align: right;">광교</th>
+<th style="text-align: right;">동탄</th>
+<th style="text-align: right;">판교 ÷ 동탄</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2016</td>
+<td style="text-align: right;">7.30억 (460건)</td>
+<td style="text-align: right;">5.90억 (379건)</td>
+<td style="text-align: right;">3.65억 (1,091건)</td>
+<td style="text-align: right;">2.0배</td>
+</tr>
+<tr>
+<td>2021</td>
+<td style="text-align: right;">15.65억 (98건)</td>
+<td style="text-align: right;">11.65억 (432건)</td>
+<td style="text-align: right;">7.45억 (1,841건)</td>
+<td style="text-align: right;">2.1배</td>
+</tr>
+<tr>
+<td>2023</td>
+<td style="text-align: right;">13.40억 (166건)</td>
+<td style="text-align: right;">10.20억 (416건)</td>
+<td style="text-align: right;">6.05억 (1,748건)</td>
+<td style="text-align: right;">2.2배</td>
+</tr>
+<tr>
+<td>2026</td>
+<td style="text-align: right;">18.50억 (115건)</td>
+<td style="text-align: right;">12.90억 (510건)</td>
+<td style="text-align: right;">7.74억 (3,031건)</td>
+<td style="text-align: right;">2.4배</td>
+</tr>
+</tbody>
+</table></div>
+<p>2016년에는 판교 84㎡ 한 채 값으로 동탄 84㎡ 두 채를 살 수 있었다. 지금은 2.4채다. 금액 차이로는 3.65억이 10.76억이 됐다.</p>
+<p>동탄 84㎡ 중앙값은 2021년 7.45억에서 올해 7.74억으로 4% 올랐다. 5년 동안 거래는 가장 많았는데 값은 거의 그대로였다. 앞의 지수(0%)와 같은 그림이다.</p>
+<h2>올해, 규제가 들어온 뒤</h2>
+<p>분기별 거래량(전 평형)과 84㎡ 중앙값을 붙여 봤다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>분기</th>
+<th style="text-align: right;">판교</th>
+<th style="text-align: right;">광교</th>
+<th style="text-align: right;">동탄</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025년 3분기</td>
+<td style="text-align: right;">299건 · 16.0억</td>
+<td style="text-align: right;">396건 · 11.9억</td>
+<td style="text-align: right;">1,258건 · 7.00억</td>
+</tr>
+<tr>
+<td>2025년 4분기</td>
+<td style="text-align: right;">197건 · 16.0억</td>
+<td style="text-align: right;">439건 · 12.2억</td>
+<td style="text-align: right;">2,718건 · 7.40억</td>
+</tr>
+<tr>
+<td>2026년 1분기</td>
+<td style="text-align: right;">110건 · 18.3억</td>
+<td style="text-align: right;">338건 · 12.2억</td>
+<td style="text-align: right;">2,612건 · 7.47억</td>
+</tr>
+<tr>
+<td>2026년 2분기</td>
+<td style="text-align: right;">193건 · 18.2억</td>
+<td style="text-align: right;">402건 · 12.9억</td>
+<td style="text-align: right;"><strong>3,954건</strong> · 7.60억</td>
+</tr>
+<tr>
+<td>2026년 3분기</td>
+<td style="text-align: right;">137건 · 19.2억</td>
+<td style="text-align: right;">308건 · 14.0억</td>
+<td style="text-align: right;"><strong>575건</strong> · 8.30억</td>
+</tr>
+<tr>
+<td>2026년 4분기(11월 24일까지)</td>
+<td style="text-align: right;">33건 · 20.9억</td>
+<td style="text-align: right;">130건 · 14.7억</td>
+<td style="text-align: right;">718건 · 9.12억</td>
+</tr>
+</tbody>
+</table></div>
+<p>보도를 보면 성남 분당구, 수원 영통구, 용인 수지구는 2025년 10월부터 규제지역이면서 토지거래허가구역이 됐다. 판교와 광교가 여기에 들어간다. 동탄은 그때 빠졌다가 2026년 7월부터 동탄·기흥·구리가 같은 규제로 묶였다.</p>
+<p>숫자가 그 일정과 거의 맞았다. 판교는 2025년 2분기 492건이던 거래가 2026년 1분기 110건으로 4분의 1이 됐는데, 84㎡ 중앙값은 16억 안팎에서 18억대로 올라갔다. 동탄은 규제 직전인 2026년 2분기에 거래가 3,954건으로 이 표에서 가장 많았고, 3분기에는 575건으로 85% 줄었다. 그런데 값은 7.60억에서 8.30억, 4분기에는 9.12억으로 올라 있다.</p>
+<p>거래가 줄면 중앙값은 "어떤 집이 팔렸나"에 크게 흔들린다. 4분기는 아직 신고가 덜 들어온 것도 있다. 그래서 이 표의 마지막 두 줄은 방향 정도만 읽는 게 맞다고 봤다. 그래도 세 곳 모두에서 규제 뒤 거래는 크게 줄고 값은 내려가지 않았다는 건 같았다.</p>
+<h2>지금 숫자</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align: right;">판교</th>
+<th style="text-align: right;">광교</th>
+<th style="text-align: right;">동탄</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>최근 1년 84㎡ 중앙값</td>
+<td style="text-align: right;">18.45억</td>
+<td style="text-align: right;">12.8억</td>
+<td style="text-align: right;">7.68억</td>
+</tr>
+<tr>
+<td>84㎡ 거래</td>
+<td style="text-align: right;">127건</td>
+<td style="text-align: right;">563건</td>
+<td style="text-align: right;">3,359건</td>
+</tr>
+<tr>
+<td>84㎡ 전세가율 (단지별 중앙값)</td>
+<td style="text-align: right;">39% (14곳)</td>
+<td style="text-align: right;">55% (21곳)</td>
+<td style="text-align: right;">57% (89곳)</td>
+</tr>
+</tbody>
+</table></div>
+<p>최근 1년은 2025년 11월 26일~2026년 11월 24일 계약분이다. 전세가율은 84㎡ 거래가 5건 이상이고 순수 전세 계약이 5건 이상인 단지마다 계산해서 중앙값을 냈다.</p>
+<p>이 줄이 가장 흥미로웠다. 광교와 동탄은 전세가율이 55~57%로 거의 같은데 판교만 39%다. 서울 강남3구 84㎡ 중앙값(38.8%, 11월 16일 글)과 비슷한 수준이다. 판교는 전세가가 따라오지 못할 만큼 매매가가 앞서 나갔다는 뜻으로 읽었다.</p>
+<p>단지별로도 봤다. 84㎡ 거래가 5건 이상인 단지 중 가장 비싼 곳들이다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>신도시</th>
+<th>단지</th>
+<th style="text-align: right;">입주</th>
+<th style="text-align: right;">세대수</th>
+<th style="text-align: right;">최근 1년 84㎡</th>
+<th style="text-align: right;">거래</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>판교</td>
+<td><a href="https://geuttaeneolma.com/#k=41135%7C%EB%B0%B1%ED%98%84%EB%8F%99%7C555">백현마을6단지(주공)</a></td>
+<td style="text-align: right;">2009</td>
+<td style="text-align: right;">396</td>
+<td style="text-align: right;">26.5억</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>판교</td>
+<td><a href="https://geuttaeneolma.com/#k=41135%7C%EB%B0%B1%ED%98%84%EB%8F%99%7C554">백현마을5단지(주공)</a></td>
+<td style="text-align: right;">2009</td>
+<td style="text-align: right;">584</td>
+<td style="text-align: right;">26.45억</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td>판교</td>
+<td><a href="https://geuttaeneolma.com/#k=41135%7C%EC%82%BC%ED%8F%89%EB%8F%99%7C738">봇들마을7단지</a></td>
+<td style="text-align: right;">2009</td>
+<td style="text-align: right;">585</td>
+<td style="text-align: right;">26.45억</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td>광교</td>
+<td><a href="https://geuttaeneolma.com/#k=41117%7C%EC%9D%B4%EC%9D%98%EB%8F%99%7C1344">자연앤힐스테이트</a></td>
+<td style="text-align: right;">2012</td>
+<td style="text-align: right;">1,764</td>
+<td style="text-align: right;">18.8억</td>
+<td style="text-align: right;">49</td>
+</tr>
+<tr>
+<td>광교</td>
+<td><a href="https://geuttaeneolma.com/#k=41117%7C%EC%9B%90%EC%B2%9C%EB%8F%99%7C589">광교중흥에스클래스</a></td>
+<td style="text-align: right;">2019</td>
+<td style="text-align: right;">2,231</td>
+<td style="text-align: right;">17.5억</td>
+<td style="text-align: right;">38</td>
+</tr>
+<tr>
+<td>광교</td>
+<td><a href="https://geuttaeneolma.com/#k=41117%7C%EC%9D%B4%EC%9D%98%EB%8F%99%7C1334">광교센트럴뷰</a></td>
+<td style="text-align: right;">2013</td>
+<td style="text-align: right;">701</td>
+<td style="text-align: right;">15.8억</td>
+<td style="text-align: right;">31</td>
+</tr>
+<tr>
+<td>동탄</td>
+<td><a href="https://geuttaeneolma.com/#k=41590%7C%EC%97%AC%EC%9A%B8%EB%8F%99%7C1089">동탄역롯데캐슬</a></td>
+<td style="text-align: right;">2021</td>
+<td style="text-align: right;">940</td>
+<td style="text-align: right;">18.4억</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr>
+<td>동탄</td>
+<td><a href="https://geuttaeneolma.com/#k=41590%7C%EC%B2%AD%EA%B3%84%EB%8F%99%7C519">더샵센트럴시티</a></td>
+<td style="text-align: right;">2015</td>
+<td style="text-align: right;">874</td>
+<td style="text-align: right;">14.9억</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td>동탄</td>
+<td><a href="https://geuttaeneolma.com/#k=41590%7C%EC%B2%AD%EA%B3%84%EB%8F%99%7C520">동탄역 시범한화 꿈에그린 프레스티지</a></td>
+<td style="text-align: right;">2015</td>
+<td style="text-align: right;">1,300</td>
+<td style="text-align: right;">14.3억</td>
+<td style="text-align: right;">55</td>
+</tr>
+</tbody>
+</table></div>
+<p>판교 상위 세 곳은 모두 2009년 입주, 신분당선 판교역이나 성남역까지 걸어서 10분 안쪽인 단지다. 17년 차 구축이 판교 84㎡ 맨 위에 있다. 판교에서 가장 새 단지인 <a href="https://geuttaeneolma.com/#k=41135%7C%EB%B0%B1%ED%98%84%EB%8F%99%7C608">THESHARP판교퍼스트파크</a>(2021년)는 84㎡가 15.2억으로 오히려 아래쪽이다. 역에서 멀다. 판교에서는 연식보다 역까지의 거리가 값을 갈랐다.</p>
+<p>동탄은 폭이 넓었다. 맨 위 동탄역롯데캐슬이 18.4억으로 광교 1위와 비슷한데, 84㎡ 거래 5건 이상 94곳 중 맨 아래는 5억 남짓이다. 같은 동탄 안에서 3.7배 차이다. 동탄 상위 세 곳은 모두 동탄역(SRT·GTX-A)까지 걸어서 10분 안쪽이다. "동탄"이라는 이름 하나로 묶기엔 안이 너무 다르다.</p>
+<h2>감안할 것</h2>
+<ol>
+<li><strong>신도시 경계는 법정동으로 잘랐다.</strong> 판교는 대장지구를, 광교는 상현동 옛 시가지와 영흥공원 쪽 단지를 뺐고, 입주 연도로 신도시 이전 단지를 걸렀다. 경계를 다르게 잡으면 숫자가 조금 달라진다.</li>
+<li><strong>지수는 같은 단지끼리 이은 값이라 해마다 단지 구성이 다르다.</strong> 판교는 2022~2023년에 지수를 계산한 단지가 11곳뿐이라 이 구간 숫자는 흔들릴 수 있다.</li>
+<li><strong>84㎡ 중앙값 표는 구성 효과가 섞여 있다.</strong> 특히 동탄은 2016년 이후 동탄2 신축이 늘면서 중앙값이 올라간 부분이 있다. 그래서 상승률 비교는 지수로 했다.</li>
+<li><strong>올해 4분기는 11월 24일 계약분까지이고</strong>, 신고 기한(계약 후 30일) 때문에 아직 덜 들어왔다.</li>
+<li><strong>전세는 최근 1년 순수 전세 계약 보증금 중앙값이다.</strong> 갱신 계약이 섞여 있어 새로 맺는 전세보다 낮게 나올 수 있다.</li>
+<li><strong>규제 내용은 2026년 11월 26일 기준이다.</strong> 토지거래허가구역 지정 기간과 대출 규제는 자주 바뀌니 거래 전에 꼭 다시 확인해야 한다.</li>
+<li><strong>물가는 반영하지 않았다.</strong></li>
+</ol>
+<p>정리하면, 판교·광교·동탄은 2021년까지는 비슷한 속도로 오른 "경기 남부 신도시 3형제"였다. 광교와 동탄은 2016년부터 2021년까지 오른 폭이 똑같았다. 그 뒤 5년이 갈랐다. 판교는 덜 빠지고 먼저 회복해서 지금 2016년의 세 배가 됐고, 동탄은 2021년 가격에 이제 막 돌아왔다. 판교 84㎡ 한 채는 이제 동탄 84㎡ 2.4채 값이다. 같은 시기에 입주한 신도시라도 10년 뒤 값은 이렇게 달라질 수 있다.</p>
+<p><em>공개된 실거래·건축물대장 자료를 정리한 글이며 투자 권유가 아니다.</em></p>]]></content:encoded></item>
     <item><title>토허구역 아파트, 처음 사는 사람을 위한 매수 절차 총정리</title><link>https://geuttaeneolma.com/blog/2026-11-tohu-guide/</link><guid>https://geuttaeneolma.com/blog/2026-11-tohu-guide/</guid><pubDate>Sun, 22 Nov 2026 00:00:00 +0900</pubDate><description>서울 전역과 경기 15곳 아파트는 구청 허가를 받아야 살 수 있다. 대상 확인부터 허가 신청, 거래신고, 잔금·등기, 4개월 내 입주와 2년 실거주까지 처음 사는 사람 눈높이로 순서대로 정리했다.</description><content:encoded><![CDATA[<p>서울에서 아파트를 사려면 이제 구청 허가가 먼저다. 2025년 10월 20일부터 서울 25개 구 전체와 경기 12곳의 아파트가 토지거래허가구역(줄여서 토허구역)이 됐고, 2026년 7월 5일에는 화성 동탄구·용인 기흥구·구리시가 더해졌다. 그런데 막상 집을 보러 다니면 "가계약금은 언제 보내나", "허가증이랑 신고필증은 뭐가 다르지", "세 낀 집은 정말 못 사나" 같은 데서 막힌다.</p>
 <p>그래서 처음 집을 사는 사람이 따라 할 수 있도록 순서대로 정리했다. 법령과 국토교통부·서울시 안내를 기준으로 썼고, 이 절차가 실제 거래에 어떻게 찍혔는지는 그땐 얼마? 실거래 데이터로 확인했다.</p>
 <p>기준일은 2026년 11월 22일이다. 토허 규정은 1년에도 몇 번씩 바뀐다. 계약 전에 집이 있는 구청 토지거래허가 담당 부서에 꼭 다시 확인하자.</p>
